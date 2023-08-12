@@ -4,7 +4,7 @@
 
     <groupId>org.montoni</groupId>
     <artifactId>tybaco</artifactId>
-    <version>0.1.2-SNAPSHOT</version>
+    <version>0.1.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <inceptionYear>2023</inceptionYear>
@@ -38,8 +38,7 @@
         <repository>
             <id>github</id>
             <name>GitHub Packages</name>
-            <!--suppress UnresolvedMavenProperty -->
-            <url>https://${env.CI_DEPLOY_USERNAME}:${env.CI_DEPLOY_PASSWORD}@maven.pkg.github.com/dzmauchy/tybaco</url>
+            <url>https://maven.pkg.github.com/dzmauchy/tybaco</url>
         </repository>
     </distributionManagement>
 
