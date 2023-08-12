@@ -9,6 +9,17 @@
     <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <inceptionYear>2023</inceptionYear>
+
+    <organization>
+        <name>Montoni</name>
+    </organization>
+
+    <scm>
+        <url>https://github.com/dzmauchy/tybaco.git</url>
+        <connection>scm:git:https://github.com/dzmauchy/tybaco.git</connection>
+    </scm>
+
     <properties>
         <java.version>20</java.version>
 
@@ -267,6 +278,30 @@
                         </dependency>
                     </dependencies>
                 </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>2.2.0</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.4.0</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>wagon-maven-plugin</artifactId>
+                    <version>2.0.2</version>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -277,6 +312,38 @@
                 <configuration>
                     <mavenVersion>${maven.version}</mavenVersion>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <addJavaLicenseAfterPackage>true</addJavaLicenseAfterPackage>
+                    <emptyLineAfterHeader>true</emptyLineAfterHeader>
+                    <licenseName>agpl_v3</licenseName>
+                    <roots>
+                        <root>src</root>
+                    </roots>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>update-file-headers</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>update-file-header</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>wagon-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
