@@ -14,6 +14,7 @@ jobs:
     steps:
       - name: Git User
         run: |
+          ls .
           git config user.email "dzmiter.auchynnikau@gmail.com"
           git config user.name "Dzmiter Auchynnikau"
       - name: release
