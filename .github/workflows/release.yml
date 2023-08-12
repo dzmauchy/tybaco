@@ -20,5 +20,5 @@ jobs:
       - name: release
         run: mvn release:prepare release:perform -s settings.xml -B -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}-SNAPSHOT
         env:
-          CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
-          CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
+          CI_DEPLOY_USERNAME: ${{ secrets.CI_USERNAME }}
+          CI_DEPLOY_PASSWORD: ${{ secrets.CI_PASSWORD }}
