@@ -6,7 +6,7 @@
 
     <groupId>org.montoni</groupId>
     <artifactId>tybaco</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <inceptionYear>2023</inceptionYear>
@@ -35,8 +35,13 @@
         <maven.version>3.9.4</maven.version>
     </properties>
 
-    <dependencyManagement>
-    </dependencyManagement>
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/dzmauchy/tybaco</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
