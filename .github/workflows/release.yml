@@ -1,16 +1,23 @@
 name: release
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
+    inputs:
+      releaseVersion:
+        description: "Release version"
+        required: true
+      developmentVersion:
+        description: "New develoment version"
+        required: true
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - name: Git User
+        run: |
+          git config user.email "dzmiter.auchynnikau@gmail.com"
+          git config user.name Dzmiter Auchynnikau
       - name: release
-        uses: qcastel/github-actions-maven-release@master
-        with:
-          release-branch-name: "master"
-          git-release-bot-name: "release-bot"
-          git-release-bot-email: "dzmiter.auchynnikau@gmail.com"
-          access-token: ${{ secrets.GITHUB_ACCESS_TOKEN }}
+        run: mvn release:prepare release:perform -B -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
+        env:
+          CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
+          CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
