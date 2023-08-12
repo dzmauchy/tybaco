@@ -1,4 +1,4 @@
-name: TYBACO CI
+name: CI
 on:
   - push
 jobs:
