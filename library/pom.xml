@@ -11,9 +11,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.eclipse.collections</groupId>
-            <artifactId>eclipse-collections</artifactId>
-            <version>11.1.0</version>
+            <groupId>org.eclipse.jdt</groupId>
+            <artifactId>org.eclipse.jdt.core</artifactId>
+            <version>3.34.0</version>
         </dependency>
     </dependencies>
 </project>

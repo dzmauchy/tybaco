@@ -38,12 +38,13 @@
     <properties>
         <java.version>20</java.version>
 
-        <java.compiler.source>${java.version}</java.compiler.source>
-        <java.compiler.target>${java.version}</java.compiler.target>
-        <java.compiler.release>${java.version}</java.compiler.release>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <lombok.version>1.18.28</lombok.version>
         <junit.version>5.10.0</junit.version>
 
         <maven.version>3.9.4</maven.version>
@@ -61,7 +62,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.28</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -92,8 +93,13 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.11.0</version>
                     <configuration>
-                        <enablePreview>true</enablePreview>
-                        <parameters>true</parameters>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
 
@@ -268,7 +274,6 @@
                         <threadCount>1</threadCount>
                         <parallel>none</parallel>
                         <runOrder>alphabetical</runOrder>
-                        <argLine>--enable-preview</argLine>
                         <systemPropertyVariables>
                             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         </systemPropertyVariables>
@@ -332,6 +337,14 @@
         </pluginManagement>
 
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <parameters>true</parameters>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-wrapper-plugin</artifactId>
