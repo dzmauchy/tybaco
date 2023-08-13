@@ -4,7 +4,7 @@
 
     <groupId>org.montoni</groupId>
     <artifactId>tybaco</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <inceptionYear>2023</inceptionYear>
@@ -12,6 +12,21 @@
     <organization>
         <name>Montoni</name>
     </organization>
+
+    <licenses>
+        <license>
+            <name>AGPL v3</name>
+            <url>https://www.gnu.org/licenses/agpl-3.0.html</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>dzmachy</id>
+            <name>Dzmiter Auchynnikau</name>
+            <email>dzmiter.auchynnikau@gmail.com</email>
+        </developer>
+    </developers>
 
     <scm>
         <url>https://github.com/dzmauchy/tybaco.git</url>
@@ -361,11 +376,19 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
+                    <releaseProfiles>release</releaseProfiles>
+                    <preparationProfiles>release</preparationProfiles>
                     <indentSize>4</indentSize>
-                    <!--suppress UnresolvedMavenProperty -->
-                    <username>${env.CI_DEPLOY_USERNAME}</username>
-                    <!--suppress UnresolvedMavenProperty -->
-                    <password>${env.CI_DEPLOY_PASSWORD}</password>
+                    <lineLength>160</lineLength>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <indentSize>4</indentSize>
+                    <lineLength>160</lineLength>
                 </configuration>
             </plugin>
         </plugins>
@@ -392,4 +415,40 @@
             </plugin>
         </plugins>
     </reporting>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
