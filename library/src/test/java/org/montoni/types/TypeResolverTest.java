@@ -27,12 +27,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.montoni.types.model.Atomic;
 import org.montoni.types.model.Type;
 import org.montoni.types.resolver.TypeResolver;
+import org.montoni.types.resolver.TypeResolverException;
 
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.montoni.types.model.Primitive.DOUBLE;
 import static org.montoni.types.model.Primitive.FLOAT;
@@ -51,8 +53,8 @@ class TypeResolverTest {
     @ParameterizedTest
     @MethodSource
     void simpleTypes(String expr, Type expected) {
-        var map = resolver.resolve(List.of(Map.entry("a", expr)));
-        var actual = map.get("a");
+        var map = resolver.resolve(Map.of("a", expr));
+        var actual = assertDoesNotThrow(() -> map.getType("a"));
         assertEquals(expected, actual);
     }
 
@@ -70,8 +72,8 @@ class TypeResolverTest {
     @ParameterizedTest
     @MethodSource
     void parameterizedTypes(String expr, Type expected) {
-        var map = resolver.resolve(List.of(Map.entry("a", expr)));
-        var actual = map.get("a");
+        var map = resolver.resolve(Map.of("a", expr));
+        var actual = assertDoesNotThrow(() -> map.getType("a"));
         assertEquals(expected, actual);
     }
 
@@ -85,9 +87,9 @@ class TypeResolverTest {
     @ParameterizedTest
     @MethodSource
     void errorTypes(String expr, Type expected) {
-        var map = resolver.resolve(List.of(Map.entry("a", expr)));
-        var actual = map.get("a");
-        assertEquals(expected, actual);
+        var map = resolver.resolve(Map.of("a", expr));
+        var exception = assertThrows(TypeResolverException.class, () -> map.getType("a"));
+        assertEquals(expected, exception.getType());
     }
 
     static Stream<Arguments> errorTypes() {
