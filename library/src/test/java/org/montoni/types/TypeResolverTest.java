@@ -38,6 +38,7 @@ import static org.montoni.types.model.Primitive.DOUBLE;
 import static org.montoni.types.model.Primitive.FLOAT;
 import static org.montoni.types.model.Primitive.INT;
 import static org.montoni.types.model.Primitive.LONG;
+import static org.montoni.types.model.Primitive.VOID;
 import static org.montoni.types.resolver.FrequentTypes.BOXED_INT;
 import static org.montoni.types.resolver.FrequentTypes.BOXED_LONG;
 import static org.montoni.types.resolver.FrequentTypes.listOf;
@@ -78,6 +79,20 @@ class TypeResolverTest {
         return Stream.of(
                 arguments("java.util.Arrays.asList(1)", listOf(BOXED_INT)),
                 arguments("java.util.Map.of(1, 2L)", mapOf(BOXED_INT, BOXED_LONG))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void errorTypes(String expr, Type expected) {
+        var map = resolver.resolve(List.of(Map.entry("a", expr)));
+        var actual = map.get("a");
+        assertEquals(expected, actual);
+    }
+
+    static Stream<Arguments> errorTypes() {
+        return Stream.of(
+                arguments("System.out.write(new char[0])", VOID)
         );
     }
 }
