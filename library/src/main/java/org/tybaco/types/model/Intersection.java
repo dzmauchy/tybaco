@@ -1,4 +1,4 @@
-package org.montoni.types.model;
+package org.tybaco.types.model;
 
 /*-
  * #%L
@@ -24,12 +24,10 @@ package org.montoni.types.model;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public record Parameterized(String raw, List<Type> parameters) implements Type {
+public record Intersection(List<Type> types) implements Type {
 
     @Override
     public String toString() {
-        return parameters.stream()
-                .map(Object::toString)
-                .collect(Collectors.joining(",", raw + "<", ">"));
+        return types.stream().map(Type::toString).collect(Collectors.joining(" & "));
     }
 }

@@ -1,4 +1,4 @@
-package org.montoni.types.model;
+package org.tybaco.types.model;
 
 /*-
  * #%L

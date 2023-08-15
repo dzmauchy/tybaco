@@ -1,4 +1,4 @@
-package org.montoni.types.resolver;
+package org.tybaco.types.resolver;
 
 /*-
  * #%L
@@ -21,10 +21,11 @@ package org.montoni.types.resolver;
  * #L%
  */
 
-import org.montoni.types.model.Array;
-import org.montoni.types.model.Atomic;
-import org.montoni.types.model.Parameterized;
-import org.montoni.types.model.Type;
+import org.tybaco.types.model.Array;
+import org.tybaco.types.model.Atomic;
+import org.tybaco.types.model.Parameterized;
+import org.tybaco.types.model.Type;
+import org.tybaco.types.model.Primitive;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -137,15 +138,6 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-import static org.montoni.types.model.Primitive.BOOLEAN;
-import static org.montoni.types.model.Primitive.BYTE;
-import static org.montoni.types.model.Primitive.CHAR;
-import static org.montoni.types.model.Primitive.DOUBLE;
-import static org.montoni.types.model.Primitive.FLOAT;
-import static org.montoni.types.model.Primitive.INT;
-import static org.montoni.types.model.Primitive.LONG;
-import static org.montoni.types.model.Primitive.SHORT;
-
 public class FrequentTypes {
 
     private FrequentTypes() {
@@ -162,14 +154,14 @@ public class FrequentTypes {
     public static final Atomic BOXED_SHORT = new Atomic(Byte.class.getName());
     public static final Atomic BOXED_VOID = new Atomic(Void.class.getName());
 
-    public static final Array INT_ARRAY = new Array(INT);
-    public static final Array LONG_ARRAY = new Array(LONG);
-    public static final Array BYTE_ARRAY = new Array(BYTE);
-    public static final Array SHORT_ARRAY = new Array(SHORT);
-    public static final Array CHAR_ARRAY = new Array(CHAR);
-    public static final Array BOOLEAN_ARRAY = new Array(BOOLEAN);
-    public static final Array FLOAT_ARRAY = new Array(FLOAT);
-    public static final Array DOUBLE_ARRAY = new Array(DOUBLE);
+    public static final Array INT_ARRAY = new Array(Primitive.INT);
+    public static final Array LONG_ARRAY = new Array(Primitive.LONG);
+    public static final Array BYTE_ARRAY = new Array(Primitive.BYTE);
+    public static final Array SHORT_ARRAY = new Array(Primitive.SHORT);
+    public static final Array CHAR_ARRAY = new Array(Primitive.CHAR);
+    public static final Array BOOLEAN_ARRAY = new Array(Primitive.BOOLEAN);
+    public static final Array FLOAT_ARRAY = new Array(Primitive.FLOAT);
+    public static final Array DOUBLE_ARRAY = new Array(Primitive.DOUBLE);
 
     public static final Atomic STRING = new Atomic(String.class.getName());
     public static final Atomic CHAR_SEQUENCE = new Atomic(CharSequence.class.getName());

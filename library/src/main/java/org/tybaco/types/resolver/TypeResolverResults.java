@@ -1,4 +1,4 @@
-package org.montoni.types.resolver;
+package org.tybaco.types.resolver;
 
 /*-
  * #%L
@@ -21,7 +21,8 @@ package org.montoni.types.resolver;
  * #L%
  */
 
-import org.montoni.types.model.Type;
+import org.tybaco.types.model.Type;
+import org.tybaco.types.model.Primitive;
 
 import java.util.List;
 import java.util.TreeMap;
@@ -29,7 +30,6 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
-import static org.montoni.types.model.Primitive.VOID;
 
 public final class TypeResolverResults {
 
@@ -44,9 +44,9 @@ public final class TypeResolverResults {
     public Type getType(String name) throws TypeResolverException {
         var problem = errors.get(name);
         if (problem == null) {
-            return types.getOrDefault(name, VOID);
+            return types.getOrDefault(name, Primitive.VOID);
         } else {
-            throw new TypeResolverException(name, problem, types.getOrDefault(name, VOID));
+            throw new TypeResolverException(name, problem, types.getOrDefault(name, Primitive.VOID));
         }
     }
 

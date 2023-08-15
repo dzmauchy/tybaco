@@ -1,4 +1,4 @@
-package org.montoni.types.resolver;
+package org.tybaco.types.model;
 
 /*-
  * #%L
@@ -21,28 +21,15 @@ package org.montoni.types.resolver;
  * #L%
  */
 
-import lombok.Getter;
-import org.montoni.types.model.Type;
-
 import java.util.List;
+import java.util.stream.Collectors;
 
-@Getter
-public class TypeResolverException extends Exception {
+public record Parameterized(String raw, List<Type> parameters) implements Type {
 
-    private final String name;
-    private final Type type;
-
-    public TypeResolverException(String name, List<String> messages, Type type) {
-        super("Type resolver exception at " + name, null, true, false);
-        this.type = type;
-        this.name = name;
-        messages.forEach(m -> addSuppressed(new Problem(m)));
-    }
-
-    public static final class Problem extends Exception {
-
-        private Problem(String message) {
-            super(message, null, false, false);
-        }
+    @Override
+    public String toString() {
+        return parameters.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(",", raw + "<", ">"));
     }
 }

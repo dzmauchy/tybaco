@@ -1,4 +1,4 @@
-package org.montoni.types;
+package org.tybaco.types;
 
 /*-
  * #%L
@@ -24,10 +24,10 @@ package org.montoni.types;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.montoni.types.model.Atomic;
-import org.montoni.types.model.Type;
-import org.montoni.types.resolver.TypeResolver;
-import org.montoni.types.resolver.TypeResolverException;
+import org.tybaco.types.model.Atomic;
+import org.tybaco.types.model.Type;
+import org.tybaco.types.resolver.TypeResolver;
+import org.tybaco.types.resolver.TypeResolverException;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -36,15 +36,15 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.montoni.types.model.Primitive.DOUBLE;
-import static org.montoni.types.model.Primitive.FLOAT;
-import static org.montoni.types.model.Primitive.INT;
-import static org.montoni.types.model.Primitive.LONG;
-import static org.montoni.types.model.Primitive.VOID;
-import static org.montoni.types.resolver.FrequentTypes.BOXED_INT;
-import static org.montoni.types.resolver.FrequentTypes.BOXED_LONG;
-import static org.montoni.types.resolver.FrequentTypes.listOf;
-import static org.montoni.types.resolver.FrequentTypes.mapOf;
+import static org.tybaco.types.model.Primitive.DOUBLE;
+import static org.tybaco.types.model.Primitive.FLOAT;
+import static org.tybaco.types.model.Primitive.INT;
+import static org.tybaco.types.model.Primitive.LONG;
+import static org.tybaco.types.model.Primitive.VOID;
+import static org.tybaco.types.resolver.FrequentTypes.BOXED_INT;
+import static org.tybaco.types.resolver.FrequentTypes.BOXED_LONG;
+import static org.tybaco.types.resolver.FrequentTypes.listOf;
+import static org.tybaco.types.resolver.FrequentTypes.mapOf;
 
 class TypeResolverTest {
 

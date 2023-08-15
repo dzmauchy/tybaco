@@ -1,4 +1,4 @@
-package org.montoni.types.resolver;
+package org.tybaco.types.resolver;
 
 /*-
  * #%L
@@ -29,16 +29,19 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import static java.lang.System.Logger.Level.ERROR;
+import static java.util.Map.entry;
 import static org.eclipse.jdt.core.JavaCore.COMPILER_ANNOTATION_NULL_ANALYSIS;
+import static org.eclipse.jdt.core.JavaCore.COMPILER_PB_UNUSED_IMPORT;
 import static org.eclipse.jdt.core.JavaCore.COMPILER_PB_UNUSED_LOCAL;
+import static org.eclipse.jdt.core.JavaCore.COMPILER_PB_UNUSED_PARAMETER;
 import static org.eclipse.jdt.core.JavaCore.COMPILER_RELEASE;
 import static org.eclipse.jdt.core.JavaCore.COMPILER_SOURCE;
 
@@ -47,25 +50,20 @@ public final class TypeResolver {
     private final String name;
     private final ASTParser parser;
 
-    public TypeResolver(String name, String[] libraries, String[] sources) {
-        this.name = name;
+    public TypeResolver(String projectName, String[] libraries, String[] sources) {
+        name = projectName;
         parser = ASTParser.newParser(AST.JLS20);
         parser.setResolveBindings(true);
         parser.setBindingsRecovery(true);
         parser.setStatementsRecovery(true);
         parser.setKind(ASTParser.K_COMPILATION_UNIT);
-        parser.setCompilerOptions(Map.of(
-                COMPILER_RELEASE, "enabled",
-                COMPILER_SOURCE, "20",
-                COMPILER_ANNOTATION_NULL_ANALYSIS, "enabled",
-                COMPILER_PB_UNUSED_LOCAL, "ignore"
-        ));
+        parser.setCompilerOptions(options());
         parser.setUnitName(name + ".java");
         parser.setEnvironment(libraries, sources, encodings(sources), true);
     }
 
     public TypeResolverResults resolve(Map<String, String> expressions) {
-        var lines = new ArrayList<String>(expressions.size() + 3);
+        var lines = new LinkedList<String>();
         var lineMap = new TreeMap<Integer, String>();
         lines.add("public class " + name + " {");
         lines.add("public void method() {");
@@ -89,25 +87,34 @@ public final class TypeResolver {
                 }
             });
             for (var problem : cu.getProblems()) {
-                var lineNo = problem.getSourceLineNumber();
-                var entry = lineMap.floorEntry(lineNo);
+                var entry = lineMap.floorEntry(problem.getSourceLineNumber());
                 if (entry == null) {
                     var logger = System.getLogger(TypeResolver.class.getName());
                     logger.log(ERROR, () -> "Problem " + problem);
                 } else {
                     var var = entry.getValue();
-                    var msg = format(problem);
                     if (problem.isError()) {
-                        results.errors.compute(var, (v, l) -> add(l, msg));
+                        results.errors.compute(var, (v, l) -> add(l, format(problem)));
                     } else if (problem.isWarning()) {
-                        results.warns.compute(var, (v, l) -> add(l, msg));
+                        results.warns.compute(var, (v, l) -> add(l, format(problem)));
                     } else {
-                        results.infos.compute(var, (v, l) -> add(l, msg));
+                        results.infos.compute(var, (v, l) -> add(l, format(problem)));
                     }
                 }
             }
         }
         return results;
+    }
+
+    private static Map<String, String> options() {
+        return Map.ofEntries(
+                entry(COMPILER_RELEASE, "enabled"),
+                entry(COMPILER_SOURCE, "20"),
+                entry(COMPILER_ANNOTATION_NULL_ANALYSIS, "enabled"),
+                entry(COMPILER_PB_UNUSED_LOCAL, "ignore"),
+                entry(COMPILER_PB_UNUSED_PARAMETER, "ignore"),
+                entry(COMPILER_PB_UNUSED_IMPORT, "ignore")
+        );
     }
 
     public static String format(IProblem problem) {

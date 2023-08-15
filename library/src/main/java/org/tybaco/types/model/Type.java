@@ -1,4 +1,4 @@
-package org.montoni.types.model;
+package org.tybaco.types.model;
 
 /*-
  * #%L
@@ -21,9 +21,5 @@ package org.montoni.types.model;
  * #L%
  */
 
-public record Atomic(String qualifiedName) implements Type {
-    @Override
-    public String toString() {
-        return qualifiedName;
-    }
+public sealed interface Type permits Array, Atomic, Intersection, Parameterized, Primitive, Wildcard {
 }

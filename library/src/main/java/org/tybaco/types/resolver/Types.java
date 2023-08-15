@@ -1,4 +1,4 @@
-package org.montoni.types.resolver;
+package org.tybaco.types.resolver;
 
 /*-
  * #%L
@@ -22,13 +22,13 @@ package org.montoni.types.resolver;
  */
 
 import org.eclipse.jdt.core.dom.ITypeBinding;
-import org.montoni.types.model.Array;
-import org.montoni.types.model.Atomic;
-import org.montoni.types.model.Intersection;
-import org.montoni.types.model.Parameterized;
-import org.montoni.types.model.Primitive;
-import org.montoni.types.model.Type;
-import org.montoni.types.model.Wildcard;
+import org.tybaco.types.model.Array;
+import org.tybaco.types.model.Atomic;
+import org.tybaco.types.model.Intersection;
+import org.tybaco.types.model.Parameterized;
+import org.tybaco.types.model.Primitive;
+import org.tybaco.types.model.Type;
+import org.tybaco.types.model.Wildcard;
 
 import java.util.stream.Stream;
 

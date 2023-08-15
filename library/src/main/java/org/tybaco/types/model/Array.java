@@ -1,4 +1,4 @@
-package org.montoni.types.model;
+package org.tybaco.types.model;
 
 /*-
  * #%L
@@ -21,5 +21,5 @@ package org.montoni.types.model;
  * #L%
  */
 
-public sealed interface Type permits Array, Atomic, Intersection, Parameterized, Primitive, Wildcard {
+public record Array(Type component) implements Type {
 }

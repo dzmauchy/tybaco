@@ -1,4 +1,4 @@
-package org.montoni.types.model;
+package org.tybaco.types.model;
 
 /*-
  * #%L
@@ -21,5 +21,18 @@ package org.montoni.types.model;
  * #L%
  */
 
-public record Array(Type component) implements Type {
+public record Wildcard(Type bound, boolean upper) implements Type {
+
+    @Override
+    public String toString() {
+        var builder = new StringBuilder("?");
+        if (upper) {
+            if (!bound.toString().equals("java.lang.Object")) {
+                builder.append(" extends ").append(bound);
+            }
+        } else {
+            builder.append(" super ").append(bound);
+        }
+        return builder.toString();
+    }
 }

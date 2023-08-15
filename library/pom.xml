@@ -7,7 +7,8 @@
         <version>0.1.8-SNAPSHOT</version>
     </parent>
 
-    <artifactId>library</artifactId>
+    <name>library</name>
+    <artifactId>tybaco-library</artifactId>
 
     <dependencies>
         <dependency>
