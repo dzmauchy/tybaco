@@ -21,19 +21,28 @@ package org.tybaco.types.resolver;
  * #L%
  */
 
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.tybaco.types.model.Type;
-import org.tybaco.types.model.Primitive;
+import org.tybaco.types.resolver.Method.Arg;
 
 import java.util.List;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
+import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.IntStream.range;
+import static org.eclipse.jdt.core.dom.Modifier.PUBLIC;
+import static org.eclipse.jdt.core.dom.Modifier.STATIC;
+import static org.eclipse.jdt.core.dom.Modifier.isPublic;
+import static org.eclipse.jdt.core.dom.Modifier.isStatic;
+import static org.tybaco.types.model.Primitive.VOID;
 
 public final class TypeResolverResults {
 
-    final TreeMap<String, Type> types = new TreeMap<>();
+    final TreeMap<String, ITypeBinding> types = new TreeMap<>();
     final TreeMap<String, List<String>> errors = new TreeMap<>();
     final TreeMap<String, List<String>> warns = new TreeMap<>();
     final TreeMap<String, List<String>> infos = new TreeMap<>();
@@ -41,13 +50,95 @@ public final class TypeResolverResults {
     TypeResolverResults() {
     }
 
-    public Type getType(String name) throws TypeResolverException {
-        var problem = errors.get(name);
-        if (problem == null) {
-            return types.getOrDefault(name, Primitive.VOID);
-        } else {
-            throw new TypeResolverException(name, problem, types.getOrDefault(name, Primitive.VOID));
+    public Type getType(String name) {
+        return type(types.get(name));
+    }
+
+    public Stream<Method> staticFactories(String name) {
+        var type = types.get(name);
+        if (type == null) {
+            return Stream.empty();
         }
+        return stream(type.getDeclaredMethods())
+                .filter(m -> !m.isConstructor() && (m.getModifiers() & (PUBLIC | STATIC)) != 0)
+                .map(m -> {
+                    var types = m.getParameterTypes();
+                    var args = range(0, types.length).mapToObj(i -> new Arg(types[i], i)).toList();
+                    return new Method(type, name, m, args);
+                });
+    }
+
+    public Stream<Method> factories(String name) {
+        var type = types.get(name);
+        if (type == null) {
+            return Stream.empty();
+        }
+        return stream(type.getDeclaredMethods())
+                .filter(m -> !m.isConstructor() && isPublic(m.getModifiers()) && !isStatic(m.getModifiers()))
+                .flatMap(m -> {
+                    var types = m.getParameterTypes();
+                    if (types.length < 2) {
+                        return Stream.empty();
+                    }
+                    var args = range(0, types.length).mapToObj(i -> new Arg(types[i], i)).toList();
+                    return Stream.of(new Method(type, name, m, args));
+                });
+    }
+
+    public Stream<Method> inputs(String name) {
+        var type = types.get(name);
+        if (type == null) {
+            return Stream.empty();
+        }
+        return stream(type.getDeclaredMethods())
+                .filter(m -> !m.isConstructor() && isPublic(m.getModifiers()) && !isStatic(m.getModifiers()))
+                .flatMap(m -> {
+                    var types = m.getParameterTypes();
+                    if (types.length != 1) {
+                        return Stream.empty();
+                    }
+                    var args = singletonList(new Arg(types[0], 0));
+                    return Stream.of(new Method(type, name, m, args));
+                });
+    }
+
+    public Stream<Method> outputs(String name) {
+        var type = types.get(name);
+        if (type == null) {
+            return Stream.empty();
+        }
+        return stream(type.getDeclaredMethods())
+                .filter(m -> !m.isConstructor() && isPublic(m.getModifiers()) && !isStatic(m.getModifiers()))
+                .flatMap(m -> {
+                    if (m.getParameterTypes().length != 0) {
+                        return Stream.empty();
+                    }
+                    return Stream.of(new Method(type, name, m, emptyList()));
+                });
+    }
+
+    public boolean isAssignmentCompatibleF(String name, Arg arg) {
+        var type = types.get(name);
+        return type != null && type.isAssignmentCompatible(arg.type);
+    }
+
+    public boolean isAssignmentCompatibleB(String name, Arg arg) {
+        var type = types.get(name);
+        return type != null && arg.type.isAssignmentCompatible(type);
+    }
+
+    public boolean isSubtypeCompatibleF(String name, Arg arg) {
+        var type = types.get(name);
+        return type != null && type.isSubTypeCompatible(arg.type);
+    }
+
+    public boolean isSubtypeCompatibleB(String name, Arg arg) {
+        var type = types.get(name);
+        return type != null && arg.type.isSubTypeCompatible(type);
+    }
+
+    private Type type(ITypeBinding type) {
+        return type == null ? VOID : Types.from(type);
     }
 
     public List<String> getErrors(String name) {

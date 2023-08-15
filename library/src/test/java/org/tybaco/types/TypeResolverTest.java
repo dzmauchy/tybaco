@@ -21,30 +21,33 @@ package org.tybaco.types;
  * #L%
  */
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.tybaco.types.model.Atomic;
 import org.tybaco.types.model.Type;
 import org.tybaco.types.resolver.TypeResolver;
-import org.tybaco.types.resolver.TypeResolverException;
 
+import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.tybaco.types.model.Primitive.DOUBLE;
 import static org.tybaco.types.model.Primitive.FLOAT;
 import static org.tybaco.types.model.Primitive.INT;
 import static org.tybaco.types.model.Primitive.LONG;
 import static org.tybaco.types.model.Primitive.VOID;
-import static org.tybaco.types.resolver.FrequentTypes.BOXED_INT;
-import static org.tybaco.types.resolver.FrequentTypes.BOXED_LONG;
-import static org.tybaco.types.resolver.FrequentTypes.listOf;
-import static org.tybaco.types.resolver.FrequentTypes.mapOf;
+import static org.tybaco.types.resolver.CommonTypes.BOXED_INT;
+import static org.tybaco.types.resolver.CommonTypes.BOXED_LONG;
+import static org.tybaco.types.resolver.CommonTypes.listOf;
+import static org.tybaco.types.resolver.CommonTypes.mapOf;
 
 class TypeResolverTest {
 
@@ -65,7 +68,8 @@ class TypeResolverTest {
                 arguments("1d + 23", DOUBLE),
                 arguments("1f + 23", FLOAT),
                 arguments("\"abc\"", new Atomic("java.lang.String")),
-                arguments("(Integer) 1", new Atomic("java.lang.Integer"))
+                arguments("(Integer) 1", new Atomic("java.lang.Integer")),
+                arguments("2", INT)
         );
     }
 
@@ -88,13 +92,43 @@ class TypeResolverTest {
     @MethodSource
     void errorTypes(String expr, Type expected) {
         var map = resolver.resolve(Map.of("a", expr));
-        var exception = assertThrows(TypeResolverException.class, () -> map.getType("a"));
-        assertEquals(expected, exception.getType());
+        assertTrue(map.hasErrors());
+        assertFalse(map.getErrors("a").isEmpty());
+        assertEquals(expected, map.getType("a"));
     }
 
     static Stream<Arguments> errorTypes() {
         return Stream.of(
                 arguments("System.out.write(new char[0])", VOID)
         );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void resolveTypes(String type, boolean hasErrors, Type expected) {
+        var map = resolver.resolveTypes(List.of(type));
+        assertEquals(hasErrors, map.hasErrors());
+        assertEquals(expected, map.getType(type));
+    }
+
+    static Stream<Arguments> resolveTypes() {
+        return Stream.of(
+                arguments("java.util.List", false, new Atomic(List.class.getName())),
+                arguments("int", false, INT)
+        );
+    }
+
+    @Test
+    void staticFactories() {
+        var mapExpr = resolver.resolve(Map.of("a", "2"));
+        var mapTypes = resolver.resolveTypes(List.of("java.util.List"));
+        var method = mapTypes.staticFactories("java.util.List")
+                .filter(m -> m.getArgs().size() == 1)
+                .filter(m -> !m.isVarargs())
+                .filter(m -> m.getName().equals("of"))
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("No method found: List.of(arg)"));
+        assertEquals(1, method.getArgs().size());
+        assertTrue(mapExpr.isAssignmentCompatibleF("a", method.getArgs().get(0)));
     }
 }

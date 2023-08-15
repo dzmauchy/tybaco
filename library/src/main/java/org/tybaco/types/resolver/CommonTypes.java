@@ -138,9 +138,9 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-public class FrequentTypes {
+public class CommonTypes {
 
-    private FrequentTypes() {
+    private CommonTypes() {
         throw new UnsupportedOperationException();
     }
 
