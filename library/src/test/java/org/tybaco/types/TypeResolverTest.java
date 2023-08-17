@@ -25,110 +25,154 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.tybaco.types.model.Atomic;
-import org.tybaco.types.model.Type;
 import org.tybaco.types.resolver.TypeResolver;
 
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static java.util.Map.entry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.tybaco.types.model.Primitive.DOUBLE;
-import static org.tybaco.types.model.Primitive.FLOAT;
-import static org.tybaco.types.model.Primitive.INT;
-import static org.tybaco.types.model.Primitive.LONG;
-import static org.tybaco.types.model.Primitive.VOID;
-import static org.tybaco.types.resolver.CommonTypes.BOXED_INT;
-import static org.tybaco.types.resolver.CommonTypes.BOXED_LONG;
-import static org.tybaco.types.resolver.CommonTypes.listOf;
-import static org.tybaco.types.resolver.CommonTypes.mapOf;
 
 class TypeResolverTest {
 
-    private final TypeResolver resolver = new TypeResolver("Test", new String[0], new String[0]);
+    private final TypeResolver resolver = new TypeResolver("Test", new String[0]);
 
     @ParameterizedTest
     @MethodSource
-    void simpleTypes(String expr, Type expected) {
-        var map = resolver.resolve(Map.of("a", expr));
-        var actual = assertDoesNotThrow(() -> map.getType("a"));
-        assertEquals(expected, actual);
+    void primitiveTypeResolve(String expr, String expected) {
+        var results = resolver.resolve(Map.of("a", expr));
+        var type = results.getType("a");
+        assertTrue(type.isPrimitive());
+        assertEquals(expected, type.toString());
     }
 
-    static Stream<Arguments> simpleTypes() {
+    private static Stream<Arguments> primitiveTypeResolve() {
         return Stream.of(
-                arguments("1 + 10", INT),
-                arguments("1L + 19", LONG),
-                arguments("1d + 23", DOUBLE),
-                arguments("1f + 23", FLOAT),
-                arguments("\"abc\"", new Atomic("java.lang.String")),
-                arguments("(Integer) 1", new Atomic("java.lang.Integer")),
-                arguments("2", INT)
+                arguments("1", "int"),
+                arguments("2 + 3L", "long"),
+                arguments("3d + 4f", "double"),
+                arguments("4 == 3", "boolean"),
+                arguments("\"a\".toCharArray()[0]", "char")
         );
     }
 
     @ParameterizedTest
     @MethodSource
-    void parameterizedTypes(String expr, Type expected) {
-        var map = resolver.resolve(Map.of("a", expr));
-        var actual = assertDoesNotThrow(() -> map.getType("a"));
-        assertEquals(expected, actual);
+    void typeResolve(String expr, String expected) {
+        var results = resolver.resolve(Map.of("a", expr));
+        var type = results.getType("a");
+        assertEquals(expected, type.toString());
     }
 
-    static Stream<Arguments> parameterizedTypes() {
+    private static Stream<Arguments> typeResolve() {
         return Stream.of(
-                arguments("java.util.Arrays.asList(1)", listOf(BOXED_INT)),
-                arguments("java.util.Map.of(1, 2L)", mapOf(BOXED_INT, BOXED_LONG))
+                arguments("int.class", "java.lang.Class<java.lang.Integer>"),
+                arguments("java.util.List.class", "java.lang.Class<java.util.List>")
         );
     }
 
     @ParameterizedTest
     @MethodSource
-    void errorTypes(String expr, Type expected) {
-        var map = resolver.resolve(Map.of("a", expr));
-        assertTrue(map.hasErrors());
-        assertFalse(map.getErrors("a").isEmpty());
-        assertEquals(expected, map.getType("a"));
+    void resolve(Map<String, String> map, Map<String, String> expected) {
+        var results = resolver.resolve(map);
+        map.forEach((k, v) -> {
+            var e = expected.get(k);
+            assertNotNull(e, () -> "No key %s in %s".formatted(k, expected));
+            var r = results.getType(k);
+            assertNotNull(r, () -> "No type found for %s".formatted(k));
+            assertEquals(r.toString(), e);
+        });
     }
 
-    static Stream<Arguments> errorTypes() {
+    private static Stream<Arguments> resolve() {
         return Stream.of(
-                arguments("System.out.write(new char[0])", VOID)
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource
-    void resolveTypes(String type, boolean hasErrors, Type expected) {
-        var map = resolver.resolveTypes(List.of(type));
-        assertEquals(hasErrors, map.hasErrors());
-        assertEquals(expected, map.getType(type));
-    }
-
-    static Stream<Arguments> resolveTypes() {
-        return Stream.of(
-                arguments("java.util.List", false, new Atomic(List.class.getName())),
-                arguments("int", false, INT)
+                arguments(
+                        linkedMap(
+                                entry("a", "3"),
+                                entry("b", "java.util.List.of(a)")
+                        ),
+                        Map.ofEntries(
+                                entry("a", "int"),
+                                entry("b", "java.util.List<java.lang.Integer>")
+                        )
+                )
         );
     }
 
     @Test
-    void staticFactories() {
-        var mapExpr = resolver.resolve(Map.of("a", "2"));
-        var mapTypes = resolver.resolveTypes(List.of("java.util.List"));
-        var method = mapTypes.staticFactories("java.util.List")
-                .filter(m -> m.getArgs().size() == 1)
-                .filter(m -> !m.isVarargs())
+    void assignability() {
+        var r = resolver.resolve(Map.of("a", "java.util.List.class", "b", "3", "c", "\"\""));
+
+        var a = r.getType("a");
+        var b = r.getType("b");
+        var c = r.getType("c");
+        assertNotNull(a);
+        assertNotNull(b);
+        assertNotNull(c);
+
+        assertTrue(a.isParameterized());
+
+        var p = a.getTypeParameter(0);
+        assertTrue(p.isRaw());
+        var pa = p.getActual();
+        assertFalse(pa.isRaw());
+
+        var method = r.staticFactories(p)
                 .filter(m -> m.getName().equals("of"))
+                .filter(m -> !m.isVarargs())
+                .filter(m -> m.getArgs().size() == 1)
                 .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("No method found: List.of(arg)"));
-        assertEquals(1, method.getArgs().size());
-        assertTrue(mapExpr.isAssignmentCompatibleF("a", method.getArgs().get(0)));
+                .orElseThrow();
+        var arg = method.getArgs().get(0);
+        var argType = arg.getType();
+
+        assertTrue(r.isAssignable(a, argType));
+    }
+
+    @Test
+    void complexAssignability() {
+        var r = resolver.resolve(Map.of("a", "A.class", "b", "3", "c", "java.time.temporal.ChronoUnit.DAYS"), """
+                class A {
+                    public static <E extends Enum<E>> java.util.List<E> listOfEnums(E elem) {
+                        return java.util.List.of(elem);
+                    }
+                }
+                """);
+
+        var a = r.getType("a");
+        var b = r.getType("b");
+        var c = r.getType("c");
+        assertNotNull(a);
+        assertNotNull(b);
+        assertNotNull(c);
+
+        assertTrue(a.isParameterized());
+
+        var p = a.getTypeParameter(0);
+
+        var method = r.staticFactories(p)
+                .filter(m -> m.getName().equals("listOfEnums"))
+                .findFirst()
+                .orElseThrow();
+        var arg = method.getArgs().get(0);
+        var argType = arg.getType();
+
+        assertFalse(r.isAssignable(a, argType));
+        assertFalse(r.isAssignable(b, argType));
+        assertTrue(r.isAssignable(c, argType));
+    }
+
+    @SafeVarargs
+    private static <K, V> LinkedHashMap<K, V> linkedMap(Map.Entry<K, V>... entries) {
+        var map = new LinkedHashMap<K, V>(entries.length);
+        for (var entry: entries) {
+            map.put(entry.getKey(), entry.getValue());
+        }
+        return map;
     }
 }

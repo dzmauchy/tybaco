@@ -13,7 +13,7 @@
     <dependencies>
         <dependency>
             <groupId>org.eclipse.jdt</groupId>
-            <artifactId>org.eclipse.jdt.core</artifactId>
+            <artifactId>ecj</artifactId>
             <version>3.34.0</version>
         </dependency>
     </dependencies>

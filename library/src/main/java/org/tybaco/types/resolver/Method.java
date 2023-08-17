@@ -24,21 +24,20 @@ package org.tybaco.types.resolver;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jdt.core.dom.IMethodBinding;
-import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 import java.util.List;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 public final class Method {
 
-    final ITypeBinding owner;
-    @Getter private final String parent;
-    final IMethodBinding method;
+    final TypeBinding owner;
+    final MethodBinding method;
     @Getter private final List<Arg> args;
 
     public String getName() {
-        return method.getName();
+        return new String(method.selector);
     }
 
     public boolean isVarargs() {
@@ -48,7 +47,11 @@ public final class Method {
     @AllArgsConstructor(access = AccessLevel.PACKAGE)
     public static final class Arg {
 
-        final ITypeBinding type;
+        final TypeBinding type;
         @Getter private final int index;
+
+        public ResolvedType getType() {
+            return new ResolvedType(type);
+        }
     }
 }
