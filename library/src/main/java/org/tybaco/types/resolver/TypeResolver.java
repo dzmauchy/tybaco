@@ -35,26 +35,25 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static java.util.logging.Level.WARNING;
-import static org.tybaco.types.resolver.TypeResolverResults.add;
+import static org.tybaco.types.resolver.ResolvedTypes.add;
 
 @Log
 public final class TypeResolver implements AutoCloseable {
 
-    private final EcjHelper helper = new EcjHelper();
     private final String name;
     private final Compiler compiler;
 
     public TypeResolver(String projectName, String[] libraries) {
         name = projectName;
-        compiler = helper.compiler(libraries);
+        compiler = new EcjHelper().compiler(libraries);
     }
 
-    public TypeResolverResults resolve(Map<String, String> expressions, String... additionalLines) {
+    public ResolvedTypes resolve(Map<String, String> expressions, String... additionalLines) {
         if (compiler.unitsToProcess != null) compiler.reset();
         var decls = new ConcurrentLinkedQueue<LocalDeclaration>();
-        var u = new CompilationUnit(code(expressions, additionalLines), name + ".java", "UTF-8");
+        var u = new CompilationUnit(code(expressions, additionalLines), name + ".java", "UTF-8", null, true, null);
         var r = compiler.resolve(u, true, true, false);
-        var results = new TypeResolverResults(r.scope);
+        var results = new ResolvedTypes(r);
         for (var ct : r.types) {
             ct.traverse(new ASTVisitor() {
                 @Override
@@ -68,22 +67,17 @@ public final class TypeResolver implements AutoCloseable {
             }, r.scope);
         }
         var problems = r.compilationResult.getProblems();
-        if (problems == null || problems.length == 0) return results;
+        if (problems == null) return results;
+
         PROBLEMS:
         for (var p : problems) {
             for (var decl : decls) {
                 if (p.getSourceStart() >= decl.sourceStart && p.getSourceEnd() <= decl.sourceEnd) {
                     var var = String.valueOf(decl.name);
-                    if (p.isError()) {
-                        results.errors.compute(var, (k, o) -> add(o, formatProblem(p)));
-                    } else if (p.isWarning()) {
-                        results.warns.compute(var, (k, o) -> add(o, formatProblem(p)));
-                    } else {
-                        results.infos.compute(var, (k, o) -> add(o, formatProblem(p)));
-                    }
+                    var map = p.isError() ? results.errors : p.isWarning() ? results.warns : results.infos;
+                    map.compute(var, (k, o) -> add(o, formatProblem(p)));
                     continue PROBLEMS;
                 }
-
             }
             log.log(WARNING, "{0}", formatProblem(p));
         }
@@ -91,8 +85,7 @@ public final class TypeResolver implements AutoCloseable {
     }
 
     private char[] code(Map<String, String> expressions, String... additionalLines) {
-        var charStream = new CharArrayWriter();
-        charStream
+        var charStream = new CharArrayWriter(512)
                 .append("public class ")
                 .append(name)
                 .append(" {").append(System.lineSeparator())

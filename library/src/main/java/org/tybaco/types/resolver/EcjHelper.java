@@ -88,11 +88,10 @@ final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
     }
 
     private FileSystem fileSystem(String[] libraries) {
-        var cps = Stream.concat(
-                Stream.of(libraries).map(lib -> getClasspath(lib, "UTF-8", null, null, JAVA_VERSION)),
-                Stream.of(getJrtClasspath(System.getProperty("java.home"), "UTF-8", null, null))
-        ).toArray(FileSystem.Classpath[]::new);
-        return new FileSystem(cps, null, true) {
+        var jrtClasspath = Stream.of(getJrtClasspath(System.getProperty("java.home"), "UTF-8", null, null));
+        var libClasspath = Stream.of(libraries).map(lib -> getClasspath(lib, "UTF-8", null, null, JAVA_VERSION));
+        var cps = Stream.concat(jrtClasspath, libClasspath).toArray(FileSystem.Classpath[]::new);
+        return new FileSystem(cps, null, false, null) {
         };
     }
 

@@ -23,22 +23,19 @@ package org.tybaco.types.resolver;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
 import org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.eclipse.jdt.internal.compiler.lookup.IntersectionTypeBinding18;
-import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 import org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
-import org.tybaco.types.resolver.Method.Arg;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.BiConsumer;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
@@ -46,9 +43,10 @@ import static java.util.Collections.emptyList;
 import static org.eclipse.jdt.internal.compiler.lookup.Scope.convertEliminatingTypeVariables;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public final class TypeResolverResults {
+public final class ResolvedTypes {
 
-    private final CompilationUnitScope scope;
+    private final CompilationUnitDeclaration cu;
+
     final ConcurrentSkipListMap<String, TypeBinding> types = new ConcurrentSkipListMap<>();
     final ConcurrentSkipListMap<String, List<String>> errors = new ConcurrentSkipListMap<>();
     final ConcurrentSkipListMap<String, List<String>> warns = new ConcurrentSkipListMap<>();
@@ -60,59 +58,45 @@ public final class TypeResolverResults {
     }
 
     public ResolvedType typeOf(String... parts) {
-        var compoundName = new char[parts.length][];
-        for (int i = 0; i < parts.length; i++) {
-            compoundName[i] = parts[i].toCharArray();
-        }
-        return new ResolvedType(scope.getType(compoundName, parts.length));
+        var compoundName = stream(parts).map(String::toCharArray).toArray(char[][]::new);
+        return new ResolvedType(cu.scope.getType(compoundName, parts.length));
     }
 
     public ResolvedType array(ResolvedType type, int dimension) {
-        return new ResolvedType(scope.createArrayType(type.type, dimension));
+        return new ResolvedType(cu.scope.createArrayType(type.type, dimension));
     }
 
     public ResolvedType boxed(ResolvedType type) {
-        return new ResolvedType(scope.boxing(type.type));
-    }
-
-    private static Method method(ResolvedType type, MethodBinding m) {
-        var args = IntStream.range(0, m.parameters.length)
-                .mapToObj(i -> new Arg(m.parameters[i], i))
-                .toList();
-        return new Method(type.type, m, args);
+        return new ResolvedType(cu.scope.boxing(type.type));
     }
 
     public Stream<Method> staticFactories(ResolvedType type) {
         return type.methods()
-                .filter(MethodBinding::isStatic)
-                .filter(MethodBinding::isPublic)
-                .map(m -> method(type, m));
+                .filter(m -> m.isStatic() && m.isPublic())
+                .map(m -> new Method(type.type, m));
     }
 
     public Stream<Method> factories(ResolvedType type) {
         return type.methods()
-                .filter(MethodBinding::isPublic)
-                .filter(m -> m.parameters.length > 1)
-                .map(m -> method(type, m));
+                .filter(m -> m.isPublic() && !m.isStatic() && m.parameters.length > 1)
+                .map(m -> new Method(type.type, m));
     }
 
     public Stream<Method> inputs(ResolvedType type) {
         return type.methods()
-                .filter(MethodBinding::isPublic)
-                .filter(m -> m.parameters.length == 1)
-                .map(m -> method(type, m));
+                .filter(m -> m.isPublic() && !m.isStatic() && m.parameters.length == 1)
+                .map(m -> new Method(type.type, m));
     }
 
     public Stream<Method> outputs(ResolvedType type) {
         return type.methods()
-                .filter(MethodBinding::isPublic)
-                .filter(m -> m.parameters.length == 0)
-                .map(m -> method(type, m));
+                .filter(m -> m.isPublic() && !m.isStatic() && m.parameters.length == 0)
+                .map(m -> new Method(type.type, m));
     }
 
     public boolean isAssignable(ResolvedType from, ResolvedType to) {
         var grounded = ground(to.type);
-        return from.type.isBoxingCompatibleWith(grounded, scope);
+        return from.type.isBoxingCompatibleWith(grounded, cu.scope);
     }
 
     private TypeBinding ground(TypeBinding b) {
@@ -132,7 +116,7 @@ public final class TypeResolverResults {
         } else if (b instanceof IntersectionTypeBinding18 t) {
             return new IntersectionTypeBinding18(
                     stream(t.intersectingTypes).map(e -> (ReferenceBinding) ground(e)).toArray(ReferenceBinding[]::new),
-                    scope.environment
+                    cu.scope.environment
             );
         } else if (b instanceof WildcardBinding t) {
             return new WildcardBinding(
@@ -141,7 +125,7 @@ public final class TypeResolverResults {
                     t.bound == null ? null : ground(t.bound),
                     t.otherBounds == null ? null : stream(t.otherBounds).map(this::ground).toArray(TypeBinding[]::new),
                     t.boundKind,
-                    scope.environment
+                    cu.scope.environment
             );
         } else {
             return b;
@@ -174,6 +158,10 @@ public final class TypeResolverResults {
 
     public boolean hasInfos() {
         return !infos.isEmpty();
+    }
+
+    public void forEachType(BiConsumer<String, ResolvedType> consumer) {
+        types.forEach((name, b) -> consumer.accept(name, new ResolvedType(b)));
     }
 
     public void forEachError(BiConsumer<String, List<String>> consumer) {
