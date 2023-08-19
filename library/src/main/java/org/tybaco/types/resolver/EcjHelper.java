@@ -31,7 +31,6 @@ import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -69,10 +68,6 @@ final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
         results.add(result);
     }
 
-    public void reset() {
-        results.clear();
-    }
-
     public Stream<CompilationResult> results() {
         return results.stream();
     }
@@ -85,6 +80,7 @@ final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
             public void reset() {
                 super.reset();
                 fs.cleanup();
+                results.clear();
             }
         };
         compiler.useSingleThread = true;

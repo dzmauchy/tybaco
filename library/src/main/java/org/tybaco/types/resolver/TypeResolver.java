@@ -51,6 +51,46 @@ public final class TypeResolver implements AutoCloseable {
 
     public TypeResolverResults resolve(Map<String, String> expressions, String... additionalLines) {
         if (compiler.unitsToProcess != null) compiler.reset();
+        var decls = new ConcurrentLinkedQueue<LocalDeclaration>();
+        var u = new CompilationUnit(code(expressions, additionalLines), name + ".java", "UTF-8");
+        var r = compiler.resolve(u, true, true, false);
+        var results = new TypeResolverResults(r.scope);
+        for (var ct : r.types) {
+            ct.traverse(new ASTVisitor() {
+                @Override
+                public void endVisit(LocalDeclaration localDeclaration, BlockScope scope) {
+                    var var = String.valueOf(localDeclaration.name);
+                    if (expressions.containsKey(var)) {
+                        results.types.put(var, localDeclaration.binding.type);
+                        decls.add(localDeclaration);
+                    }
+                }
+            }, r.scope);
+        }
+        var problems = r.compilationResult.getProblems();
+        if (problems == null || problems.length == 0) return results;
+        PROBLEMS:
+        for (var p : problems) {
+            for (var decl : decls) {
+                if (p.getSourceStart() >= decl.sourceStart && p.getSourceEnd() <= decl.sourceEnd) {
+                    var var = String.valueOf(decl.name);
+                    if (p.isError()) {
+                        results.errors.compute(var, (k, o) -> add(o, formatProblem(p)));
+                    } else if (p.isWarning()) {
+                        results.warns.compute(var, (k, o) -> add(o, formatProblem(p)));
+                    } else {
+                        results.infos.compute(var, (k, o) -> add(o, formatProblem(p)));
+                    }
+                    continue PROBLEMS;
+                }
+
+            }
+            log.log(WARNING, "{0}", formatProblem(p));
+        }
+        return results;
+    }
+
+    private char[] code(Map<String, String> expressions, String... additionalLines) {
         var charStream = new CharArrayWriter();
         charStream
                 .append("public class ")
@@ -66,50 +106,7 @@ public final class TypeResolver implements AutoCloseable {
         );
         charStream.append("}}").append(System.lineSeparator());
         for (var line : additionalLines) charStream.append(line).append(System.lineSeparator());
-        var decls = new ConcurrentLinkedQueue<LocalDeclaration>();
-        var u = new CompilationUnit(charStream.toCharArray(), name + ".java", "UTF-8");
-        try {
-            var r = compiler.resolve(u, true, true, false);
-            var results = new TypeResolverResults(r.scope);
-            for (var ct : r.types) {
-                if (!name.equals(new String(ct.name))) {
-                    continue;
-                }
-                ct.traverse(new ASTVisitor() {
-                    @Override
-                    public void endVisit(LocalDeclaration localDeclaration, BlockScope scope) {
-                        var var = String.valueOf(localDeclaration.name);
-                        results.types.put(var, localDeclaration.binding.type);
-                        decls.add(localDeclaration);
-                    }
-                }, r.scope);
-            }
-            var problems = r.compilationResult.getProblems();
-            if (problems == null || problems.length == 0) {
-                return results;
-            }
-            P:
-            for (var p : problems) {
-                for (var decl : decls) {
-                    if (p.getSourceStart() >= decl.sourceStart && p.getSourceEnd() <= decl.sourceEnd) {
-                        var var = String.valueOf(decl.name);
-                        if (p.isError()) {
-                            results.errors.compute(var, (k, o) -> add(o, formatProblem(p)));
-                        } else if (p.isWarning()) {
-                            results.warns.compute(var, (k, o) -> add(o, formatProblem(p)));
-                        } else {
-                            results.infos.compute(var, (k, o) -> add(o, formatProblem(p)));
-                        }
-                        continue P;
-                    }
-
-                }
-                log.log(WARNING, "{0}", formatProblem(p));
-            }
-            return results;
-        } finally {
-            helper.reset();
-        }
+        return charStream.toCharArray();
     }
 
     private String formatProblem(CategorizedProblem problem) {
