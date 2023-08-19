@@ -10,17 +10,18 @@ package org.tybaco.types.resolver;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
 
+import lombok.extern.java.Log;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.Compiler;
 import org.eclipse.jdt.internal.compiler.ICompilerRequestor;
@@ -31,9 +32,9 @@ import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.TreeMap;
+import java.io.Writer;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.Locale.US;
@@ -41,13 +42,11 @@ import static org.eclipse.jdt.internal.compiler.batch.FileSystem.getClasspath;
 import static org.eclipse.jdt.internal.compiler.batch.FileSystem.getJrtClasspath;
 import static org.eclipse.jdt.internal.compiler.impl.CompilerOptions.releaseToJDKLevel;
 
+@Log
 final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
 
     private static final String JAVA_VERSION = "20";
 
-    private final StringWriter writer = new StringWriter();
-    private final PrintWriter printWriter = new PrintWriter(writer, true);
-    private final TreeMap<Integer, String> lines = new TreeMap<>();
     private final ConcurrentLinkedQueue<CompilationResult> results = new ConcurrentLinkedQueue<>();
 
     @Override
@@ -72,16 +71,6 @@ final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
 
     public void reset() {
         results.clear();
-        writer.getBuffer().setLength(0);
-        writer.getBuffer().trimToSize();
-        lines.clear();
-    }
-
-    public Stream<String> lines() {
-        return Pattern.compile("\\n")
-                .splitAsStream(writer.getBuffer())
-                .map(String::trim)
-                .filter(s -> !s.isEmpty());
     }
 
     public Stream<CompilationResult> results() {
@@ -89,16 +78,17 @@ final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
     }
 
     public Compiler compiler(String[] libraries) {
-        return new Compiler(fileSystem(libraries), this, options(), this, new DefaultProblemFactory(US), printWriter, null);
-    }
-
-    void registerLine(int lineIndex, String name) {
-        lines.put(lineIndex + 1, name);
-    }
-
-    String name(int line) {
-        var entry = lines.floorEntry(line);
-        return entry == null ? null : entry.getValue();
+        var problemFactory = new DefaultProblemFactory(US);
+        var fs = fileSystem(libraries);
+        var compiler = new Compiler(fs, this, options(), this, problemFactory, nullPrintWriter(), null) {
+            @Override
+            public void reset() {
+                super.reset();
+                fs.cleanup();
+            }
+        };
+        compiler.useSingleThread = true;
+        return compiler;
     }
 
     private FileSystem fileSystem(String[] libraries) {
@@ -125,9 +115,53 @@ final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
         opts.processAnnotations = false;
         opts.maxProblemsPerUnit = Integer.MAX_VALUE;
         opts.analyseResourceLeaks = false;
-        opts.inheritNullAnnotations = true;
+        opts.inheritNullAnnotations = false;
         opts.verbose = false;
         opts.defaultEncoding = "UTF-8";
         return opts;
+    }
+
+    private PrintWriter nullPrintWriter() {
+        return new PrintWriter(new Writer() {
+            @Override public void write(char[] cbuf, int off, int len) {}
+            @Override public void flush() {}
+            @Override public void close() {}
+        }, false) {
+            @Override public void write(int c) {}
+            @Override public void write(String s) {}
+            @Override public void write(char[] buf) {}
+            @Override public void write(String s, int off, int len) {}
+            @Override public void write(char[] buf, int off, int len) {}
+            @Override public PrintWriter append(char c) {return this;}
+            @Override public PrintWriter append(CharSequence csq) {return this;}
+            @Override public PrintWriter append(CharSequence csq, int start, int end) {return this;}
+            @Override public void println(int x) {}
+            @Override public void println(char x) {}
+            @Override public void println(float x) {}
+            @Override public void println(long x) {}
+            @Override public void println(char[] x) {}
+            @Override public void println(double x) {}
+            @Override public void println(Object x) {}
+            @Override public void println(String x) {}
+            @Override public void println(boolean x) {}
+            @Override public void print(boolean b) {}
+            @Override public void print(char c) {}
+            @Override public void print(int i) {}
+            @Override public void print(long l) {}
+            @Override public void print(float f) {}
+            @Override public void print(double d) {}
+            @Override public void print(char[] s) {}
+            @Override public void print(String s) {}
+            @Override public void print(Object obj) {}
+            @Override public void println() {}
+            @Override public PrintWriter printf(String format, Object... args) {return this;}
+            @Override public PrintWriter printf(Locale l, String format, Object... args) {return this;}
+            @Override public PrintWriter format(String format, Object... args) {return this;}
+            @Override public PrintWriter format(Locale l, String format, Object... args) {return this;}
+            @Override public boolean checkError() {return false;}
+            @Override public void flush() {}
+            @Override public void close() {}
+            @Override public String toString() {return "NULL";}
+        };
     }
 }

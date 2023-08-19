@@ -21,6 +21,7 @@ package org.tybaco.types.resolver;
  * #L%
  */
 
+import lombok.extern.java.Log;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.Compiler;
@@ -28,19 +29,16 @@ import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.eclipse.jdt.internal.compiler.batch.CompilationUnit;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
 
+import java.io.CharArrayWriter;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static java.lang.String.join;
-import static java.lang.System.Logger.Level.ERROR;
-import static java.lang.System.Logger.Level.INFO;
-import static java.lang.System.Logger.Level.WARNING;
-import static java.lang.System.lineSeparator;
+import static java.util.logging.Level.WARNING;
 import static org.tybaco.types.resolver.TypeResolverResults.add;
 
-public final class TypeResolver {
+@Log
+public final class TypeResolver implements AutoCloseable {
 
     private final EcjHelper helper = new EcjHelper();
     private final String name;
@@ -52,43 +50,27 @@ public final class TypeResolver {
     }
 
     public TypeResolverResults resolve(Map<String, String> expressions, String... additionalLines) {
-        var lines = new ArrayList<String>();
-        lines.add("public class " + name + " {");
-        lines.add("public void method() {");
-        expressions.forEach((name, expr) -> {
-            helper.registerLine(lines.size(), name);
-            lines.add("var " + name + " =");
-            expr.lines().forEach(lines::add);
-            lines.add(";");
-        });
-        lines.add("}}");
-        lines.addAll(List.of(additionalLines));
-        var source = join(lineSeparator(), lines);
-        var u = new CompilationUnit(source.toCharArray(), name + ".java", "UTF-8");
+        if (compiler.unitsToProcess != null) compiler.reset();
+        var charStream = new CharArrayWriter();
+        charStream
+                .append("public class ")
+                .append(name)
+                .append(" {").append(System.lineSeparator())
+                .append("public void method() {").append(System.lineSeparator());
+        expressions.forEach((name, expr) -> charStream
+                .append("var ")
+                .append(name)
+                .append(" = ")
+                .append(expr)
+                .append(';').append(System.lineSeparator())
+        );
+        charStream.append("}}").append(System.lineSeparator());
+        for (var line : additionalLines) charStream.append(line).append(System.lineSeparator());
+        var decls = new ConcurrentLinkedQueue<LocalDeclaration>();
+        var u = new CompilationUnit(charStream.toCharArray(), name + ".java", "UTF-8");
         try {
             var r = compiler.resolve(u, true, true, false);
             var results = new TypeResolverResults(r.scope);
-            var problems = r.compilationResult.getProblems();
-            if (problems != null) {
-                for (var problem : problems) {
-                    var var = helper.name(problem.getSourceLineNumber());
-                    if (var == null) {
-                        var logger = System.getLogger(getClass().getName());
-                        if (problem.isError()) logger.log(ERROR, "{0}", formatProblem(problem, lines));
-                        else if (problem.isWarning()) logger.log(WARNING, "{0}", formatProblem(problem, lines));
-                        else logger.log(INFO, "{0}", formatProblem(problem, lines));
-                    } else {
-                        var p = formatProblem(problem, lines);
-                        if (problem.isError()) {
-                            results.errors.compute(var, (k, o) -> add(o, p));
-                        } else if (problem.isWarning()) {
-                            results.warns.compute(var, (k, o) -> add(o, p));
-                        } else {
-                            results.infos.compute(var, (k, o) -> add(o, p));
-                        }
-                    }
-                }
-            }
             for (var ct : r.types) {
                 if (!name.equals(new String(ct.name))) {
                     continue;
@@ -98,8 +80,31 @@ public final class TypeResolver {
                     public void endVisit(LocalDeclaration localDeclaration, BlockScope scope) {
                         var var = String.valueOf(localDeclaration.name);
                         results.types.put(var, localDeclaration.binding.type);
+                        decls.add(localDeclaration);
                     }
                 }, r.scope);
+            }
+            var problems = r.compilationResult.getProblems();
+            if (problems == null || problems.length == 0) {
+                return results;
+            }
+            P:
+            for (var p : problems) {
+                for (var decl : decls) {
+                    if (p.getSourceStart() >= decl.sourceStart && p.getSourceEnd() <= decl.sourceEnd) {
+                        var var = String.valueOf(decl.name);
+                        if (p.isError()) {
+                            results.errors.compute(var, (k, o) -> add(o, formatProblem(p)));
+                        } else if (p.isWarning()) {
+                            results.warns.compute(var, (k, o) -> add(o, formatProblem(p)));
+                        } else {
+                            results.infos.compute(var, (k, o) -> add(o, formatProblem(p)));
+                        }
+                        continue P;
+                    }
+
+                }
+                log.log(WARNING, "{0}", formatProblem(p));
             }
             return results;
         } finally {
@@ -107,8 +112,7 @@ public final class TypeResolver {
         }
     }
 
-    private String formatProblem(CategorizedProblem problem, List<String> lines) {
-        var line = lines.get(problem.getSourceLineNumber() - 1);
+    private String formatProblem(CategorizedProblem problem) {
         var builder = new StringBuffer()
                 .append('[')
                 .append(problem.getSourceLineNumber())
@@ -121,7 +125,11 @@ public final class TypeResolver {
             var fmt = new MessageFormat(problem.getMessage());
             fmt.format(problem.getArguments(), builder, null);
         }
-        builder.append(" {").append(line).append('}');
         return builder.toString();
+    }
+
+    @Override
+    public void close() {
+        compiler.reset();
     }
 }

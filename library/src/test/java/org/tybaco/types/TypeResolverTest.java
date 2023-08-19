@@ -21,7 +21,9 @@ package org.tybaco.types;
  * #L%
  */
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -38,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TypeResolverTest {
 
     private final TypeResolver resolver = new TypeResolver("Test", new String[0]);
@@ -167,6 +170,17 @@ class TypeResolverTest {
         assertTrue(r.isAssignable(c, argType));
     }
 
+    @Test
+    void multipleAssignability() {
+        var r1 = resolver.resolve(Map.of("a", "(java.util.List<?>) java.util.List.of(1)"));
+        var r2 = resolver.resolve(Map.of("b", "java.util.List.of(2)"));
+
+        assertTrue(r2.isAssignable(r2.getType("b"), r1.getType("a")));
+        assertTrue(r1.isAssignable(r2.getType("b"), r1.getType("a")));
+        assertFalse(r2.isAssignable(r1.getType("a"), r2.getType("b")));
+        assertFalse(r1.isAssignable(r1.getType("a"), r2.getType("b")));
+    }
+
     @SafeVarargs
     private static <K, V> LinkedHashMap<K, V> linkedMap(Map.Entry<K, V>... entries) {
         var map = new LinkedHashMap<K, V>(entries.length);
@@ -174,5 +188,10 @@ class TypeResolverTest {
             map.put(entry.getKey(), entry.getValue());
         }
         return map;
+    }
+
+    @AfterAll
+    void afterAll() {
+        resolver.close();
     }
 }

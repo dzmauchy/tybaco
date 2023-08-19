@@ -32,13 +32,11 @@ import org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
-import org.eclipse.jdt.internal.compiler.lookup.VoidTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
 import org.tybaco.types.resolver.Method.Arg;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.BiConsumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -51,10 +49,10 @@ import static org.eclipse.jdt.internal.compiler.lookup.Scope.convertEliminatingT
 public final class TypeResolverResults {
 
     private final CompilationUnitScope scope;
-    final TreeMap<String, TypeBinding> types = new TreeMap<>();
-    final TreeMap<String, List<String>> errors = new TreeMap<>();
-    final TreeMap<String, List<String>> warns = new TreeMap<>();
-    final TreeMap<String, List<String>> infos = new TreeMap<>();
+    final ConcurrentSkipListMap<String, TypeBinding> types = new ConcurrentSkipListMap<>();
+    final ConcurrentSkipListMap<String, List<String>> errors = new ConcurrentSkipListMap<>();
+    final ConcurrentSkipListMap<String, List<String>> warns = new ConcurrentSkipListMap<>();
+    final ConcurrentSkipListMap<String, List<String>> infos = new ConcurrentSkipListMap<>();
 
     public ResolvedType getType(String name) {
         var type = types.get(name);
@@ -191,16 +189,7 @@ public final class TypeResolverResults {
     }
 
     static List<String> add(List<String> l, String e) {
-        if (l == null) {
-            return List.of(e);
-        }
-        return switch (l.size()) {
-            case 1 -> List.of(l.get(0), e);
-            case 2 -> List.of(l.get(0), l.get(1), e);
-            case 3 -> List.of(l.get(0), l.get(1), l.get(2), e);
-            case 4 -> List.of(l.get(0), l.get(1), l.get(2), l.get(3), e);
-            default -> Stream.concat(l.stream(), Stream.of(e)).toList();
-        };
+        return l == null ? List.of(e) : Stream.concat(l.stream(), Stream.of(e)).toList();
     }
 
     @Override
