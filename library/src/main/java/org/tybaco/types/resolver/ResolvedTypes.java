@@ -23,12 +23,14 @@ package org.tybaco.types.resolver;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
 import org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.IntersectionTypeBinding18;
 import org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
 import org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
@@ -40,8 +42,10 @@ import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
+import static java.util.logging.Level.WARNING;
 import static org.eclipse.jdt.internal.compiler.lookup.Scope.convertEliminatingTypeVariables;
 
+@Log
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class ResolvedTypes {
 
@@ -100,34 +104,26 @@ public final class ResolvedTypes {
     }
 
     private TypeBinding ground(TypeBinding b) {
-        if (b instanceof TypeVariableBinding t) {
-            return convertEliminatingTypeVariables(t, t, t.rank, null);
-        } else if (b instanceof ArrayBinding t) {
-            return new ArrayBinding(ground(t.leafComponentType), t.dimensions, t.environment());
-        } else if (b instanceof BaseTypeBinding) {
-            return b;
+        if ((b.tagBits & TagBits.HasTypeVariable) == 0 || b instanceof BaseTypeBinding) return b;
+        else if (b instanceof TypeVariableBinding t) return convertEliminatingTypeVariables(t, t, t.rank, null);
+        else if (b instanceof ArrayBinding t) {
+            var ct = ground(t.leafComponentType);
+            return new ArrayBinding(ct, t.dimensions, t.environment());
         } else if (b instanceof ParameterizedTypeBinding t) {
-            return new ParameterizedTypeBinding(
-                    t.actualType(),
-                    stream(t.arguments).map(this::ground).toArray(TypeBinding[]::new),
-                    t.enclosingType(),
-                    t.environment()
-            );
+            var at = (ReferenceBinding) ground(t.actualType());
+            var et = (ReferenceBinding) ground(t.enclosingType());
+            var args = stream(t.arguments).map(this::ground).toArray(TypeBinding[]::new);
+            return new ParameterizedTypeBinding(at, args, et, t.environment());
         } else if (b instanceof IntersectionTypeBinding18 t) {
-            return new IntersectionTypeBinding18(
-                    stream(t.intersectingTypes).map(e -> (ReferenceBinding) ground(e)).toArray(ReferenceBinding[]::new),
-                    cu.scope.environment
-            );
+            var a = stream(t.intersectingTypes).map(e -> (ReferenceBinding) ground(e)).toArray(ReferenceBinding[]::new);
+            return new IntersectionTypeBinding18(a, cu.scope.environment);
         } else if (b instanceof WildcardBinding t) {
-            return new WildcardBinding(
-                    t.genericType,
-                    t.rank,
-                    t.bound == null ? null : ground(t.bound),
-                    t.otherBounds == null ? null : stream(t.otherBounds).map(this::ground).toArray(TypeBinding[]::new),
-                    t.boundKind,
-                    cu.scope.environment
-            );
+            var gt = (ReferenceBinding) ground(t.genericType);
+            var bn = ground(t.bound);
+            var bs = t.otherBounds == null ? null : stream(t.otherBounds).map(this::ground).toArray(TypeBinding[]::new);
+            return new WildcardBinding(gt, t.rank, bn, bs, t.boundKind, cu.scope.environment);
         } else {
+            log.log(WARNING, "Unknown non-ground type: {0}", b);
             return b;
         }
     }

@@ -42,6 +42,7 @@ public final class Method {
     public String getName() {return new String(method.selector);}
     public boolean isVarargs() {return method.isVarargs();}
     public List<Arg> getArgs() {return new ArgList();}
+    public ResolvedType getReturnType() {return new ResolvedType(method.returnType);}
 
     public static abstract class Arg {
         private Arg() {}
@@ -61,5 +62,11 @@ public final class Method {
         @Override public Arg get(int index) {return arg(index);}
         @Override public int size() {return method.parameters.length;}
         @Override public Stream<Arg> stream() {return range(0, method.parameters.length).mapToObj(this::arg);}
+    }
+
+    public static abstract class Input {
+        private Input() {}
+        public abstract ResolvedType getType();
+
     }
 }

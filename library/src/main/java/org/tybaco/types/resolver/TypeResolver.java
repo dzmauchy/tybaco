@@ -28,13 +28,17 @@ import org.eclipse.jdt.internal.compiler.Compiler;
 import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
 import org.eclipse.jdt.internal.compiler.batch.CompilationUnit;
 import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 import java.io.CharArrayWriter;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static java.util.logging.Level.WARNING;
+import static org.tybaco.types.resolver.EcjHelper.compoundName;
 import static org.tybaco.types.resolver.ResolvedTypes.add;
 
 @Log
@@ -48,24 +52,45 @@ public final class TypeResolver implements AutoCloseable {
         compiler = new EcjHelper().compiler(libraries);
     }
 
+    public ResolvedType resolve(String type) {
+        return new ResolvedType(compiler.lookupEnvironment.getType(compoundName(type)));
+    }
+
+    public ResolvedType parameterizedType(ResolvedType type, List<ResolvedType> args) {
+        var params = args.stream().map(n -> n.type).toArray(TypeBinding[]::new);
+        var result = type.type instanceof ReferenceBinding b
+                ? compiler.lookupEnvironment.createParameterizedType(b, params, null)
+                : TypeBinding.VOID;
+        return new ResolvedType(result);
+    }
+
+    public ResolvedType intersectionType(List<ResolvedType> components) {
+        return new ResolvedType(
+                compiler.lookupEnvironment.createIntersectionType18(
+                        components.stream()
+                                .map(t -> t.type)
+                                .filter(ReferenceBinding.class::isInstance)
+                                .toArray(ReferenceBinding[]::new)
+                )
+        );
+    }
+
     public ResolvedTypes resolve(Map<String, String> expressions, String... additionalLines) {
         if (compiler.unitsToProcess != null) compiler.reset();
         var decls = new ConcurrentLinkedQueue<LocalDeclaration>();
         var u = new CompilationUnit(code(expressions, additionalLines), name + ".java", "UTF-8", null, true, null);
         var r = compiler.resolve(u, true, true, false);
         var results = new ResolvedTypes(r);
-        for (var ct : r.types) {
-            ct.traverse(new ASTVisitor() {
-                @Override
-                public void endVisit(LocalDeclaration localDeclaration, BlockScope scope) {
-                    var var = String.valueOf(localDeclaration.name);
-                    if (expressions.containsKey(var)) {
-                        results.types.put(var, localDeclaration.binding.type);
-                        decls.add(localDeclaration);
-                    }
+        var visitor = new ASTVisitor() {
+            @Override public void endVisit(LocalDeclaration localDeclaration, BlockScope scope) {
+                var var = String.valueOf(localDeclaration.name);
+                if (expressions.containsKey(var)) {
+                    results.types.put(var, localDeclaration.binding.type);
+                    decls.add(localDeclaration);
                 }
-            }, r.scope);
-        }
+            }
+        };
+        for (var ct : r.types) ct.traverse(visitor, r.scope);
         var problems = r.compilationResult.getProblems();
         if (problems == null) return results;
 

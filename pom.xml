@@ -103,7 +103,6 @@
 
     <modules>
         <module>library</module>
-        <module>model</module>
     </modules>
 
     <build>

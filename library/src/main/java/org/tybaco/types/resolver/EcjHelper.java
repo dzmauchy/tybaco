@@ -34,6 +34,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.Locale.US;
@@ -44,6 +45,7 @@ import static org.eclipse.jdt.internal.compiler.impl.CompilerOptions.releaseToJD
 @Log
 final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
 
+    private static final Pattern DOT_PATTERN = Pattern.compile("\\.");
     private static final String JAVA_VERSION = "20";
 
     private final ConcurrentLinkedQueue<CompilationResult> results = new ConcurrentLinkedQueue<>();
@@ -114,6 +116,10 @@ final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
         opts.verbose = false;
         opts.defaultEncoding = "UTF-8";
         return opts;
+    }
+
+    static char[][] compoundName(String name) {
+        return DOT_PATTERN.splitAsStream(name).map(String::toCharArray).toArray(char[][]::new);
     }
 
     private PrintWriter nullPrintWriter() {

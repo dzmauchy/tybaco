@@ -26,10 +26,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.tybaco.types.resolver.TypeResolver;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -44,6 +46,16 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 class TypeResolverTest {
 
     private final TypeResolver resolver = new TypeResolver("Test", new String[0]);
+
+    @ParameterizedTest
+    @CsvSource({
+            "java.util.List,java.util.List<E>",
+            "java.util.Map,'java.util.Map<K,V>'"
+    })
+    void resolveType(String type, String expected) {
+        var t = resolver.resolve(type);
+        assertEquals(expected, t.toString());
+    }
 
     @ParameterizedTest
     @MethodSource
@@ -179,6 +191,24 @@ class TypeResolverTest {
         assertTrue(r1.isAssignable(r2.getType("b"), r1.getType("a")));
         assertFalse(r2.isAssignable(r1.getType("a"), r2.getType("b")));
         assertFalse(r1.isAssignable(r1.getType("a"), r2.getType("b")));
+    }
+
+    @Test
+    void parameterizedType() {
+        var t = resolver.parameterizedType(
+                resolver.resolve("java.util.List"),
+                List.of(resolver.resolve("java.lang.Integer"))
+        );
+        assertEquals("java.util.List<java.lang.Integer>", t.toString());
+    }
+
+    @Test
+    void intersectionType() {
+        var t = resolver.intersectionType(List.of(
+                resolver.resolve("java.lang.Integer"),
+                resolver.resolve("java.lang.Number")
+        ));
+        assertEquals("java.lang.Integer & java.lang.Number", t.toString());
     }
 
     @SafeVarargs

@@ -26,6 +26,7 @@ import lombok.AllArgsConstructor;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
+import org.eclipse.jdt.internal.compiler.lookup.TagBits;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 import java.util.Arrays;
@@ -90,6 +91,14 @@ public final class ResolvedType {
 
     public boolean isVoid() {
         return TypeBinding.VOID == type;
+    }
+
+    public boolean isGround() {
+        return (type.tagBits & TagBits.HasTypeVariable) == 0;
+    }
+
+    public boolean hasTypeVariables() {
+        return (type.tagBits & TagBits.HasTypeVariable) != 0;
     }
 
     public ResolvedType getTypeParameter(int index) {
