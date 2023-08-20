@@ -137,7 +137,7 @@ class TypeResolverTest {
         var pa = p.getActual();
         assertFalse(pa.isRaw());
 
-        var method = r.staticFactories(p)
+        var method = p.staticFactories()
                 .filter(m -> m.getName().equals("of"))
                 .filter(m -> !m.isVarargs())
                 .filter(m -> m.getArgs().size() == 1)
@@ -170,7 +170,7 @@ class TypeResolverTest {
 
         var p = a.getTypeParameter(0);
 
-        var method = r.staticFactories(p)
+        var method = p.staticFactories()
                 .filter(m -> m.getName().equals("listOfEnums"))
                 .findFirst()
                 .orElseThrow();

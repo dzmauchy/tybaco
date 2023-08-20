@@ -117,12 +117,36 @@ public final class ResolvedType {
         return new ResolvedType(type.actualType());
     }
 
-    Stream<MethodBinding> methods() {
+    private Stream<MethodBinding> methods() {
         if (type instanceof ReferenceBinding b) {
             return Stream.ofNullable(b.methods()).flatMap(Arrays::stream);
         } else {
             return Stream.empty();
         }
+    }
+
+    public Stream<Method> staticFactories() {
+        return methods()
+                .filter(m -> m.isStatic() && m.isPublic())
+                .map(m -> new Method(type, m));
+    }
+
+    public Stream<Method> factories() {
+        return methods()
+                .filter(m -> m.isPublic() && !m.isStatic() && m.parameters.length > 1)
+                .map(m -> new Method(type, m));
+    }
+
+    public Stream<Method> inputs() {
+        return methods()
+                .filter(m -> m.isPublic() && !m.isStatic() && m.parameters.length == 1)
+                .map(m -> new Method(type, m));
+    }
+
+    public Stream<Method> outputs() {
+        return methods()
+                .filter(m -> m.isPublic() && !m.isStatic() && m.parameters.length == 0)
+                .map(m -> new Method(type, m));
     }
 
     @Override
