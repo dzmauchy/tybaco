@@ -36,6 +36,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.logging.Level.WARNING;
 import static org.tybaco.types.resolver.EcjHelper.compoundName;

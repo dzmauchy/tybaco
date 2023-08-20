@@ -32,6 +32,8 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import static org.eclipse.jdt.internal.compiler.lookup.TypeBinding.VOID;
+
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 public final class ResolvedType {
 
@@ -90,7 +92,7 @@ public final class ResolvedType {
     }
 
     public boolean isVoid() {
-        return TypeBinding.VOID == type;
+        return VOID == type;
     }
 
     public boolean isGround() {
@@ -104,12 +106,12 @@ public final class ResolvedType {
     public ResolvedType getTypeParameter(int index) {
         if (type instanceof ParameterizedTypeBinding b) {
             if (index < 0 || index >= b.arguments.length) {
-                return new ResolvedType(TypeBinding.VOID);
+                return new ResolvedType(VOID);
             } else {
                 return new ResolvedType(b.arguments[index]);
             }
         } else {
-            return new ResolvedType(TypeBinding.VOID);
+            return new ResolvedType(VOID);
         }
     }
 
@@ -118,11 +120,7 @@ public final class ResolvedType {
     }
 
     private Stream<MethodBinding> methods() {
-        if (type instanceof ReferenceBinding b) {
-            return Stream.ofNullable(b.methods()).flatMap(Arrays::stream);
-        } else {
-            return Stream.empty();
-        }
+        return type instanceof ReferenceBinding b ? Arrays.stream(b.methods()) : Stream.empty();
     }
 
     public Stream<Method> staticFactories() {
@@ -133,7 +131,7 @@ public final class ResolvedType {
 
     public Stream<Method> factories() {
         return methods()
-                .filter(m -> m.isPublic() && !m.isStatic() && m.parameters.length > 1)
+                .filter(m -> m.isPublic() && !m.isStatic() && m.parameters.length > 1 && m.returnType != VOID)
                 .map(m -> new Method(type, m));
     }
 
@@ -145,7 +143,7 @@ public final class ResolvedType {
 
     public Stream<Method> outputs() {
         return methods()
-                .filter(m -> m.isPublic() && !m.isStatic() && m.parameters.length == 0)
+                .filter(m -> m.isPublic() && !m.isStatic() && m.parameters.length == 0 && m.returnType != VOID)
                 .map(m -> new Method(type, m));
     }
 

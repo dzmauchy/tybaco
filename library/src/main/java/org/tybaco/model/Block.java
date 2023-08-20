@@ -24,8 +24,10 @@ package org.tybaco.model;
 import lombok.Data;
 import org.tybaco.types.resolver.Method;
 import org.tybaco.types.resolver.Method.Arg;
+import org.tybaco.types.resolver.Method.Input;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Data
 public class Block {
@@ -34,5 +36,10 @@ public class Block {
 
     public List<Arg> getArgs() {
         return method.getArgs();
+    }
+
+
+    public Stream<Input> getInputs() {
+        return method.inputs();
     }
 }

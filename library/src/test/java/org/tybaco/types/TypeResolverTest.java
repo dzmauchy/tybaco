@@ -184,13 +184,18 @@ class TypeResolverTest {
 
     @Test
     void multipleAssignability() {
-        var r1 = resolver.resolve(Map.of("a", "(java.util.List<?>) java.util.List.of(1)"));
+        var r1 = resolver.resolve(Map.of(
+                "a", "(java.util.List<?>) java.util.List.of(1)",
+                "b", "java.util.List.of(3)"
+        ));
         var r2 = resolver.resolve(Map.of("b", "java.util.List.of(2)"));
 
         assertTrue(r2.isAssignable(r2.getType("b"), r1.getType("a")));
         assertTrue(r1.isAssignable(r2.getType("b"), r1.getType("a")));
         assertFalse(r2.isAssignable(r1.getType("a"), r2.getType("b")));
         assertFalse(r1.isAssignable(r1.getType("a"), r2.getType("b")));
+        assertTrue(r1.isAssignable(r1.getType("b"), r2.getType("b")));
+        assertEquals(r1.getType("b"), r2.getType("b"));
     }
 
     @Test

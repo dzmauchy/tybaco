@@ -23,6 +23,7 @@ package org.tybaco.types.resolver;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
@@ -41,32 +42,48 @@ public final class Method {
 
     public String getName() {return new String(method.selector);}
     public boolean isVarargs() {return method.isVarargs();}
-    public List<Arg> getArgs() {return new ArgList();}
+    public List<Arg> getArgs() {return new ArgList(method);}
     public ResolvedType getReturnType() {return new ResolvedType(method.returnType);}
+    public Stream<Input> inputs() {return getReturnType().inputs().map(Input::new);}
+    public Stream<Output> outputs() {return getReturnType().outputs().map(Output::new);}
 
-    public static abstract class Arg {
-        private Arg() {}
-        public abstract ResolvedType getType();
-        public abstract int getIndex();
-    }
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    public static final class Arg {
 
-    private final class ArgList extends AbstractList<Arg> implements RandomAccess {
+        private final MethodBinding method;
+        @Getter private final int index;
 
-        private Arg arg(int index) {
-            return new Arg() {
-                @Override public ResolvedType getType() {return new ResolvedType(method.parameters[index]);}
-                @Override public int getIndex() {return index;}
-            };
+        public ResolvedType getType() {return new ResolvedType(method.parameters[index]);}
+
+        public String getName() {
+            var names = method.parameterNames;
+            return names.length == method.parameters.length ? new String(names[index]) : "arg" + index;
         }
-
-        @Override public Arg get(int index) {return arg(index);}
-        @Override public int size() {return method.parameters.length;}
-        @Override public Stream<Arg> stream() {return range(0, method.parameters.length).mapToObj(this::arg);}
     }
 
-    public static abstract class Input {
-        private Input() {}
-        public abstract ResolvedType getType();
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    private static final class ArgList extends AbstractList<Arg> implements RandomAccess {
 
+        private final MethodBinding method;
+
+        @Override public Arg get(int index) {return new Arg(method, index);}
+        @Override public int size() {return method.parameters.length;}
+        @Override public Stream<Arg> stream() {return range(0, method.parameters.length).mapToObj(i -> new Arg(method, i));}
+    }
+
+    public record Input(Method method) {
+        public ResolvedType getType() {return new ResolvedType(method.method.parameters[0]);}
+        public String getName() {return method.getName();}
+    }
+
+    public record Output(Method method) {
+        public ResolvedType getType() {return method.getReturnType();}
+        public String getName() {return method.getName();}
+    }
+
+    public record Factory(Method method) {
+        public ResolvedType getType() {return method.getReturnType();}
+        public List<Arg> getArgs() {return new ArgList(method.method);};
+        public String getName() {return method.getName();}
     }
 }
