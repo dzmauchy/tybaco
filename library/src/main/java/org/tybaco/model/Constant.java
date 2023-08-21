@@ -23,9 +23,11 @@ package org.tybaco.model;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@Getter
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
-public final class Constant {
+public final class Constant extends AbstractModelElement implements Comparable<Constant> {
 
     private final int id;
     private final Type type;
@@ -33,6 +35,11 @@ public final class Constant {
 
     public String expr() {
         return type.expr(value);
+    }
+
+    @Override
+    public int compareTo(Constant o) {
+        return Integer.compare(id, o.id);
     }
 
     public enum Type {
