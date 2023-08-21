@@ -10,12 +10,12 @@ package org.tybaco.types.resolver;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -126,25 +126,25 @@ public final class ResolvedType {
     public Stream<Method> staticFactories() {
         return methods()
                 .filter(m -> m.isStatic() && m.isPublic())
-                .map(m -> new Method(type, m));
+                .map(Method::new);
     }
 
     public Stream<Method> factories() {
         return methods()
                 .filter(m -> m.isPublic() && !m.isStatic() && m.parameters.length > 1 && m.returnType != VOID)
-                .map(m -> new Method(type, m));
+                .map(Method::new);
     }
 
     public Stream<Method> inputs() {
         return methods()
                 .filter(m -> m.isPublic() && !m.isStatic() && m.parameters.length == 1)
-                .map(m -> new Method(type, m));
+                .map(Method::new);
     }
 
     public Stream<Method> outputs() {
         return methods()
                 .filter(m -> m.isPublic() && !m.isStatic() && m.parameters.length == 0 && m.returnType != VOID)
-                .map(m -> new Method(type, m));
+                .map(Method::new);
     }
 
     @Override
@@ -159,6 +159,6 @@ public final class ResolvedType {
 
     @Override
     public String toString() {
-        return String.valueOf(type.readableName());
+        return new String(type.readableName());
     }
 }

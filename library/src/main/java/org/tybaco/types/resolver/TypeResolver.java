@@ -36,19 +36,20 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.logging.Level.WARNING;
 import static org.tybaco.types.resolver.EcjHelper.compoundName;
 import static org.tybaco.types.resolver.ResolvedTypes.add;
 
-@Log
+@Log(topic = "TypeResolver")
 public final class TypeResolver implements AutoCloseable {
 
     private final String name;
     private final Compiler compiler;
 
-    public TypeResolver(String projectName, String[] libraries) {
+    private int id;
+
+    public TypeResolver(String projectName, String... libraries) {
         name = projectName;
         compiler = new EcjHelper().compiler(libraries);
     }
@@ -76,14 +77,15 @@ public final class TypeResolver implements AutoCloseable {
         );
     }
 
-    public ResolvedTypes resolve(Map<String, String> expressions, String... additionalLines) {
-        if (compiler.unitsToProcess != null) compiler.reset();
+    public ResolvedTypes resolve(Map<String, String> expressions, CharSequence... lines) {
         var decls = new ConcurrentLinkedQueue<LocalDeclaration>();
-        var u = new CompilationUnit(code(expressions, additionalLines), name + ".java", "UTF-8", null, true, null);
+        var name = this.name + id++;
+        var u = new CompilationUnit(code(name, expressions, lines), name + ".java", "UTF-8", null, true, null);
         var r = compiler.resolve(u, true, true, false);
         var results = new ResolvedTypes(r);
         var visitor = new ASTVisitor() {
-            @Override public void endVisit(LocalDeclaration localDeclaration, BlockScope scope) {
+            @Override
+            public void endVisit(LocalDeclaration localDeclaration, BlockScope scope) {
                 var var = String.valueOf(localDeclaration.name);
                 if (expressions.containsKey(var)) {
                     results.types.put(var, localDeclaration.binding.type);
@@ -110,21 +112,21 @@ public final class TypeResolver implements AutoCloseable {
         return results;
     }
 
-    private char[] code(Map<String, String> expressions, String... additionalLines) {
+    private char[] code(String className, Map<String, String> expressions, CharSequence... lines) {
         var charStream = new CharArrayWriter(512)
                 .append("public class ")
-                .append(name)
+                .append(className)
                 .append(" {").append(System.lineSeparator())
                 .append("public void method() {").append(System.lineSeparator());
-        expressions.forEach((name, expr) -> charStream
-                .append("var ")
-                .append(name)
-                .append(" = ")
-                .append(expr)
-                .append(';').append(System.lineSeparator())
-        );
+        for (var e : expressions.entrySet())
+            charStream
+                    .append("var ")
+                    .append(e.getKey())
+                    .append(" = ")
+                    .append(e.getValue())
+                    .append(';').append(System.lineSeparator());
         charStream.append("}}").append(System.lineSeparator());
-        for (var line : additionalLines) charStream.append(line).append(System.lineSeparator());
+        for (var line : lines) charStream.append(line).append(System.lineSeparator());
         return charStream.toCharArray();
     }
 
@@ -144,8 +146,13 @@ public final class TypeResolver implements AutoCloseable {
         return builder.toString();
     }
 
+    public void reset() {
+        compiler.reset();
+        id = 0;
+    }
+
     @Override
     public void close() {
-        compiler.reset();
+        reset();
     }
 }

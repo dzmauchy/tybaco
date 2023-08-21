@@ -99,6 +99,13 @@
             <artifactId>guava</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.openjdk.jol</groupId>
+            <artifactId>jol-core</artifactId>
+            <version>0.17</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <modules>
@@ -285,6 +292,7 @@
                         <threadCount>1</threadCount>
                         <parallel>none</parallel>
                         <runOrder>alphabetical</runOrder>
+                        <excludedGroups>slow,manual</excludedGroups>
                         <systemPropertyVariables>
                             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         </systemPropertyVariables>

@@ -39,7 +39,7 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static org.eclipse.jdt.internal.compiler.lookup.Scope.convertEliminatingTypeVariables;
 
-@Log
+@Log(topic = "ResolvedTypes")
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class ResolvedTypes {
 

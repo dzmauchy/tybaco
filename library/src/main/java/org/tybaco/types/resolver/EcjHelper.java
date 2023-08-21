@@ -42,7 +42,7 @@ import static org.eclipse.jdt.internal.compiler.batch.FileSystem.getClasspath;
 import static org.eclipse.jdt.internal.compiler.batch.FileSystem.getJrtClasspath;
 import static org.eclipse.jdt.internal.compiler.impl.CompilerOptions.releaseToJDKLevel;
 
-@Log
+@Log(topic = "EcjHelper")
 final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
 
     private static final Pattern DOT_PATTERN = Pattern.compile("\\.");
@@ -105,7 +105,7 @@ final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
         opts.targetJDK = opts.sourceLevel;
         opts.originalComplianceLevel = opts.sourceLevel;
         opts.originalSourceLevel = opts.sourceLevel;
-        opts.generateGenericSignatureForLambdaExpressions = true;
+        opts.generateGenericSignatureForLambdaExpressions = false;
         opts.performMethodsFullRecovery = true;
         opts.performStatementsRecovery = true;
         opts.preserveAllLocalVariables = true;
@@ -124,45 +124,166 @@ final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
 
     private PrintWriter nullPrintWriter() {
         return new PrintWriter(new Writer() {
-            @Override public void write(char[] cbuf, int off, int len) {}
-            @Override public void flush() {}
-            @Override public void close() {}
+            @Override
+            public void write(char[] cbuf, int off, int len) {
+            }
+
+            @Override
+            public void flush() {
+            }
+
+            @Override
+            public void close() {
+            }
         }, false) {
-            @Override public void write(int c) {}
-            @Override public void write(String s) {}
-            @Override public void write(char[] buf) {}
-            @Override public void write(String s, int off, int len) {}
-            @Override public void write(char[] buf, int off, int len) {}
-            @Override public PrintWriter append(char c) {return this;}
-            @Override public PrintWriter append(CharSequence csq) {return this;}
-            @Override public PrintWriter append(CharSequence csq, int start, int end) {return this;}
-            @Override public void println(int x) {}
-            @Override public void println(char x) {}
-            @Override public void println(float x) {}
-            @Override public void println(long x) {}
-            @Override public void println(char[] x) {}
-            @Override public void println(double x) {}
-            @Override public void println(Object x) {}
-            @Override public void println(String x) {}
-            @Override public void println(boolean x) {}
-            @Override public void print(boolean b) {}
-            @Override public void print(char c) {}
-            @Override public void print(int i) {}
-            @Override public void print(long l) {}
-            @Override public void print(float f) {}
-            @Override public void print(double d) {}
-            @Override public void print(char[] s) {}
-            @Override public void print(String s) {}
-            @Override public void print(Object obj) {}
-            @Override public void println() {}
-            @Override public PrintWriter printf(String format, Object... args) {return this;}
-            @Override public PrintWriter printf(Locale l, String format, Object... args) {return this;}
-            @Override public PrintWriter format(String format, Object... args) {return this;}
-            @Override public PrintWriter format(Locale l, String format, Object... args) {return this;}
-            @Override public boolean checkError() {return false;}
-            @Override public void flush() {}
-            @Override public void close() {}
-            @Override public String toString() {return "NULL";}
+            @Override
+            public void write(int c) {
+            }
+
+            @Override
+            public void write(String s) {
+            }
+
+            @Override
+            public void write(char[] buf) {
+            }
+
+            @Override
+            public void write(String s, int off, int len) {
+            }
+
+            @Override
+            public void write(char[] buf, int off, int len) {
+            }
+
+            @Override
+            public PrintWriter append(char c) {
+                return this;
+            }
+
+            @Override
+            public PrintWriter append(CharSequence csq) {
+                return this;
+            }
+
+            @Override
+            public PrintWriter append(CharSequence csq, int start, int end) {
+                return this;
+            }
+
+            @Override
+            public void println(int x) {
+            }
+
+            @Override
+            public void println(char x) {
+            }
+
+            @Override
+            public void println(float x) {
+            }
+
+            @Override
+            public void println(long x) {
+            }
+
+            @Override
+            public void println(char[] x) {
+            }
+
+            @Override
+            public void println(double x) {
+            }
+
+            @Override
+            public void println(Object x) {
+            }
+
+            @Override
+            public void println(String x) {
+            }
+
+            @Override
+            public void println(boolean x) {
+            }
+
+            @Override
+            public void print(boolean b) {
+            }
+
+            @Override
+            public void print(char c) {
+            }
+
+            @Override
+            public void print(int i) {
+            }
+
+            @Override
+            public void print(long l) {
+            }
+
+            @Override
+            public void print(float f) {
+            }
+
+            @Override
+            public void print(double d) {
+            }
+
+            @Override
+            public void print(char[] s) {
+            }
+
+            @Override
+            public void print(String s) {
+            }
+
+            @Override
+            public void print(Object obj) {
+            }
+
+            @Override
+            public void println() {
+            }
+
+            @Override
+            public PrintWriter printf(String format, Object... args) {
+                return this;
+            }
+
+            @Override
+            public PrintWriter printf(Locale l, String format, Object... args) {
+                return this;
+            }
+
+            @Override
+            public PrintWriter format(String format, Object... args) {
+                return this;
+            }
+
+            @Override
+            public PrintWriter format(Locale l, String format, Object... args) {
+                return this;
+            }
+
+            @Override
+            public boolean checkError() {
+                return false;
+            }
+
+            @Override
+            public void flush() {
+            }
+
+            @Override
+            public void close() {
+            }
+
+            @Override
+            public String toString() {
+                return "NULL";
+            }
         };
     }
 }
