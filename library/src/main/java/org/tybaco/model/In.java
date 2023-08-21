@@ -24,27 +24,45 @@ package org.tybaco.model;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.w3c.dom.Element;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 @Getter
 public final class In extends AbstractModelElement {
 
     private final Type type;
+    private final int id;
     private final String name;
+
+    void save(Element element) {
+        element.setAttribute("type", type.name());
+        element.setAttribute("id", Integer.toString(id));
+        element.setAttribute("name", name);
+        saveAttributes(element);
+    }
+
+    static In load(Element element) {
+        var type = Type.valueOf(element.getAttribute("type"));
+        var id = Integer.parseInt(element.getAttribute("id"));
+        var name = element.getAttribute("name");
+        var in = new In(type, id, name);
+        in.loadAttributes(element);
+        return in;
+    }
 
     @Override
     public int hashCode() {
-        return type.hashCode() ^ name.hashCode();
+        return type.hashCode() ^ name.hashCode() ^ id;
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof In i && type == i.type && name.equals(i.name);
+        return obj instanceof In i && type == i.type && name.equals(i.name) && id == i.id;
     }
 
     @Override
     public String toString() {
-        return type + "(" + name + ")";
+        return type + "[" + id + "](" + name + ")";
     }
 
     public enum Type {

@@ -24,6 +24,10 @@ package org.tybaco.model;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.w3c.dom.Element;
+
+import static org.tybaco.model.Xml.elementByTag;
+import static org.tybaco.model.Xml.withChild;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 @Getter
@@ -31,4 +35,32 @@ public final class Link extends AbstractModelElement {
 
     private final Out out;
     private final In in;
+
+    void save(Element element) {
+        withChild(element, "out", out::save);
+        withChild(element, "in", in::save);
+    }
+
+    static Link load(Element element) {
+        var out = elementByTag(element, "out");
+        var in = elementByTag(element, "in");
+        var link = new Link(Out.load(out), In.load(in));
+        link.loadAttributes(element);
+        return link;
+    }
+
+    @Override
+    public int hashCode() {
+        return out.hashCode() ^ in.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Link l && out.equals(l.out) && in.equals(l.in);
+    }
+
+    @Override
+    public String toString() {
+        return out + "-->" + in;
+    }
 }

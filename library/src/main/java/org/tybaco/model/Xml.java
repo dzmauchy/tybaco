@@ -28,9 +28,9 @@ import java.util.stream.Stream;
 
 import static java.util.stream.IntStream.range;
 
-class Xml {
+public class Xml {
 
-    static Stream<Element> elementsByTag(Element element, String tag) {
+    public static Stream<Element> elementsByTag(Element element, String tag) {
         var list = element.getElementsByTagName(tag);
         return range(0, list.getLength())
                 .mapToObj(list::item)
@@ -38,11 +38,16 @@ class Xml {
                 .map(Element.class::cast);
     }
 
-    static Stream<Element> elementsByTags(Element element, String enclosingTag, String tag) {
+    public static Element elementByTag(Element element, String tag) {
+        var list = element.getElementsByTagName(tag);
+        return (Element) list.item(0);
+    }
+
+    public static Stream<Element> elementsByTags(Element element, String enclosingTag, String tag) {
         return elementsByTag(element, enclosingTag).flatMap(e -> elementsByTag(e, tag));
     }
 
-    static void withChild(Element element, String tag, Consumer<Element> consumer) {
+    public static void withChild(Element element, String tag, Consumer<Element> consumer) {
         var doc = element.getOwnerDocument();
         var child = doc.createElement(tag);
         element.appendChild(child);

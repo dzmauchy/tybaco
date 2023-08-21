@@ -24,86 +24,57 @@ package org.tybaco.model;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.w3c.dom.Element;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
-public final class Constant extends AbstractModelElement implements Comparable<Constant> {
+public final class Constant extends AbstractModelElement {
 
     private final int id;
     private final Type type;
     private final String value;
 
-    public String expr() {
-        return type.expr(value);
+    void save(Element element) {
+        element.setAttribute("id", Integer.toString(id));
+        element.setAttribute("type", type.name());
+        element.setAttribute("value", value);
+        saveAttributes(element);
+    }
+
+    static Constant load(Element element) {
+        var id = Integer.parseInt(element.getAttribute("id"));
+        var type = Type.valueOf(element.getAttribute("type"));
+        var value = element.getAttribute("value");
+        var constant = new Constant(id, type, value);
+        constant.loadAttributes(element);
+        return constant;
     }
 
     @Override
-    public int compareTo(Constant o) {
-        return Integer.compare(id, o.id);
+    public int hashCode() {
+        return id ^ type.hashCode() ^ value.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Constant c && id == c.id && type == c.type && value.equals(c.value);
+    }
+
+    @Override
+    public String toString() {
+        return "Constant(" + id + "," + type + "," + value + ")";
     }
 
     public enum Type {
-        NULL {
-            @Override
-            protected String expr(String value) {
-                return "null";
-            }
-        },
-        BOOLEAN {
-            @Override
-            protected String expr(String value) {
-                return value;
-            }
-        },
-        BYTE {
-            @Override
-            protected String expr(String value) {
-                return "((byte) " + value + ")";
-            }
-        },
-        SHORT {
-            @Override
-            protected String expr(String value) {
-                return "((short) " + value + ")";
-            }
-        },
-        INT {
-            @Override
-            protected String expr(String value) {
-                return value;
-            }
-        },
-        LONG {
-            @Override
-            protected String expr(String value) {
-                return value + "L";
-            }
-        },
-        FLOAT {
-            @Override
-            protected String expr(String value) {
-                return value + "f";
-            }
-        },
-        DOUBLE {
-            @Override
-            protected String expr(String value) {
-                return value + "d";
-            }
-        },
-        CHAR {
-            @Override
-            protected String expr(String value) {
-                return "((char) " + value + ")";
-            }
-        },
-        STRING {
-            @Override
-            protected String expr(String value) {
-                return "\"" + value + "\"";
-            }
-        };
-
-        protected abstract String expr(String value);
+        NULL,
+        BOOLEAN,
+        BYTE,
+        SHORT,
+        INT,
+        LONG,
+        FLOAT,
+        DOUBLE,
+        CHAR,
+        STRING
     }
 }
