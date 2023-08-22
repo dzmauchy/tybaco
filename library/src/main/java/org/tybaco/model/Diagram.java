@@ -30,7 +30,9 @@ import java.util.LinkedList;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
+import static java.util.Objects.requireNonNull;
 import static org.tybaco.model.Xml.elementsByTags;
 import static org.tybaco.model.Xml.withChild;
 
@@ -82,12 +84,24 @@ public final class Diagram extends AbstractModelElement {
         links.forEach(consumer);
     }
 
-    public Optional<Block> getBlock(int id) {
-        return Optional.ofNullable(blocks.get(id));
+    public Block block(int id) {
+        return requireNonNull(blocks.get(id), () -> "No such block " + id);
     }
 
-    public Optional<Constant> getConstant(int id) {
-        return Optional.ofNullable(constants.get(id));
+    public Constant constant(int id) {
+        return requireNonNull(constants.get(id), () -> "No such constant " + id);
+    }
+
+    public Stream<Block> blocks() {
+        return blocks.stream();
+    }
+
+    public Stream<Constant> constants() {
+        return constants.stream();
+    }
+
+    public Stream<Link> links() {
+        return links.stream();
     }
 
     public Optional<Block> findBlock(Predicate<Block> predicate) {
