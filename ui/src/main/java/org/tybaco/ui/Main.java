@@ -72,7 +72,8 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
 
     private static void initLogging() {
         setProperty("java.util.logging.manager", LoggingManager.class.getName());
-        getLogger("").addHandler(new FastConsoleHandler());
+        var rootLogger = getLogger("");
+        rootLogger.addHandler(new FastConsoleHandler());
     }
 
     @Override

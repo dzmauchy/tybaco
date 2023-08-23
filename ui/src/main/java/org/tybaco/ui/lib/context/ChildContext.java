@@ -30,7 +30,7 @@ import org.springframework.context.event.ContextClosedEvent;
 
 import static java.util.Objects.requireNonNull;
 
-public class ChildContext extends AnnotationConfigApplicationContext {
+public final class ChildContext extends AnnotationConfigApplicationContext {
 
     public ChildContext(String id, String name, AnnotationConfigApplicationContext parent) {
         requireNonNull(getDefaultListableBeanFactory()).setParentBeanFactory(parent.getDefaultListableBeanFactory());

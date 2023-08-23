@@ -33,6 +33,8 @@ import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.util.stream.IntStream;
 
+import static java.awt.BorderLayout.CENTER;
+import static java.awt.BorderLayout.SOUTH;
 import static org.tybaco.ui.lib.images.ImageCache.svgImage;
 
 @Component
@@ -44,6 +46,7 @@ public final class MainFrame extends JFrame {
     public MainFrame(GenericApplicationContext context) {
         super("Tybaco IDE");
         this.context = context;
+        setLayout(new BorderLayout(3, 3));
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setContentPane(new JPanel());
         setIconImages(IntStream.of(18, 24, 32).mapToObj(s -> svgImage("icon/constructor.svg", s)).toList());
@@ -53,8 +56,10 @@ public final class MainFrame extends JFrame {
     }
 
     @Autowired
-    public void withMenuBar(MainMenuBar menuBar) {
-        setJMenuBar(menuBar);
+    public void withMainControls(MainMenuBar menus, MainTabPane tabs, MainStatusPane status) {
+        setJMenuBar(menus);
+        add(tabs, CENTER);
+        add(status, SOUTH);
     }
 
     @EventListener
