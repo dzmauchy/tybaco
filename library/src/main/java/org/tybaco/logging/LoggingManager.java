@@ -21,54 +21,20 @@ package org.tybaco.logging;
  * #L%
  */
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InvalidClassException;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Handler;
 import java.util.logging.LogManager;
-
-import static java.util.Arrays.stream;
 
 public final class LoggingManager extends LogManager {
 
-    private final AtomicBoolean first = new AtomicBoolean(true);
-
     @Override
-    public void reset() throws SecurityException {
-        if (first.compareAndSet(true, false)) {
-            super.reset();
-        }
+    public void reset() {
     }
 
     @Override
-    public void readConfiguration() throws IOException, SecurityException {
-        super.readConfiguration();
+    public void readConfiguration() {
     }
 
     @Override
-    public void readConfiguration(InputStream ins) throws IOException, SecurityException {
-        super.readConfiguration(ins);
-        var logger = getLogger("");
-        var cl = Thread.currentThread().getContextClassLoader();
-        var handlers = stream(Objects.requireNonNullElse(getProperty(".logHandlers"), "").split(","))
-                .filter(s -> !s.isBlank())
-                .map(String::trim)
-                .toArray(String[]::new);
-        for (var handler : handlers) {
-            try {
-                var cls = cl.loadClass(handler);
-                for (var c : cls.getConstructors()) {
-                    if (c.getParameterCount() == 0) {
-                        var h = (Handler) c.newInstance();
-                        logger.addHandler(h);
-                        break;
-                    }
-                }
-            } catch (ReflectiveOperationException e) {
-                throw new InvalidClassException(handler, "not found", e);
-            }
-        }
+    public void readConfiguration(InputStream ins) {
     }
 }

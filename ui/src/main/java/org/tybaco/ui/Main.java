@@ -27,13 +27,15 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
-import org.tybaco.logging.LoggingInitializer;
+import org.tybaco.logging.FastConsoleHandler;
 import org.tybaco.logging.LoggingManager;
 import org.tybaco.ui.main.MainConfiguration;
 import org.tybaco.ui.main.MainFrame;
 
 import javax.swing.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import static java.awt.EventQueue.invokeLater;
 import static java.lang.System.setProperty;
@@ -72,8 +74,8 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
 
     private static void initLogging() {
         setProperty("java.util.logging.manager", LoggingManager.class.getName());
-        setProperty("java.util.logging.config.file", "tybaco-logging.properties");
-        setProperty("java.util.logging.config.class", LoggingInitializer.class.getName());
+        LogManager.getLogManager().reset();
+        Logger.getGlobal().getParent().addHandler(new FastConsoleHandler());
     }
 
     @Override
