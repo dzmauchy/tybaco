@@ -22,12 +22,18 @@ package org.tybaco.ui.main;
  */
 
 import lombok.extern.java.Log;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
+import java.util.stream.IntStream;
+
+import static org.tybaco.ui.lib.images.ImageCache.svgImage;
 
 @Component
 @Log
@@ -40,11 +46,21 @@ public final class MainFrame extends JFrame {
         this.context = context;
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setContentPane(new JPanel());
+        setIconImages(IntStream.of(18, 24, 32).mapToObj(s -> svgImage("icon/constructor.svg", s)).toList());
         setName("mainFrame");
         setPreferredSize(new Dimension(800, 600));
-        pack();
         setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
-        log.info("MainFrame created");
+    }
+
+    @Autowired
+    public void withMenuBar(MainMenuBar menuBar) {
+        setJMenuBar(menuBar);
+    }
+
+    @EventListener
+    private void onRefresh(ContextRefreshedEvent event) {
+        pack();
+        setLocationRelativeTo(null);
     }
 
     @Override

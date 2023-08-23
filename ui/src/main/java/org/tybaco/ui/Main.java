@@ -34,8 +34,6 @@ import org.tybaco.ui.main.MainFrame;
 
 import javax.swing.*;
 import java.util.concurrent.CountDownLatch;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
 
 import static java.awt.EventQueue.invokeLater;
 import static java.lang.System.setProperty;
@@ -74,12 +72,11 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
 
     private static void initLogging() {
         setProperty("java.util.logging.manager", LoggingManager.class.getName());
-        LogManager.getLogManager().reset();
-        Logger.getGlobal().getParent().addHandler(new FastConsoleHandler());
+        getLogger("").addHandler(new FastConsoleHandler());
     }
 
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
-        getLogger("main").log(INFO, "{0}", event);
+        getLogger("").log(INFO, "{0}", event);
     }
 }

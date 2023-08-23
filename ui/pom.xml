@@ -14,6 +14,7 @@
 
     <properties>
         <nb.release>RELEASE180</nb.release>
+        <batik.version>1.17</batik.version>
         <main.class>org.tybaco.ui.Main</main.class>
     </properties>
 
@@ -74,7 +75,19 @@
         <dependency>
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>batik-swing</artifactId>
-            <version>1.17</version>
+            <version>${batik.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-rasterizer</artifactId>
+            <version>${batik.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-rasterizer-ext</artifactId>
+            <version>${batik.version}</version>
         </dependency>
 
         <dependency>
