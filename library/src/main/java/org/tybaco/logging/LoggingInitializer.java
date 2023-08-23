@@ -1,6 +1,8 @@
+package org.tybaco.logging;
+
 /*-
  * #%L
- * ui
+ * library
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -19,6 +21,16 @@
  * #L%
  */
 
-.root {
-    -fx-base: #111;
+import java.util.logging.LogManager;
+
+public class LoggingInitializer {
+
+    public LoggingInitializer() throws Exception {
+        var file = System.getProperty("java.util.logging.config.file");
+        var classLoader = Thread.currentThread().getContextClassLoader();
+        var lm = LogManager.getLogManager();
+        try (var is = classLoader.getResourceAsStream(file)) {
+            lm.readConfiguration(is);
+        }
+    }
 }

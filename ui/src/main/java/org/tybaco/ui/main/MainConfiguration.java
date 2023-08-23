@@ -24,7 +24,7 @@ package org.tybaco.ui.main;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
-@ComponentScan
+@ComponentScan(lazyInit = true)
 @Component
 public class MainConfiguration {
 }
