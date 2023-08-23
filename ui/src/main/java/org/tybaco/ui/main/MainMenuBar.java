@@ -21,10 +21,17 @@ package org.tybaco.ui.main;
  * #L%
  */
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.tybaco.ui.main.menu.FileMenu;
 
 import javax.swing.*;
 
 @Component
 public class MainMenuBar extends JMenuBar {
+
+    @Autowired
+    public void withFileMenu(FileMenu fileMenu) {
+        add(fileMenu);
+    }
 }
