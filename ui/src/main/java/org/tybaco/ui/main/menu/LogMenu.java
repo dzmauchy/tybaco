@@ -21,11 +21,11 @@ package org.tybaco.ui.main.menu;
  * #L%
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.actions.SmartAction;
+import org.tybaco.ui.lib.menus.Menus;
 
 import javax.swing.*;
 import java.util.Map;
@@ -35,19 +35,8 @@ import java.util.Map;
 @Qualifier("main")
 public class LogMenu extends JMenu {
 
-    public LogMenu() {
+    public LogMenu(@Qualifier("log") Map<String, SmartAction> actions) {
         super("Log");
-    }
-
-    @Autowired
-    public void init(@Qualifier("log") Map<String, SmartAction> actions) {
-        var grouped = SmartAction.group(actions);
-        for (var it = grouped.values().iterator(); it.hasNext(); ) {
-            var list = it.next();
-            list.forEach(this::add);
-            if (it.hasNext()) {
-                addSeparator();
-            }
-        }
+        Menus.addMenuItems(this, actions);
     }
 }
