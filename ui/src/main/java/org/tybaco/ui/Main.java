@@ -22,7 +22,6 @@ package org.tybaco.ui;
  */
 
 import com.formdev.flatlaf.FlatDarculaLaf;
-import lombok.SneakyThrows;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -30,24 +29,22 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.tybaco.logging.FastConsoleHandler;
 import org.tybaco.logging.LoggingManager;
 import org.tybaco.ui.lib.logging.UILogHandler;
+import org.tybaco.ui.lib.utils.Syn;
 import org.tybaco.ui.main.MainConfiguration;
 import org.tybaco.ui.main.MainFrame;
 
-import javax.swing.*;
-import java.util.concurrent.CountDownLatch;
+import java.util.logging.LogManager;
 
 import static java.awt.EventQueue.invokeLater;
 import static java.lang.System.setProperty;
-import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.INFO;
-import static java.util.logging.Logger.getLogger;
 
 public final class Main implements ApplicationListener<ApplicationEvent> {
 
   public static void main(String... args) {
     initLogging();
     var ctx = new AnnotationConfigApplicationContext();
-    var latch = new CountDownLatch(1);
+    var latch = new Syn(1);
     invokeLater(() -> bootstrap(latch, ctx));
     try {
       ctx.setId("root");
@@ -59,27 +56,28 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
       ctx.register(MainConfiguration.class);
       ctx.refresh();
     } finally {
-      latch.countDown();
+      latch.releaseShared(1);
     }
   }
 
-  @SneakyThrows
-  private static void bootstrap(CountDownLatch latch, GenericApplicationContext context) {
-    UIManager.setLookAndFeel(new FlatDarculaLaf());
-    latch.await();
-    var mainFrame = requireNonNull(context.getBean(MainFrame.class), "No MainFrame found");
+  private static void bootstrap(Syn latch, GenericApplicationContext context) {
+    FlatDarculaLaf.installLafInfo();
+    FlatDarculaLaf.setup();
+    latch.acquireShared(1);
+    var mainFrame = context.getBean(MainFrame.class);
+    assert mainFrame != null;
     mainFrame.setVisible(true);
   }
 
   private static void initLogging() {
     setProperty("java.util.logging.manager", LoggingManager.class.getName());
-    var rootLogger = getLogger("");
+    var rootLogger = LogManager.getLogManager().getLogger("");
     rootLogger.addHandler(new FastConsoleHandler());
     rootLogger.addHandler(new UILogHandler());
   }
 
   @Override
   public void onApplicationEvent(ApplicationEvent event) {
-    getLogger("").log(INFO, "{0}", event);
+    LogManager.getLogManager().getLogger("").log(INFO, "{0}", event);
   }
 }
