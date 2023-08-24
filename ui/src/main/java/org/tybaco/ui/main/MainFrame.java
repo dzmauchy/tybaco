@@ -35,6 +35,7 @@ import java.util.stream.IntStream;
 
 import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.SOUTH;
+import static java.util.logging.Level.SEVERE;
 import static org.tybaco.ui.lib.images.ImageCache.svgImage;
 
 @Component
@@ -72,8 +73,13 @@ public final class MainFrame extends JFrame {
     super.processWindowEvent(e);
     switch (e.getID()) {
       case WindowEvent.WINDOW_OPENED -> context.start();
-      case WindowEvent.WINDOW_CLOSING -> context.stop();
-      case WindowEvent.WINDOW_CLOSED -> context.close();
+      case WindowEvent.WINDOW_CLOSED -> {
+        try (context) {
+          context.stop();
+        } catch (Throwable x) {
+          log.log(SEVERE, "Unable to close the context", x);
+        }
+      }
     }
   }
 }

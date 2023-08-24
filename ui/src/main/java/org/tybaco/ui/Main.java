@@ -29,7 +29,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.tybaco.logging.FastConsoleHandler;
 import org.tybaco.logging.LoggingManager;
 import org.tybaco.ui.lib.logging.UILogHandler;
-import org.tybaco.ui.lib.utils.Syn;
+import org.tybaco.ui.lib.utils.Latch;
 import org.tybaco.ui.main.MainConfiguration;
 import org.tybaco.ui.main.MainFrame;
 
@@ -44,7 +44,7 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
   public static void main(String... args) {
     initLogging();
     var ctx = new AnnotationConfigApplicationContext();
-    var latch = new Syn(1);
+    var latch = new Latch(1);
     invokeLater(() -> bootstrap(latch, ctx));
     try {
       ctx.setId("root");
@@ -60,7 +60,7 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
     }
   }
 
-  private static void bootstrap(Syn latch, GenericApplicationContext context) {
+  private static void bootstrap(Latch latch, GenericApplicationContext context) {
     FlatDarculaLaf.installLafInfo();
     FlatDarculaLaf.setup();
     latch.acquireShared(1);

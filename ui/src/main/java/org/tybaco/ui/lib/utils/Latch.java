@@ -2,18 +2,15 @@ package org.tybaco.ui.lib.utils;
 
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
-public final class Syn extends AbstractQueuedSynchronizer {
+public final class Latch extends AbstractQueuedSynchronizer {
 
-  public Syn() {
-  }
-
-  public Syn(int state) {
+  public Latch(int state) {
     setState(state);
   }
 
   @Override
   protected int tryAcquireShared(int acquires) {
-    return (getState() == 0) ? 1 : -1;
+    return getState() == 0 ? 1 : -1;
   }
 
   @Override

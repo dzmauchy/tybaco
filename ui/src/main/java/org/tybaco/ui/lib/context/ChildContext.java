@@ -28,6 +28,11 @@ import org.springframework.context.PayloadApplicationEvent;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.event.ContextClosedEvent;
 
+import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.function.Consumer;
+
 import static java.util.Objects.requireNonNull;
 
 public final class ChildContext extends AnnotationConfigApplicationContext {
@@ -60,5 +65,31 @@ public final class ChildContext extends AnnotationConfigApplicationContext {
     } else {
       return super.getInternalParentMessageSource();
     }
+  }
+
+  public <W extends Window> W child(String id, String name, Class<W> type, AnnotationConfigApplicationContext ctx, Consumer<ChildContext> consumer) {
+    var child = new ChildContext(id, name, ctx);
+    consumer.accept(child);
+    child.refresh();
+    var w = child.getBean(type);
+    assert w != null;
+    w.addWindowListener(new WindowAdapter() {
+      @Override
+      public void windowOpened(WindowEvent e) {
+        child.start();
+      }
+
+      @Override
+      public void windowClosed(WindowEvent e) {
+        try (child) {
+          child.stop();
+        } catch (Throwable x) {
+          logger.error("Window close error", x);
+        }
+        w.removeWindowListener(this);
+      }
+    });
+    w.setVisible(true);
+    return w;
   }
 }
