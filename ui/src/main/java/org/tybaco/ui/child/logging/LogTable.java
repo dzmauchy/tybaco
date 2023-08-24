@@ -1,4 +1,4 @@
-package org.tybaco.ui.main;
+package org.tybaco.ui.child.logging;
 
 /*-
  * #%L
@@ -22,10 +22,16 @@ package org.tybaco.ui.main;
  */
 
 import org.springframework.stereotype.Component;
+import org.tybaco.ui.lib.logging.UILogHandler;
 
 import javax.swing.*;
 
 @Component
-public class MainTabPane extends JTabbedPane {
+public class LogTable extends JTable {
 
+    public LogTable() {
+        super(UILogHandler.getInstance());
+        setShowGrid(true);
+        setAutoResizeMode(AUTO_RESIZE_ALL_COLUMNS);
+    }
 }

@@ -21,9 +21,10 @@ package org.tybaco.ui.main;
  * #L%
  */
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.main.menu.FileMenu;
 
 import javax.swing.*;
 
@@ -31,7 +32,7 @@ import javax.swing.*;
 public class MainMenuBar extends JMenuBar {
 
     @Autowired
-    public void withFileMenu(FileMenu fileMenu) {
-        add(fileMenu);
+    public void withMenus(@Qualifier("main") ObjectProvider<JMenu> menus) {
+        menus.forEach(this::add);
     }
 }

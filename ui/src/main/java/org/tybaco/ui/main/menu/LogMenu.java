@@ -1,4 +1,4 @@
-package org.tybaco.ui.main;
+package org.tybaco.ui.main.menu;
 
 /*-
  * #%L
@@ -21,11 +21,33 @@ package org.tybaco.ui.main;
  * #L%
  */
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.tybaco.ui.lib.actions.SmartAction;
 
 import javax.swing.*;
+import java.util.Map;
 
 @Component
-public class MainTabPane extends JTabbedPane {
+@Order(2)
+@Qualifier("main")
+public class LogMenu extends JMenu {
 
+    public LogMenu() {
+        super("Log");
+    }
+
+    @Autowired
+    public void init(@Qualifier("log") Map<String, SmartAction> actions) {
+        var grouped = SmartAction.group(actions);
+        for (var it = grouped.values().iterator(); it.hasNext(); ) {
+            var list = it.next();
+            list.forEach(this::add);
+            if (it.hasNext()) {
+                addSeparator();
+            }
+        }
+    }
 }

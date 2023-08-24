@@ -1,4 +1,4 @@
-package org.tybaco.ui.main;
+package org.tybaco.ui.child.logging;
 
 /*-
  * #%L
@@ -21,11 +21,11 @@ package org.tybaco.ui.main;
  * #L%
  */
 
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
-import javax.swing.*;
-
+@ComponentScan(lazyInit = true)
 @Component
-public class MainTabPane extends JTabbedPane {
+public class LogFrameConfig {
 
 }

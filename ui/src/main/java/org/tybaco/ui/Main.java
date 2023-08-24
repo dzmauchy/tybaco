@@ -29,6 +29,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.support.GenericApplicationContext;
 import org.tybaco.logging.FastConsoleHandler;
 import org.tybaco.logging.LoggingManager;
+import org.tybaco.ui.lib.logging.UILogHandler;
 import org.tybaco.ui.main.MainConfiguration;
 import org.tybaco.ui.main.MainFrame;
 
@@ -74,6 +75,7 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
         setProperty("java.util.logging.manager", LoggingManager.class.getName());
         var rootLogger = getLogger("");
         rootLogger.addHandler(new FastConsoleHandler());
+        rootLogger.addHandler(new UILogHandler());
     }
 
     @Override

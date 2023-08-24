@@ -1,14 +1,37 @@
 package org.tybaco.ui.lib.logging;
 
+/*-
+ * #%L
+ * ui
+ * %%
+ * Copyright (C) 2023 Montoni
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * #L%
+ */
+
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
 
 import static java.awt.EventQueue.invokeLater;
@@ -126,5 +149,15 @@ public class UILogHandler extends Handler implements TableModel {
     @Override
     public void removeTableModelListener(TableModelListener l) {
         listeners.remove(l);
+    }
+
+    public static UILogHandler getInstance() {
+        var logger = LogManager.getLogManager().getLogger("");
+        for (var handler : logger.getHandlers()) {
+            if (handler instanceof UILogHandler h) {
+                return h;
+            }
+        }
+        throw new NoSuchElementException();
     }
 }

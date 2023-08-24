@@ -1,4 +1,4 @@
-package org.tybaco.ui.main;
+package org.tybaco.ui.child.logging;
 
 /*-
  * #%L
@@ -21,7 +21,6 @@ package org.tybaco.ui.main;
  * #L%
  */
 
-import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -31,38 +30,30 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
-import java.util.stream.IntStream;
 
-import static java.awt.BorderLayout.CENTER;
-import static java.awt.BorderLayout.SOUTH;
-import static org.tybaco.ui.lib.images.ImageCache.svgImage;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 @Component
-@Log
-public final class MainFrame extends JFrame {
+public class LogFrame extends JFrame {
 
     private final GenericApplicationContext context;
 
-    public MainFrame(GenericApplicationContext context) {
-        super("Tybaco IDE");
+    public LogFrame(GenericApplicationContext context) {
+        super("Log");
         this.context = context;
-        setLayout(new BorderLayout(3, 3));
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setIconImages(IntStream.of(18, 24, 32).mapToObj(s -> svgImage("icon/constructor.svg", s)).toList());
-        setName("mainFrame");
-        setPreferredSize(new Dimension(800, 600));
-        setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
+        setPreferredSize(new Dimension(900, 650));
     }
 
     @Autowired
-    public void withMainControls(MainMenuBar menus, MainTabPane tabs, MainStatusPane status) {
-        setJMenuBar(menus);
-        add(tabs, CENTER);
-        add(status, SOUTH);
+    public void withLogTable(LogTable table) {
+        var sp = new JScrollPane(table, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        add(sp, BorderLayout.CENTER);
     }
 
     @EventListener
-    private void onRefresh(ContextRefreshedEvent event) {
+    public void onStart(ContextRefreshedEvent event) {
         pack();
         setLocationRelativeTo(null);
     }
