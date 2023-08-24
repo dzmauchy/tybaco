@@ -40,7 +40,7 @@ public class MainConfiguration {
     @Bean
     @Qualifier("log")
     public SmartAction groupZ_showLogFrameAction(AnnotationConfigApplicationContext context) {
-        return new SmartAction("showLogs", "Show logs", e -> {
+        return new SmartAction("showLogs", "Show logs", "icon/logs.svg", e -> {
             var windows = Window.getWindows();
             for (var window : windows) {
                 if (window instanceof LogFrame f) {

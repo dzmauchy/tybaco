@@ -26,12 +26,15 @@ import org.tybaco.ui.lib.logging.UILogHandler;
 
 import javax.swing.*;
 
+import static org.tybaco.ui.lib.tables.Tables.initColumns;
+
 @Component
 public class LogTable extends JTable {
 
     public LogTable() {
         super(UILogHandler.getInstance());
         setShowGrid(true);
-        setAutoResizeMode(AUTO_RESIZE_ALL_COLUMNS);
+        setAutoResizeMode(AUTO_RESIZE_LAST_COLUMN);
+        initColumns(this, 80, 300, 500);
     }
 }

@@ -30,9 +30,11 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
+import java.util.stream.IntStream;
 
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+import static org.tybaco.ui.lib.images.ImageCache.svgImage;
 
 @Component
 public class LogFrame extends JFrame {
@@ -42,8 +44,10 @@ public class LogFrame extends JFrame {
     public LogFrame(GenericApplicationContext context) {
         super("Log");
         this.context = context;
+        setIconImages(IntStream.of(18, 24).mapToObj(size -> svgImage("icon/logs.svg", size)).toList());
+        setType(Type.UTILITY);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setPreferredSize(new Dimension(900, 650));
+        setPreferredSize(new Dimension(1024, 768));
     }
 
     @Autowired
