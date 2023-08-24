@@ -30,51 +30,51 @@ import org.w3c.dom.Element;
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 public final class Constant extends AbstractModelElement {
 
-    private final int id;
-    private final Type type;
-    private final String value;
+  private final int id;
+  private final Type type;
+  private final String value;
 
-    void save(Element element) {
-        element.setAttribute("id", Integer.toString(id));
-        element.setAttribute("type", type.name());
-        element.setAttribute("value", value);
-        saveAttributes(element);
-    }
+  void save(Element element) {
+    element.setAttribute("id", Integer.toString(id));
+    element.setAttribute("type", type.name());
+    element.setAttribute("value", value);
+    saveAttributes(element);
+  }
 
-    static Constant load(Element element) {
-        var id = Integer.parseInt(element.getAttribute("id"));
-        var type = Type.valueOf(element.getAttribute("type"));
-        var value = element.getAttribute("value");
-        var constant = new Constant(id, type, value);
-        constant.loadAttributes(element);
-        return constant;
-    }
+  static Constant load(Element element) {
+    var id = Integer.parseInt(element.getAttribute("id"));
+    var type = Type.valueOf(element.getAttribute("type"));
+    var value = element.getAttribute("value");
+    var constant = new Constant(id, type, value);
+    constant.loadAttributes(element);
+    return constant;
+  }
 
-    @Override
-    public int hashCode() {
-        return id ^ type.hashCode() ^ value.hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return id ^ type.hashCode() ^ value.hashCode();
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof Constant c && id == c.id && type == c.type && value.equals(c.value);
-    }
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof Constant c && id == c.id && type == c.type && value.equals(c.value);
+  }
 
-    @Override
-    public String toString() {
-        return "Constant(" + id + "," + type + "," + value + ")";
-    }
+  @Override
+  public String toString() {
+    return "Constant(" + id + "," + type + "," + value + ")";
+  }
 
-    public enum Type {
-        NULL,
-        BOOLEAN,
-        BYTE,
-        SHORT,
-        INT,
-        LONG,
-        FLOAT,
-        DOUBLE,
-        CHAR,
-        STRING
-    }
+  public enum Type {
+    NULL,
+    BOOLEAN,
+    BYTE,
+    SHORT,
+    INT,
+    LONG,
+    FLOAT,
+    DOUBLE,
+    CHAR,
+    STRING
+  }
 }

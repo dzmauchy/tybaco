@@ -31,39 +31,39 @@ import static org.tybaco.model.Xml.elementsByTags;
 
 abstract class AbstractModelElement {
 
-    private final TreeMap<String, String> attributes = new TreeMap<>();
+  private final TreeMap<String, String> attributes = new TreeMap<>();
 
-    public void setAttribute(String key, String value) {
-        attributes.put(key, value);
-    }
+  public void setAttribute(String key, String value) {
+    attributes.put(key, value);
+  }
 
-    public void removeAttribute(String key) {
-        attributes.remove(key);
-    }
+  public void removeAttribute(String key) {
+    attributes.remove(key);
+  }
 
-    public Stream<String> attributes() {
-        return attributes.keySet().stream();
-    }
+  public Stream<String> attributes() {
+    return attributes.keySet().stream();
+  }
 
-    public void forEachAttribute(BiConsumer<String, String> consumer) {
-        attributes.forEach(consumer);
-    }
+  public void forEachAttribute(BiConsumer<String, String> consumer) {
+    attributes.forEach(consumer);
+  }
 
-    void saveAttributes(Element element) {
-        var doc = element.getOwnerDocument();
-        var attrsElement = (Element) element.appendChild(doc.createElement("attributes"));
-        forEachAttribute((key, value) -> {
-            var attrElement = (Element) attrsElement.appendChild(doc.createElement("attribute"));
-            attrElement.setAttribute("key", key);
-            attrElement.setAttribute("value", value);
-        });
-    }
+  void saveAttributes(Element element) {
+    var doc = element.getOwnerDocument();
+    var attrsElement = (Element) element.appendChild(doc.createElement("attributes"));
+    forEachAttribute((key, value) -> {
+      var attrElement = (Element) attrsElement.appendChild(doc.createElement("attribute"));
+      attrElement.setAttribute("key", key);
+      attrElement.setAttribute("value", value);
+    });
+  }
 
-    void loadAttributes(Element element) {
-        elementsByTags(element, "attributes", "attribute").forEach(attrElement -> {
-            var key = attrElement.getAttribute("key");
-            var value = attrElement.getAttribute("value");
-            setAttribute(key, value);
-        });
-    }
+  void loadAttributes(Element element) {
+    elementsByTags(element, "attributes", "attribute").forEach(attrElement -> {
+      var key = attrElement.getAttribute("key");
+      var value = attrElement.getAttribute("value");
+      setAttribute(key, value);
+    });
+  }
 }

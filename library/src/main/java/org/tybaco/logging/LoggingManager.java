@@ -26,15 +26,15 @@ import java.util.logging.LogManager;
 
 public final class LoggingManager extends LogManager {
 
-    @Override
-    public void reset() {
-    }
+  @Override
+  public void reset() {
+  }
 
-    @Override
-    public void readConfiguration() {
-    }
+  @Override
+  public void readConfiguration() {
+  }
 
-    @Override
-    public void readConfiguration(InputStream ins) {
-    }
+  @Override
+  public void readConfiguration(InputStream ins) {
+  }
 }

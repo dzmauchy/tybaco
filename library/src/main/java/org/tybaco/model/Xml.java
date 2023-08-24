@@ -30,27 +30,27 @@ import static java.util.stream.IntStream.range;
 
 public class Xml {
 
-    public static Stream<Element> elementsByTag(Element element, String tag) {
-        var list = element.getElementsByTagName(tag);
-        return range(0, list.getLength())
-                .mapToObj(list::item)
-                .filter(Element.class::isInstance)
-                .map(Element.class::cast);
-    }
+  public static Stream<Element> elementsByTag(Element element, String tag) {
+    var list = element.getElementsByTagName(tag);
+    return range(0, list.getLength())
+      .mapToObj(list::item)
+      .filter(Element.class::isInstance)
+      .map(Element.class::cast);
+  }
 
-    public static Element elementByTag(Element element, String tag) {
-        var list = element.getElementsByTagName(tag);
-        return (Element) list.item(0);
-    }
+  public static Element elementByTag(Element element, String tag) {
+    var list = element.getElementsByTagName(tag);
+    return (Element) list.item(0);
+  }
 
-    public static Stream<Element> elementsByTags(Element element, String enclosingTag, String tag) {
-        return elementsByTag(element, enclosingTag).flatMap(e -> elementsByTag(e, tag));
-    }
+  public static Stream<Element> elementsByTags(Element element, String enclosingTag, String tag) {
+    return elementsByTag(element, enclosingTag).flatMap(e -> elementsByTag(e, tag));
+  }
 
-    public static void withChild(Element element, String tag, Consumer<Element> consumer) {
-        var doc = element.getOwnerDocument();
-        var child = doc.createElement(tag);
-        element.appendChild(child);
-        consumer.accept(child);
-    }
+  public static void withChild(Element element, String tag, Consumer<Element> consumer) {
+    var doc = element.getOwnerDocument();
+    var child = doc.createElement(tag);
+    element.appendChild(child);
+    consumer.accept(child);
+  }
 }

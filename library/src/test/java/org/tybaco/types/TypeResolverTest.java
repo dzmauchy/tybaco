@@ -45,188 +45,188 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TypeResolverTest {
 
-    private final TypeResolver resolver = new TypeResolver("Test");
+  private final TypeResolver resolver = new TypeResolver("Test");
 
-    @ParameterizedTest
-    @CsvSource({
-            "java.util.List,java.util.List<E>",
-            "java.util.Map,'java.util.Map<K,V>'"
-    })
-    void resolveType(String type, String expected) {
-        var t = resolver.resolve(type);
-        assertEquals(expected, t.toString());
+  @ParameterizedTest
+  @CsvSource({
+    "java.util.List,java.util.List<E>",
+    "java.util.Map,'java.util.Map<K,V>'"
+  })
+  void resolveType(String type, String expected) {
+    var t = resolver.resolve(type);
+    assertEquals(expected, t.toString());
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void primitiveTypeResolve(String expr, String expected) {
+    var results = resolver.resolve(Map.of("a", expr));
+    var type = results.getType("a");
+    assertTrue(type.isPrimitive());
+    assertEquals(expected, type.toString());
+  }
+
+  private static Stream<Arguments> primitiveTypeResolve() {
+    return Stream.of(
+      arguments("1", "int"),
+      arguments("2 + 3L", "long"),
+      arguments("3d + 4f", "double"),
+      arguments("4 == 3", "boolean"),
+      arguments("\"a\".toCharArray()[0]", "char")
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void typeResolve(String expr, String expected) {
+    var results = resolver.resolve(Map.of("a", expr));
+    var type = results.getType("a");
+    assertEquals(expected, type.toString());
+  }
+
+  private static Stream<Arguments> typeResolve() {
+    return Stream.of(
+      arguments("int.class", "java.lang.Class<java.lang.Integer>"),
+      arguments("java.util.List.class", "java.lang.Class<java.util.List>")
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void resolve(Map<String, String> map, Map<String, String> expected) {
+    var results = resolver.resolve(map);
+    map.forEach((k, v) -> {
+      var e = expected.get(k);
+      assertNotNull(e, () -> "No key %s in %s".formatted(k, expected));
+      var r = results.getType(k);
+      assertNotNull(r, () -> "No type found for %s".formatted(k));
+      assertEquals(r.toString(), e);
+    });
+  }
+
+  private static Stream<Arguments> resolve() {
+    return Stream.of(
+      arguments(
+        linkedMap(
+          entry("a", "3"),
+          entry("b", "java.util.List.of(a)")
+        ),
+        Map.ofEntries(
+          entry("a", "int"),
+          entry("b", "java.util.List<java.lang.Integer>")
+        )
+      )
+    );
+  }
+
+  @Test
+  void assignability() {
+    var r = resolver.resolve(Map.of("a", "java.util.List.class", "b", "3", "c", "\"\""));
+
+    var a = r.getType("a");
+    var b = r.getType("b");
+    var c = r.getType("c");
+    assertNotNull(a);
+    assertNotNull(b);
+    assertNotNull(c);
+
+    assertTrue(a.isParameterized());
+
+    var p = a.getTypeParameter(0);
+    assertTrue(p.isRaw());
+    var pa = p.getActual();
+    assertFalse(pa.isRaw());
+
+    var method = p.staticFactories()
+      .filter(m -> m.getName().equals("of"))
+      .filter(m -> !m.isVarargs())
+      .filter(m -> m.getArgs().size() == 1)
+      .findFirst()
+      .orElseThrow();
+    var arg = method.getArgs().get(0);
+    var argType = arg.getType();
+
+    assertTrue(r.isAssignable(a, argType));
+  }
+
+  @Test
+  void complexAssignability() {
+    var r = resolver.resolve(Map.of("a", "A.class", "b", "3", "c", "java.time.temporal.ChronoUnit.DAYS"), """
+      class A {
+          public static <E extends Enum<E>> java.util.List<E> listOfEnums(E elem) {
+              return java.util.List.of(elem);
+          }
+      }
+      """);
+
+    var a = r.getType("a");
+    var b = r.getType("b");
+    var c = r.getType("c");
+    assertNotNull(a);
+    assertNotNull(b);
+    assertNotNull(c);
+
+    assertTrue(a.isParameterized());
+
+    var p = a.getTypeParameter(0);
+
+    var method = p.staticFactories()
+      .filter(m -> m.getName().equals("listOfEnums"))
+      .findFirst()
+      .orElseThrow();
+    var arg = method.getArgs().get(0);
+    var argType = arg.getType();
+
+    assertFalse(r.isAssignable(a, argType));
+    assertFalse(r.isAssignable(b, argType));
+    assertTrue(r.isAssignable(c, argType));
+  }
+
+  @Test
+  void multipleAssignability() {
+    var r1 = resolver.resolve(Map.of(
+      "a", "(java.util.List<?>) java.util.List.of(1)",
+      "b", "java.util.List.of(3)"
+    ));
+    var r2 = resolver.resolve(Map.of("b", "java.util.List.of(2)"));
+
+    assertTrue(r2.isAssignable(r2.getType("b"), r1.getType("a")));
+    assertTrue(r1.isAssignable(r2.getType("b"), r1.getType("a")));
+    assertFalse(r2.isAssignable(r1.getType("a"), r2.getType("b")));
+    assertFalse(r1.isAssignable(r1.getType("a"), r2.getType("b")));
+    assertTrue(r1.isAssignable(r1.getType("b"), r2.getType("b")));
+    assertEquals(r1.getType("b"), r2.getType("b"));
+  }
+
+  @Test
+  void parameterizedType() {
+    var t = resolver.parameterizedType(
+      resolver.resolve("java.util.List"),
+      List.of(resolver.resolve("java.lang.Integer"))
+    );
+    assertEquals("java.util.List<java.lang.Integer>", t.toString());
+  }
+
+  @Test
+  void intersectionType() {
+    var t = resolver.intersectionType(List.of(
+      resolver.resolve("java.lang.Integer"),
+      resolver.resolve("java.lang.Number")
+    ));
+    assertEquals("java.lang.Integer & java.lang.Number", t.toString());
+  }
+
+  @SafeVarargs
+  private static <K, V> LinkedHashMap<K, V> linkedMap(Map.Entry<K, V>... entries) {
+    var map = new LinkedHashMap<K, V>(entries.length);
+    for (var entry : entries) {
+      map.put(entry.getKey(), entry.getValue());
     }
+    return map;
+  }
 
-    @ParameterizedTest
-    @MethodSource
-    void primitiveTypeResolve(String expr, String expected) {
-        var results = resolver.resolve(Map.of("a", expr));
-        var type = results.getType("a");
-        assertTrue(type.isPrimitive());
-        assertEquals(expected, type.toString());
-    }
-
-    private static Stream<Arguments> primitiveTypeResolve() {
-        return Stream.of(
-                arguments("1", "int"),
-                arguments("2 + 3L", "long"),
-                arguments("3d + 4f", "double"),
-                arguments("4 == 3", "boolean"),
-                arguments("\"a\".toCharArray()[0]", "char")
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource
-    void typeResolve(String expr, String expected) {
-        var results = resolver.resolve(Map.of("a", expr));
-        var type = results.getType("a");
-        assertEquals(expected, type.toString());
-    }
-
-    private static Stream<Arguments> typeResolve() {
-        return Stream.of(
-                arguments("int.class", "java.lang.Class<java.lang.Integer>"),
-                arguments("java.util.List.class", "java.lang.Class<java.util.List>")
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource
-    void resolve(Map<String, String> map, Map<String, String> expected) {
-        var results = resolver.resolve(map);
-        map.forEach((k, v) -> {
-            var e = expected.get(k);
-            assertNotNull(e, () -> "No key %s in %s".formatted(k, expected));
-            var r = results.getType(k);
-            assertNotNull(r, () -> "No type found for %s".formatted(k));
-            assertEquals(r.toString(), e);
-        });
-    }
-
-    private static Stream<Arguments> resolve() {
-        return Stream.of(
-                arguments(
-                        linkedMap(
-                                entry("a", "3"),
-                                entry("b", "java.util.List.of(a)")
-                        ),
-                        Map.ofEntries(
-                                entry("a", "int"),
-                                entry("b", "java.util.List<java.lang.Integer>")
-                        )
-                )
-        );
-    }
-
-    @Test
-    void assignability() {
-        var r = resolver.resolve(Map.of("a", "java.util.List.class", "b", "3", "c", "\"\""));
-
-        var a = r.getType("a");
-        var b = r.getType("b");
-        var c = r.getType("c");
-        assertNotNull(a);
-        assertNotNull(b);
-        assertNotNull(c);
-
-        assertTrue(a.isParameterized());
-
-        var p = a.getTypeParameter(0);
-        assertTrue(p.isRaw());
-        var pa = p.getActual();
-        assertFalse(pa.isRaw());
-
-        var method = p.staticFactories()
-                .filter(m -> m.getName().equals("of"))
-                .filter(m -> !m.isVarargs())
-                .filter(m -> m.getArgs().size() == 1)
-                .findFirst()
-                .orElseThrow();
-        var arg = method.getArgs().get(0);
-        var argType = arg.getType();
-
-        assertTrue(r.isAssignable(a, argType));
-    }
-
-    @Test
-    void complexAssignability() {
-        var r = resolver.resolve(Map.of("a", "A.class", "b", "3", "c", "java.time.temporal.ChronoUnit.DAYS"), """
-                class A {
-                    public static <E extends Enum<E>> java.util.List<E> listOfEnums(E elem) {
-                        return java.util.List.of(elem);
-                    }
-                }
-                """);
-
-        var a = r.getType("a");
-        var b = r.getType("b");
-        var c = r.getType("c");
-        assertNotNull(a);
-        assertNotNull(b);
-        assertNotNull(c);
-
-        assertTrue(a.isParameterized());
-
-        var p = a.getTypeParameter(0);
-
-        var method = p.staticFactories()
-                .filter(m -> m.getName().equals("listOfEnums"))
-                .findFirst()
-                .orElseThrow();
-        var arg = method.getArgs().get(0);
-        var argType = arg.getType();
-
-        assertFalse(r.isAssignable(a, argType));
-        assertFalse(r.isAssignable(b, argType));
-        assertTrue(r.isAssignable(c, argType));
-    }
-
-    @Test
-    void multipleAssignability() {
-        var r1 = resolver.resolve(Map.of(
-                "a", "(java.util.List<?>) java.util.List.of(1)",
-                "b", "java.util.List.of(3)"
-        ));
-        var r2 = resolver.resolve(Map.of("b", "java.util.List.of(2)"));
-
-        assertTrue(r2.isAssignable(r2.getType("b"), r1.getType("a")));
-        assertTrue(r1.isAssignable(r2.getType("b"), r1.getType("a")));
-        assertFalse(r2.isAssignable(r1.getType("a"), r2.getType("b")));
-        assertFalse(r1.isAssignable(r1.getType("a"), r2.getType("b")));
-        assertTrue(r1.isAssignable(r1.getType("b"), r2.getType("b")));
-        assertEquals(r1.getType("b"), r2.getType("b"));
-    }
-
-    @Test
-    void parameterizedType() {
-        var t = resolver.parameterizedType(
-                resolver.resolve("java.util.List"),
-                List.of(resolver.resolve("java.lang.Integer"))
-        );
-        assertEquals("java.util.List<java.lang.Integer>", t.toString());
-    }
-
-    @Test
-    void intersectionType() {
-        var t = resolver.intersectionType(List.of(
-                resolver.resolve("java.lang.Integer"),
-                resolver.resolve("java.lang.Number")
-        ));
-        assertEquals("java.lang.Integer & java.lang.Number", t.toString());
-    }
-
-    @SafeVarargs
-    private static <K, V> LinkedHashMap<K, V> linkedMap(Map.Entry<K, V>... entries) {
-        var map = new LinkedHashMap<K, V>(entries.length);
-        for (var entry : entries) {
-            map.put(entry.getKey(), entry.getValue());
-        }
-        return map;
-    }
-
-    @AfterAll
-    void afterAll() {
-        resolver.close();
-    }
+  @AfterAll
+  void afterAll() {
+    resolver.close();
+  }
 }

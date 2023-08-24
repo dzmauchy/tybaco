@@ -44,42 +44,42 @@ import static java.util.logging.Logger.getLogger;
 
 public final class Main implements ApplicationListener<ApplicationEvent> {
 
-    public static void main(String... args) {
-        initLogging();
-        var ctx = new AnnotationConfigApplicationContext();
-        var latch = new CountDownLatch(1);
-        invokeLater(() -> bootstrap(latch, ctx));
-        try {
-            ctx.setId("root");
-            ctx.setDisplayName("TybacoIDE");
-            ctx.setClassLoader(Thread.currentThread().getContextClassLoader());
-            ctx.setAllowCircularReferences(false);
-            ctx.setAllowBeanDefinitionOverriding(false);
-            ctx.addApplicationListener(new Main());
-            ctx.register(MainConfiguration.class);
-            ctx.refresh();
-        } finally {
-            latch.countDown();
-        }
+  public static void main(String... args) {
+    initLogging();
+    var ctx = new AnnotationConfigApplicationContext();
+    var latch = new CountDownLatch(1);
+    invokeLater(() -> bootstrap(latch, ctx));
+    try {
+      ctx.setId("root");
+      ctx.setDisplayName("TybacoIDE");
+      ctx.setClassLoader(Thread.currentThread().getContextClassLoader());
+      ctx.setAllowCircularReferences(false);
+      ctx.setAllowBeanDefinitionOverriding(false);
+      ctx.addApplicationListener(new Main());
+      ctx.register(MainConfiguration.class);
+      ctx.refresh();
+    } finally {
+      latch.countDown();
     }
+  }
 
-    @SneakyThrows
-    private static void bootstrap(CountDownLatch latch, GenericApplicationContext context) {
-        UIManager.setLookAndFeel(new FlatDarculaLaf());
-        latch.await();
-        var mainFrame = requireNonNull(context.getBean(MainFrame.class), "No MainFrame found");
-        mainFrame.setVisible(true);
-    }
+  @SneakyThrows
+  private static void bootstrap(CountDownLatch latch, GenericApplicationContext context) {
+    UIManager.setLookAndFeel(new FlatDarculaLaf());
+    latch.await();
+    var mainFrame = requireNonNull(context.getBean(MainFrame.class), "No MainFrame found");
+    mainFrame.setVisible(true);
+  }
 
-    private static void initLogging() {
-        setProperty("java.util.logging.manager", LoggingManager.class.getName());
-        var rootLogger = getLogger("");
-        rootLogger.addHandler(new FastConsoleHandler());
-        rootLogger.addHandler(new UILogHandler());
-    }
+  private static void initLogging() {
+    setProperty("java.util.logging.manager", LoggingManager.class.getName());
+    var rootLogger = getLogger("");
+    rootLogger.addHandler(new FastConsoleHandler());
+    rootLogger.addHandler(new UILogHandler());
+  }
 
-    @Override
-    public void onApplicationEvent(ApplicationEvent event) {
-        getLogger("").log(INFO, "{0}", event);
-    }
+  @Override
+  public void onApplicationEvent(ApplicationEvent event) {
+    getLogger("").log(INFO, "{0}", event);
+  }
 }

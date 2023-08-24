@@ -45,245 +45,245 @@ import static org.eclipse.jdt.internal.compiler.impl.CompilerOptions.releaseToJD
 @Log(topic = "EcjHelper")
 final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
 
-    private static final Pattern DOT_PATTERN = Pattern.compile("\\.");
-    private static final String JAVA_VERSION = "20";
+  private static final Pattern DOT_PATTERN = Pattern.compile("\\.");
+  private static final String JAVA_VERSION = "20";
 
-    private final ConcurrentLinkedQueue<CompilationResult> results = new ConcurrentLinkedQueue<>();
+  private final ConcurrentLinkedQueue<CompilationResult> results = new ConcurrentLinkedQueue<>();
 
-    @Override
-    public boolean proceedOnErrors() {
-        return true;
-    }
+  @Override
+  public boolean proceedOnErrors() {
+    return true;
+  }
 
-    @Override
-    public boolean stopOnFirstError() {
+  @Override
+  public boolean stopOnFirstError() {
+    return false;
+  }
+
+  @Override
+  public boolean ignoreAllErrors() {
+    return false;
+  }
+
+  @Override
+  public void acceptResult(CompilationResult result) {
+    results.add(result);
+  }
+
+  public Stream<CompilationResult> results() {
+    return results.stream();
+  }
+
+  public Compiler compiler(String[] libraries) {
+    var problemFactory = new DefaultProblemFactory(US);
+    var fs = fileSystem(libraries);
+    var compiler = new Compiler(fs, this, options(), this, problemFactory, nullPrintWriter(), null) {
+      @Override
+      public void reset() {
+        super.reset();
+        fs.cleanup();
+        results.clear();
+      }
+    };
+    compiler.useSingleThread = true;
+    return compiler;
+  }
+
+  private FileSystem fileSystem(String[] libraries) {
+    var jrtClasspath = Stream.of(getJrtClasspath(System.getProperty("java.home"), "UTF-8", null, null));
+    var libClasspath = Stream.of(libraries).map(lib -> getClasspath(lib, "UTF-8", null, null, JAVA_VERSION));
+    var cps = Stream.concat(jrtClasspath, libClasspath).toArray(FileSystem.Classpath[]::new);
+    return new FileSystem(cps, null, false, null) {
+    };
+  }
+
+  private CompilerOptions options() {
+    var opts = new CompilerOptions();
+    opts.generateClassFiles = false;
+    opts.sourceLevel = releaseToJDKLevel(JAVA_VERSION);
+    opts.complianceLevel = opts.sourceLevel;
+    opts.targetJDK = opts.sourceLevel;
+    opts.originalComplianceLevel = opts.sourceLevel;
+    opts.originalSourceLevel = opts.sourceLevel;
+    opts.generateGenericSignatureForLambdaExpressions = false;
+    opts.performMethodsFullRecovery = true;
+    opts.performStatementsRecovery = true;
+    opts.preserveAllLocalVariables = true;
+    opts.processAnnotations = false;
+    opts.maxProblemsPerUnit = Integer.MAX_VALUE;
+    opts.analyseResourceLeaks = false;
+    opts.inheritNullAnnotations = false;
+    opts.verbose = false;
+    opts.defaultEncoding = "UTF-8";
+    return opts;
+  }
+
+  static char[][] compoundName(String name) {
+    return DOT_PATTERN.splitAsStream(name).map(String::toCharArray).toArray(char[][]::new);
+  }
+
+  private PrintWriter nullPrintWriter() {
+    return new PrintWriter(new Writer() {
+      @Override
+      public void write(char[] cbuf, int off, int len) {
+      }
+
+      @Override
+      public void flush() {
+      }
+
+      @Override
+      public void close() {
+      }
+    }, false) {
+      @Override
+      public void write(int c) {
+      }
+
+      @Override
+      public void write(String s) {
+      }
+
+      @Override
+      public void write(char[] buf) {
+      }
+
+      @Override
+      public void write(String s, int off, int len) {
+      }
+
+      @Override
+      public void write(char[] buf, int off, int len) {
+      }
+
+      @Override
+      public PrintWriter append(char c) {
+        return this;
+      }
+
+      @Override
+      public PrintWriter append(CharSequence csq) {
+        return this;
+      }
+
+      @Override
+      public PrintWriter append(CharSequence csq, int start, int end) {
+        return this;
+      }
+
+      @Override
+      public void println(int x) {
+      }
+
+      @Override
+      public void println(char x) {
+      }
+
+      @Override
+      public void println(float x) {
+      }
+
+      @Override
+      public void println(long x) {
+      }
+
+      @Override
+      public void println(char[] x) {
+      }
+
+      @Override
+      public void println(double x) {
+      }
+
+      @Override
+      public void println(Object x) {
+      }
+
+      @Override
+      public void println(String x) {
+      }
+
+      @Override
+      public void println(boolean x) {
+      }
+
+      @Override
+      public void print(boolean b) {
+      }
+
+      @Override
+      public void print(char c) {
+      }
+
+      @Override
+      public void print(int i) {
+      }
+
+      @Override
+      public void print(long l) {
+      }
+
+      @Override
+      public void print(float f) {
+      }
+
+      @Override
+      public void print(double d) {
+      }
+
+      @Override
+      public void print(char[] s) {
+      }
+
+      @Override
+      public void print(String s) {
+      }
+
+      @Override
+      public void print(Object obj) {
+      }
+
+      @Override
+      public void println() {
+      }
+
+      @Override
+      public PrintWriter printf(String format, Object... args) {
+        return this;
+      }
+
+      @Override
+      public PrintWriter printf(Locale l, String format, Object... args) {
+        return this;
+      }
+
+      @Override
+      public PrintWriter format(String format, Object... args) {
+        return this;
+      }
+
+      @Override
+      public PrintWriter format(Locale l, String format, Object... args) {
+        return this;
+      }
+
+      @Override
+      public boolean checkError() {
         return false;
-    }
+      }
 
-    @Override
-    public boolean ignoreAllErrors() {
-        return false;
-    }
+      @Override
+      public void flush() {
+      }
 
-    @Override
-    public void acceptResult(CompilationResult result) {
-        results.add(result);
-    }
+      @Override
+      public void close() {
+      }
 
-    public Stream<CompilationResult> results() {
-        return results.stream();
-    }
-
-    public Compiler compiler(String[] libraries) {
-        var problemFactory = new DefaultProblemFactory(US);
-        var fs = fileSystem(libraries);
-        var compiler = new Compiler(fs, this, options(), this, problemFactory, nullPrintWriter(), null) {
-            @Override
-            public void reset() {
-                super.reset();
-                fs.cleanup();
-                results.clear();
-            }
-        };
-        compiler.useSingleThread = true;
-        return compiler;
-    }
-
-    private FileSystem fileSystem(String[] libraries) {
-        var jrtClasspath = Stream.of(getJrtClasspath(System.getProperty("java.home"), "UTF-8", null, null));
-        var libClasspath = Stream.of(libraries).map(lib -> getClasspath(lib, "UTF-8", null, null, JAVA_VERSION));
-        var cps = Stream.concat(jrtClasspath, libClasspath).toArray(FileSystem.Classpath[]::new);
-        return new FileSystem(cps, null, false, null) {
-        };
-    }
-
-    private CompilerOptions options() {
-        var opts = new CompilerOptions();
-        opts.generateClassFiles = false;
-        opts.sourceLevel = releaseToJDKLevel(JAVA_VERSION);
-        opts.complianceLevel = opts.sourceLevel;
-        opts.targetJDK = opts.sourceLevel;
-        opts.originalComplianceLevel = opts.sourceLevel;
-        opts.originalSourceLevel = opts.sourceLevel;
-        opts.generateGenericSignatureForLambdaExpressions = false;
-        opts.performMethodsFullRecovery = true;
-        opts.performStatementsRecovery = true;
-        opts.preserveAllLocalVariables = true;
-        opts.processAnnotations = false;
-        opts.maxProblemsPerUnit = Integer.MAX_VALUE;
-        opts.analyseResourceLeaks = false;
-        opts.inheritNullAnnotations = false;
-        opts.verbose = false;
-        opts.defaultEncoding = "UTF-8";
-        return opts;
-    }
-
-    static char[][] compoundName(String name) {
-        return DOT_PATTERN.splitAsStream(name).map(String::toCharArray).toArray(char[][]::new);
-    }
-
-    private PrintWriter nullPrintWriter() {
-        return new PrintWriter(new Writer() {
-            @Override
-            public void write(char[] cbuf, int off, int len) {
-            }
-
-            @Override
-            public void flush() {
-            }
-
-            @Override
-            public void close() {
-            }
-        }, false) {
-            @Override
-            public void write(int c) {
-            }
-
-            @Override
-            public void write(String s) {
-            }
-
-            @Override
-            public void write(char[] buf) {
-            }
-
-            @Override
-            public void write(String s, int off, int len) {
-            }
-
-            @Override
-            public void write(char[] buf, int off, int len) {
-            }
-
-            @Override
-            public PrintWriter append(char c) {
-                return this;
-            }
-
-            @Override
-            public PrintWriter append(CharSequence csq) {
-                return this;
-            }
-
-            @Override
-            public PrintWriter append(CharSequence csq, int start, int end) {
-                return this;
-            }
-
-            @Override
-            public void println(int x) {
-            }
-
-            @Override
-            public void println(char x) {
-            }
-
-            @Override
-            public void println(float x) {
-            }
-
-            @Override
-            public void println(long x) {
-            }
-
-            @Override
-            public void println(char[] x) {
-            }
-
-            @Override
-            public void println(double x) {
-            }
-
-            @Override
-            public void println(Object x) {
-            }
-
-            @Override
-            public void println(String x) {
-            }
-
-            @Override
-            public void println(boolean x) {
-            }
-
-            @Override
-            public void print(boolean b) {
-            }
-
-            @Override
-            public void print(char c) {
-            }
-
-            @Override
-            public void print(int i) {
-            }
-
-            @Override
-            public void print(long l) {
-            }
-
-            @Override
-            public void print(float f) {
-            }
-
-            @Override
-            public void print(double d) {
-            }
-
-            @Override
-            public void print(char[] s) {
-            }
-
-            @Override
-            public void print(String s) {
-            }
-
-            @Override
-            public void print(Object obj) {
-            }
-
-            @Override
-            public void println() {
-            }
-
-            @Override
-            public PrintWriter printf(String format, Object... args) {
-                return this;
-            }
-
-            @Override
-            public PrintWriter printf(Locale l, String format, Object... args) {
-                return this;
-            }
-
-            @Override
-            public PrintWriter format(String format, Object... args) {
-                return this;
-            }
-
-            @Override
-            public PrintWriter format(Locale l, String format, Object... args) {
-                return this;
-            }
-
-            @Override
-            public boolean checkError() {
-                return false;
-            }
-
-            @Override
-            public void flush() {
-            }
-
-            @Override
-            public void close() {
-            }
-
-            @Override
-            public String toString() {
-                return "NULL";
-            }
-        };
-    }
+      @Override
+      public String toString() {
+        return "NULL";
+      }
+    };
+  }
 }

@@ -10,12 +10,12 @@ package org.tybaco.model;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -30,42 +30,42 @@ import org.w3c.dom.Element;
 @Getter
 public final class Out extends AbstractModelElement {
 
-    private final Type type;
-    private final int id;
-    private final String name;
+  private final Type type;
+  private final int id;
+  private final String name;
 
-    void save(Element element) {
-        element.setAttribute("type", type.name());
-        element.setAttribute("id", Integer.toString(id));
-        element.setAttribute("name", name);
-    }
+  void save(Element element) {
+    element.setAttribute("type", type.name());
+    element.setAttribute("id", Integer.toString(id));
+    element.setAttribute("name", name);
+  }
 
-    static Out load(Element element) {
-        var type = Type.valueOf(element.getAttribute("type"));
-        var id = Integer.parseInt(element.getAttribute("id"));
-        var name = element.getAttribute("name");
-        var out = new Out(type, id, name);
-        out.loadAttributes(element);
-        return out;
-    }
+  static Out load(Element element) {
+    var type = Type.valueOf(element.getAttribute("type"));
+    var id = Integer.parseInt(element.getAttribute("id"));
+    var name = element.getAttribute("name");
+    var out = new Out(type, id, name);
+    out.loadAttributes(element);
+    return out;
+  }
 
-    @Override
-    public int hashCode() {
-        return type.hashCode() ^ name.hashCode() ^ id;
-    }
+  @Override
+  public int hashCode() {
+    return type.hashCode() ^ name.hashCode() ^ id;
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof Out o && type == o.type && name.equals(o.name) && id == o.id;
-    }
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof Out o && type == o.type && name.equals(o.name) && id == o.id;
+  }
 
-    @Override
-    public String toString() {
-        return type + "[" + id + "](" + name + ")";
-    }
+  @Override
+  public String toString() {
+    return type + "[" + id + "](" + name + ")";
+  }
 
-    public enum Type {
-        CONSTANT,
-        BLOCK
-    }
+  public enum Type {
+    CONSTANT,
+    BLOCK
+  }
 }

@@ -30,38 +30,38 @@ import org.w3c.dom.Element;
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 public final class Block extends AbstractModelElement {
 
-    private final int id;
-    private final String type;
-    private final String method;
+  private final int id;
+  private final String type;
+  private final String method;
 
-    void save(Element element) {
-        element.setAttribute("id", Integer.toString(id));
-        element.setAttribute("type", type);
-        element.setAttribute("method", method);
-        saveAttributes(element);
-    }
+  void save(Element element) {
+    element.setAttribute("id", Integer.toString(id));
+    element.setAttribute("type", type);
+    element.setAttribute("method", method);
+    saveAttributes(element);
+  }
 
-    static Block load(Element element) {
-        var id = Integer.parseInt(element.getAttribute("id"));
-        var type = element.getAttribute("type");
-        var method = element.getAttribute("method");
-        var block = new Block(id, type, method);
-        block.loadAttributes(element);
-        return block;
-    }
+  static Block load(Element element) {
+    var id = Integer.parseInt(element.getAttribute("id"));
+    var type = element.getAttribute("type");
+    var method = element.getAttribute("method");
+    var block = new Block(id, type, method);
+    block.loadAttributes(element);
+    return block;
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof Block b && id == b.id && type.equals(b.type) && method.equals(b.method);
-    }
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof Block b && id == b.id && type.equals(b.type) && method.equals(b.method);
+  }
 
-    @Override
-    public int hashCode() {
-        return id ^ type.hashCode() ^ method.hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return id ^ type.hashCode() ^ method.hashCode();
+  }
 
-    @Override
-    public String toString() {
-        return "Block(" + id + "," + type + "." + method + ")";
-    }
+  @Override
+  public String toString() {
+    return "Block(" + id + "," + type + "." + method + ")";
+  }
 }

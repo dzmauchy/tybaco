@@ -38,95 +38,95 @@ import static org.tybaco.model.Xml.withChild;
 
 public final class Diagram extends AbstractModelElement {
 
-    private final BitSet blockIds = new BitSet();
-    private final BitSet constantIds = new BitSet();
-    private final MutableIntObjectMap<Block> blocks = IntObjectMaps.mutable.empty();
-    private final MutableIntObjectMap<Constant> constants = IntObjectMaps.mutable.empty();
-    private final LinkedList<Link> links = new LinkedList<>();
+  private final BitSet blockIds = new BitSet();
+  private final BitSet constantIds = new BitSet();
+  private final MutableIntObjectMap<Block> blocks = IntObjectMaps.mutable.empty();
+  private final MutableIntObjectMap<Constant> constants = IntObjectMaps.mutable.empty();
+  private final LinkedList<Link> links = new LinkedList<>();
 
-    public Block createBlock(String type, String method) {
-        return createBlock(new Block(blockIds.nextClearBit(0), type, method));
-    }
+  public Block createBlock(String type, String method) {
+    return createBlock(new Block(blockIds.nextClearBit(0), type, method));
+  }
 
-    private Block createBlock(Block block) {
-        blocks.put(block.getId(), block);
-        blockIds.set(block.getId());
-        return block;
-    }
+  private Block createBlock(Block block) {
+    blocks.put(block.getId(), block);
+    blockIds.set(block.getId());
+    return block;
+  }
 
-    public Constant createConstant(Constant.Type type, String value) {
-        return createConstant(new Constant(constantIds.nextClearBit(0), type, value));
-    }
+  public Constant createConstant(Constant.Type type, String value) {
+    return createConstant(new Constant(constantIds.nextClearBit(0), type, value));
+  }
 
-    private Constant createConstant(Constant constant) {
-        constants.put(constant.getId(), constant);
-        constantIds.set(constant.getId());
-        return constant;
-    }
+  private Constant createConstant(Constant constant) {
+    constants.put(constant.getId(), constant);
+    constantIds.set(constant.getId());
+    return constant;
+  }
 
-    public void removeBlock(Block block) {
-        if (blocks.remove(block.getId()) != null) blockIds.clear(block.getId());
-    }
+  public void removeBlock(Block block) {
+    if (blocks.remove(block.getId()) != null) blockIds.clear(block.getId());
+  }
 
-    public void removeConstant(Constant constant) {
-        if (constants.remove(constant.getId()) != null) constantIds.clear(constant.getId());
-    }
+  public void removeConstant(Constant constant) {
+    if (constants.remove(constant.getId()) != null) constantIds.clear(constant.getId());
+  }
 
-    public void forEachBlock(Consumer<Block> consumer) {
-        blocks.forEach(consumer);
-    }
+  public void forEachBlock(Consumer<Block> consumer) {
+    blocks.forEach(consumer);
+  }
 
-    public void forEachConstant(Consumer<Constant> consumer) {
-        constants.forEach(consumer);
-    }
+  public void forEachConstant(Consumer<Constant> consumer) {
+    constants.forEach(consumer);
+  }
 
-    public void forEachLink(Consumer<Link> consumer) {
-        links.forEach(consumer);
-    }
+  public void forEachLink(Consumer<Link> consumer) {
+    links.forEach(consumer);
+  }
 
-    public Block block(int id) {
-        return requireNonNull(blocks.get(id), () -> "No such block " + id);
-    }
+  public Block block(int id) {
+    return requireNonNull(blocks.get(id), () -> "No such block " + id);
+  }
 
-    public Constant constant(int id) {
-        return requireNonNull(constants.get(id), () -> "No such constant " + id);
-    }
+  public Constant constant(int id) {
+    return requireNonNull(constants.get(id), () -> "No such constant " + id);
+  }
 
-    public Stream<Block> blocks() {
-        return blocks.stream();
-    }
+  public Stream<Block> blocks() {
+    return blocks.stream();
+  }
 
-    public Stream<Constant> constants() {
-        return constants.stream();
-    }
+  public Stream<Constant> constants() {
+    return constants.stream();
+  }
 
-    public Stream<Link> links() {
-        return links.stream();
-    }
+  public Stream<Link> links() {
+    return links.stream();
+  }
 
-    public Optional<Block> findBlock(Predicate<Block> predicate) {
-        return blocks.stream().filter(predicate).findFirst();
-    }
+  public Optional<Block> findBlock(Predicate<Block> predicate) {
+    return blocks.stream().filter(predicate).findFirst();
+  }
 
-    public Optional<Constant> findConstant(Predicate<Constant> predicate) {
-        return constants.stream().filter(predicate).findFirst();
-    }
+  public Optional<Constant> findConstant(Predicate<Constant> predicate) {
+    return constants.stream().filter(predicate).findFirst();
+  }
 
-    public Optional<Link> findLink(Predicate<Link> predicate) {
-        return links.stream().filter(predicate).findFirst();
-    }
+  public Optional<Link> findLink(Predicate<Link> predicate) {
+    return links.stream().filter(predicate).findFirst();
+  }
 
-    public void save(Element element) {
-        withChild(element, "blocks", bse -> blocks.forEach(block -> withChild(bse, "block", block::save)));
-        withChild(element, "constants", cse -> constants.forEach(c -> withChild(cse, "constant", c::save)));
-        withChild(element, "links", lse -> links.forEach(link -> withChild(lse, "link", link::save)));
-        saveAttributes(element);
-    }
+  public void save(Element element) {
+    withChild(element, "blocks", bse -> blocks.forEach(block -> withChild(bse, "block", block::save)));
+    withChild(element, "constants", cse -> constants.forEach(c -> withChild(cse, "constant", c::save)));
+    withChild(element, "links", lse -> links.forEach(link -> withChild(lse, "link", link::save)));
+    saveAttributes(element);
+  }
 
-    public void load(Element element) {
-        elementsByTags(element, "blocks", "block").map(Block::load).forEach(this::createBlock);
-        elementsByTags(element, "constants", "constant").map(Constant::load).forEach(this::createConstant);
-        elementsByTags(element, "links", "link").map(Link::load).forEach(links::add);
-        loadAttributes(element);
-    }
+  public void load(Element element) {
+    elementsByTags(element, "blocks", "block").map(Block::load).forEach(this::createBlock);
+    elementsByTags(element, "constants", "constant").map(Constant::load).forEach(this::createConstant);
+    elementsByTags(element, "links", "link").map(Link::load).forEach(links::add);
+    loadAttributes(element);
+  }
 }

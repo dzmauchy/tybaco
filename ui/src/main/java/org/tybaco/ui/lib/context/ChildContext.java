@@ -10,12 +10,12 @@ package org.tybaco.ui.lib.context;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -32,33 +32,33 @@ import static java.util.Objects.requireNonNull;
 
 public final class ChildContext extends AnnotationConfigApplicationContext {
 
-    public ChildContext(String id, String name, AnnotationConfigApplicationContext parent) {
-        requireNonNull(getDefaultListableBeanFactory()).setParentBeanFactory(parent.getDefaultListableBeanFactory());
-        setId(id);
-        setDisplayName(name);
-        requireNonNull(getEnvironment()).merge(parent.getEnvironment());
-        setAllowBeanDefinitionOverriding(false);
-        setAllowCircularReferences(false);
-        var parentEventListener = (ApplicationListener<?>) event -> {
-            if (event instanceof Propagated || event instanceof PayloadApplicationEvent<?>) {
-                publishEvent(event);
-            }
-        };
-        parent.addApplicationListener(parentEventListener);
-        addApplicationListener(event -> {
-            if (event instanceof ContextClosedEvent) {
-                parent.removeApplicationListener(parentEventListener);
-            }
-        });
-    }
+  public ChildContext(String id, String name, AnnotationConfigApplicationContext parent) {
+    requireNonNull(getDefaultListableBeanFactory()).setParentBeanFactory(parent.getDefaultListableBeanFactory());
+    setId(id);
+    setDisplayName(name);
+    requireNonNull(getEnvironment()).merge(parent.getEnvironment());
+    setAllowBeanDefinitionOverriding(false);
+    setAllowCircularReferences(false);
+    var parentEventListener = (ApplicationListener<?>) event -> {
+      if (event instanceof Propagated || event instanceof PayloadApplicationEvent<?>) {
+        publishEvent(event);
+      }
+    };
+    parent.addApplicationListener(parentEventListener);
+    addApplicationListener(event -> {
+      if (event instanceof ContextClosedEvent) {
+        parent.removeApplicationListener(parentEventListener);
+      }
+    });
+  }
 
-    @Override
-    protected MessageSource getInternalParentMessageSource() {
-        var pbf = requireNonNull(getDefaultListableBeanFactory()).getParentBeanFactory();
-        if (pbf instanceof DefaultListableBeanFactory f) {
-            return (MessageSource) f.getBean(MESSAGE_SOURCE_BEAN_NAME);
-        } else {
-            return super.getInternalParentMessageSource();
-        }
+  @Override
+  protected MessageSource getInternalParentMessageSource() {
+    var pbf = requireNonNull(getDefaultListableBeanFactory()).getParentBeanFactory();
+    if (pbf instanceof DefaultListableBeanFactory f) {
+      return (MessageSource) f.getBean(MESSAGE_SOURCE_BEAN_NAME);
+    } else {
+      return super.getInternalParentMessageSource();
     }
+  }
 }

@@ -10,12 +10,12 @@ package org.tybaco.ui.lib.logging;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -42,122 +42,122 @@ import static javax.swing.event.TableModelEvent.INSERT;
 
 public class UILogHandler extends Handler implements TableModel {
 
-    private final int maxRecords = userNodeForPackage(UILogHandler.class).getInt("max.records", 65536);
-    private final ConcurrentLinkedQueue<LogRecord> primordial = new ConcurrentLinkedQueue<>();
-    private final ArrayList<LogRecord> records = new ArrayList<>();
-    private final ConcurrentLinkedQueue<TableModelListener> listeners = new ConcurrentLinkedQueue<>();
+  private final int maxRecords = userNodeForPackage(UILogHandler.class).getInt("max.records", 65536);
+  private final ConcurrentLinkedQueue<LogRecord> primordial = new ConcurrentLinkedQueue<>();
+  private final ArrayList<LogRecord> records = new ArrayList<>();
+  private final ConcurrentLinkedQueue<TableModelListener> listeners = new ConcurrentLinkedQueue<>();
 
-    private volatile boolean flushed;
+  private volatile boolean flushed;
 
-    @Override
-    public void publish(LogRecord record) {
-        invokeLater(() -> primordial.removeIf(this::add));
-        if (flushed) {
-            invokeLater(() -> add(record));
-        } else {
-            primordial.add(record);
+  @Override
+  public void publish(LogRecord record) {
+    invokeLater(() -> primordial.removeIf(this::add));
+    if (flushed) {
+      invokeLater(() -> add(record));
+    } else {
+      primordial.add(record);
+    }
+  }
+
+  @Override
+  public void flush() {
+    flushed = true;
+  }
+
+  @Override
+  public void close() {
+  }
+
+  private boolean add(LogRecord record) {
+    invokeLater(() -> {
+      if (records.size() >= maxRecords) {
+        var toDelete = maxRecords - records.size();
+        while (records.size() >= maxRecords) records.remove(0);
+        var event = new TableModelEvent(this, 0, toDelete, ALL_COLUMNS, DELETE);
+        listeners.forEach(l -> l.tableChanged(event));
+      }
+      var event = new TableModelEvent(this, records.size(), records.size(), ALL_COLUMNS, INSERT);
+      records.add(record);
+      listeners.forEach(l -> l.tableChanged(event));
+    });
+    return true;
+  }
+
+  @Override
+  public int getRowCount() {
+    return records.size();
+  }
+
+  @Override
+  public int getColumnCount() {
+    return 3;
+  }
+
+  @Override
+  public String getColumnName(int columnIndex) {
+    return switch (columnIndex) {
+      case 0 -> "Level";
+      case 1 -> "Time";
+      default -> "Message";
+    };
+  }
+
+  @Override
+  public Class<?> getColumnClass(int columnIndex) {
+    return switch (columnIndex) {
+      case 0 -> Level.class;
+      case 1 -> Instant.class;
+      default -> String.class;
+    };
+  }
+
+  @Override
+  public boolean isCellEditable(int rowIndex, int columnIndex) {
+    return false;
+  }
+
+  @Override
+  public Object getValueAt(int rowIndex, int columnIndex) {
+    var record = records.get(rowIndex);
+    return switch (columnIndex) {
+      case 0 -> record.getLevel();
+      case 1 -> record.getInstant();
+      default -> {
+        try {
+          var params = record.getParameters();
+          if (params == null || params.length == 0) {
+            yield record.getMessage();
+          } else {
+            yield MessageFormat.format(record.getMessage(), params);
+          }
+        } catch (RuntimeException e) {
+          yield record.getMessage();
         }
-    }
+      }
+    };
+  }
 
-    @Override
-    public void flush() {
-        flushed = true;
-    }
+  @Override
+  public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+  }
 
-    @Override
-    public void close() {
-    }
+  @Override
+  public void addTableModelListener(TableModelListener l) {
+    listeners.add(l);
+  }
 
-    private boolean add(LogRecord record) {
-        invokeLater(() -> {
-            if (records.size() >= maxRecords) {
-                var toDelete = maxRecords - records.size();
-                while (records.size() >= maxRecords) records.remove(0);
-                var event = new TableModelEvent(this, 0, toDelete, ALL_COLUMNS, DELETE);
-                listeners.forEach(l -> l.tableChanged(event));
-            }
-            var event = new TableModelEvent(this, records.size(), records.size(), ALL_COLUMNS, INSERT);
-            records.add(record);
-            listeners.forEach(l -> l.tableChanged(event));
-        });
-        return true;
-    }
+  @Override
+  public void removeTableModelListener(TableModelListener l) {
+    listeners.remove(l);
+  }
 
-    @Override
-    public int getRowCount() {
-        return records.size();
+  public static UILogHandler getInstance() {
+    var logger = LogManager.getLogManager().getLogger("");
+    for (var handler : logger.getHandlers()) {
+      if (handler instanceof UILogHandler h) {
+        return h;
+      }
     }
-
-    @Override
-    public int getColumnCount() {
-        return 3;
-    }
-
-    @Override
-    public String getColumnName(int columnIndex) {
-        return switch (columnIndex) {
-            case 0 -> "Level";
-            case 1 -> "Time";
-            default -> "Message";
-        };
-    }
-
-    @Override
-    public Class<?> getColumnClass(int columnIndex) {
-        return switch (columnIndex) {
-            case 0 -> Level.class;
-            case 1 -> Instant.class;
-            default -> String.class;
-        };
-    }
-
-    @Override
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return false;
-    }
-
-    @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
-        var record = records.get(rowIndex);
-        return switch (columnIndex) {
-            case 0 -> record.getLevel();
-            case 1 -> record.getInstant();
-            default -> {
-                try {
-                    var params = record.getParameters();
-                    if (params == null || params.length == 0) {
-                        yield record.getMessage();
-                    } else {
-                        yield MessageFormat.format(record.getMessage(), params);
-                    }
-                } catch (RuntimeException e) {
-                    yield record.getMessage();
-                }
-            }
-        };
-    }
-
-    @Override
-    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-    }
-
-    @Override
-    public void addTableModelListener(TableModelListener l) {
-        listeners.add(l);
-    }
-
-    @Override
-    public void removeTableModelListener(TableModelListener l) {
-        listeners.remove(l);
-    }
-
-    public static UILogHandler getInstance() {
-        var logger = LogManager.getLogManager().getLogger("");
-        for (var handler : logger.getHandlers()) {
-            if (handler instanceof UILogHandler h) {
-                return h;
-            }
-        }
-        throw new NoSuchElementException();
-    }
+    throw new NoSuchElementException();
+  }
 }

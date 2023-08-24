@@ -33,23 +33,23 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @Tag("manual")
 class TypeResolverMemoryLeakTest {
 
-    @Test
-    void test() {
-        try (var resolver = new TypeResolver("p")) {
-            resolver.resolve(Map.of("a", "java.util.List.of(1)"));
-            var prevGraph = GraphLayout.parseInstance(resolver);
-            long prev = prevGraph.totalSize();
-            for (int i = 0; i < 1000; i++) {
-                var r = resolver.resolve(Map.of("a", "java.util.List.of(1)"));
-                assertNotNull(r);
-                long start = System.nanoTime();
-                var graph = GraphLayout.parseInstance(resolver);
-                long current = graph.totalSize();
-                long instances = graph.totalCount();
-                long time = System.nanoTime() - start;
-                System.out.printf("%d: %d; %d ms; %d%n", i, current - prev, time / 1_000_000L, instances);
-                prev = current;
-            }
-        }
+  @Test
+  void test() {
+    try (var resolver = new TypeResolver("p")) {
+      resolver.resolve(Map.of("a", "java.util.List.of(1)"));
+      var prevGraph = GraphLayout.parseInstance(resolver);
+      long prev = prevGraph.totalSize();
+      for (int i = 0; i < 1000; i++) {
+        var r = resolver.resolve(Map.of("a", "java.util.List.of(1)"));
+        assertNotNull(r);
+        long start = System.nanoTime();
+        var graph = GraphLayout.parseInstance(resolver);
+        long current = graph.totalSize();
+        long instances = graph.totalCount();
+        long time = System.nanoTime() - start;
+        System.out.printf("%d: %d; %d ms; %d%n", i, current - prev, time / 1_000_000L, instances);
+        prev = current;
+      }
     }
+  }
 }
