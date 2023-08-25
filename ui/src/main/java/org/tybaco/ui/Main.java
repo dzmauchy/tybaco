@@ -115,7 +115,7 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
 
     var g = splashScreen.createGraphics();
     try {
-      g.setFont(createFont("fonts/wf.otf", 72));
+      g.setFont(createFont("fonts/wf.otf", 80));
       updateSplash(splashScreen, FONT1_LOADED);
       g.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
       g.setRenderingHint(KEY_ALPHA_INTERPOLATION, VALUE_ALPHA_INTERPOLATION_QUALITY);
