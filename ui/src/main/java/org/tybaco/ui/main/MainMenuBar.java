@@ -27,9 +27,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
+import java.awt.*;
 
 @Component
 public class MainMenuBar extends JMenuBar {
+
+  public MainMenuBar() {
+    setMargin(new Insets(4, 4, 4, 4));
+  }
 
   @Autowired
   public void withMenus(@Qualifier("main") ObjectProvider<JMenu> menus) {

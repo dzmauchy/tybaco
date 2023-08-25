@@ -30,6 +30,7 @@ import org.tybaco.logging.FastConsoleHandler;
 import org.tybaco.logging.LoggingManager;
 import org.tybaco.ui.lib.logging.UILogHandler;
 import org.tybaco.ui.lib.utils.Latch;
+import org.tybaco.ui.lib.utils.ThreadUtils;
 import org.tybaco.ui.main.MainConfiguration;
 import org.tybaco.ui.main.MainFrame;
 
@@ -38,13 +39,17 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.logging.LogManager;
 
-import static java.awt.Color.DARK_GRAY;
+import static java.awt.Color.LIGHT_GRAY;
 import static java.awt.Color.WHITE;
 import static java.awt.EventQueue.invokeLater;
+import static java.awt.Font.BOLD;
+import static java.awt.Font.PLAIN;
 import static java.awt.RenderingHints.*;
 import static java.lang.System.setProperty;
 import static java.util.logging.Level.INFO;
+import static org.jfree.chart.ChartColor.LIGHT_BLUE;
 import static org.tybaco.ui.Main.SplashStatus.*;
+import static org.tybaco.ui.lib.utils.ThreadUtils.tccl;
 
 public final class Main implements ApplicationListener<ApplicationEvent> {
 
@@ -60,7 +65,7 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
     try {
       ctx.setId("root");
       ctx.setDisplayName("TybacoIDE");
-      ctx.setClassLoader(Thread.currentThread().getContextClassLoader());
+      ctx.setClassLoader(tccl());
       ctx.setAllowCircularReferences(false);
       ctx.setAllowBeanDefinitionOverriding(false);
       ctx.addApplicationListener(new Main());
@@ -102,8 +107,7 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
       return;
     }
     updateSplash(splashScreen, BOOTSTRAPPED);
-    var classPath = Thread.currentThread().getContextClassLoader();
-    var newUrl = classPath.getResource("images/logo.jpg");
+    var newUrl = tccl().getResource("images/logo.jpg");
     if (newUrl != null) {
       try {
         splashScreen.setImageURL(newUrl);
@@ -115,17 +119,18 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
 
     var g = splashScreen.createGraphics();
     try {
-      g.setFont(createFont("fonts/wf.otf", 80));
+      g.setFont(createFont("fonts/hs.ttf", 80));
       updateSplash(splashScreen, FONT1_LOADED);
       g.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
       g.setRenderingHint(KEY_ALPHA_INTERPOLATION, VALUE_ALPHA_INTERPOLATION_QUALITY);
       g.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
       int x = 20, y = 20;
       var bounds = drawOutline(g, "Tybaco IDE", x, y, 2f);
-      y += 40 + (int) bounds.getHeight();
+      y += 30 + (int) bounds.getHeight();
       g.setColor(WHITE);
       g.drawLine(x, y, 700, y);
-      g.setFont(createFont("fonts/fz.ttf", 36));
+      y += 20;
+      g.setFont(g.getFont().deriveFont(48f));
       updateSplash(splashScreen, FONT2_LOADED);
       drawOutline(g, "A microservice visual IDE", x, y, 1f);
     } finally {
@@ -138,23 +143,20 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
   private static Rectangle2D drawOutline(Graphics2D g, String text, int x, int y, float stroke) {
     var vector = g.getFont().createGlyphVector(g.getFontRenderContext(), text);
     var bounds = vector.getVisualBounds();
-    g.setColor(WHITE);
+    g.setColor(LIGHT_GRAY);
     g.drawGlyphVector(vector, x, y + (int) bounds.getHeight());
-    g.setColor(DARK_GRAY);
-    g.setStroke(new BasicStroke(stroke));
-    g.draw(vector.getOutline(x, y + (int) bounds.getHeight()));
     return bounds;
   }
 
   private static Font createFont(String resource, int size) {
-    try (var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resource)) {
+    try (var is = tccl().getResourceAsStream(resource)) {
       if (is != null) {
-        return Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(Font.BOLD, size);
+        return Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(PLAIN, size);
       }
     } catch (IOException | FontFormatException e) {
       e.printStackTrace(System.err);
     }
-    return new Font(Font.SANS_SERIF, Font.BOLD, size);
+    return new Font(Font.SANS_SERIF, BOLD, size);
   }
 
   private static void updateSplash(SplashScreen splashScreen, SplashStatus status) {
@@ -165,7 +167,7 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
     var g = splashScreen.createGraphics();
     var statuses = SplashStatus.values();
     try {
-      g.setBackground(WHITE);
+      g.setBackground(LIGHT_BLUE);
       var w = (b.width / statuses.length) * (status.ordinal() + 1);
       var y = b.height - 7;
       g.clearRect(0, y, w, y + 7);

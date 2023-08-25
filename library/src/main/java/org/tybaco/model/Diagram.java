@@ -21,13 +21,9 @@ package org.tybaco.model;
  * #L%
  */
 
-import org.eclipse.collections.api.factory.primitive.IntObjectMaps;
-import org.eclipse.collections.api.map.primitive.MutableIntObjectMap;
 import org.w3c.dom.Element;
 
-import java.util.BitSet;
-import java.util.LinkedList;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -40,8 +36,8 @@ public final class Diagram extends AbstractModelElement {
 
   private final BitSet blockIds = new BitSet();
   private final BitSet constantIds = new BitSet();
-  private final MutableIntObjectMap<Block> blocks = IntObjectMaps.mutable.empty();
-  private final MutableIntObjectMap<Constant> constants = IntObjectMaps.mutable.empty();
+  private final HashMap<Integer, Block> blocks = new HashMap<>();
+  private final HashMap<Integer, Constant> constants = new HashMap<>();
   private final LinkedList<Link> links = new LinkedList<>();
 
   public Block createBlock(String type, String method) {
@@ -73,11 +69,11 @@ public final class Diagram extends AbstractModelElement {
   }
 
   public void forEachBlock(Consumer<Block> consumer) {
-    blocks.forEach(consumer);
+    blocks.forEach((k, v) -> consumer.accept(v));
   }
 
   public void forEachConstant(Consumer<Constant> consumer) {
-    constants.forEach(consumer);
+    constants.forEach((k, v) -> consumer.accept(v));
   }
 
   public void forEachLink(Consumer<Link> consumer) {
@@ -93,11 +89,11 @@ public final class Diagram extends AbstractModelElement {
   }
 
   public Stream<Block> blocks() {
-    return blocks.stream();
+    return blocks.values().stream();
   }
 
   public Stream<Constant> constants() {
-    return constants.stream();
+    return constants.values().stream();
   }
 
   public Stream<Link> links() {
@@ -105,11 +101,11 @@ public final class Diagram extends AbstractModelElement {
   }
 
   public Optional<Block> findBlock(Predicate<Block> predicate) {
-    return blocks.stream().filter(predicate).findFirst();
+    return blocks.values().stream().filter(predicate).findFirst();
   }
 
   public Optional<Constant> findConstant(Predicate<Constant> predicate) {
-    return constants.stream().filter(predicate).findFirst();
+    return constants.values().stream().filter(predicate).findFirst();
   }
 
   public Optional<Link> findLink(Predicate<Link> predicate) {
@@ -117,8 +113,8 @@ public final class Diagram extends AbstractModelElement {
   }
 
   public void save(Element element) {
-    withChild(element, "blocks", bse -> blocks.forEach(block -> withChild(bse, "block", block::save)));
-    withChild(element, "constants", cse -> constants.forEach(c -> withChild(cse, "constant", c::save)));
+    withChild(element, "blocks", bse -> blocks.forEach((k, block) -> withChild(bse, "block", block::save)));
+    withChild(element, "constants", cse -> constants.forEach((k, c) -> withChild(cse, "constant", c::save)));
     withChild(element, "links", lse -> links.forEach(link -> withChild(lse, "link", link::save)));
     saveAttributes(element);
   }
