@@ -22,6 +22,7 @@ package org.tybaco.ui.child.logging;
  */
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.context.support.GenericApplicationContext;
@@ -36,6 +37,7 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import static org.tybaco.ui.lib.images.ImageCache.svgImage;
 
+@ComponentScan(lazyInit = true)
 @Component
 public class LogFrame extends JFrame {
 

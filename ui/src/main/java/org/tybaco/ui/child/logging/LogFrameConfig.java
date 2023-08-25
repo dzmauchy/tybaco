@@ -21,10 +21,8 @@ package org.tybaco.ui.child.logging;
  * #L%
  */
 
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
-@ComponentScan(lazyInit = true)
 @Component
 public class LogFrameConfig {
 

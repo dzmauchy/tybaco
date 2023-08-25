@@ -27,11 +27,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.child.logging.LogFrame;
-import org.tybaco.ui.child.logging.LogFrameConfig;
 import org.tybaco.ui.lib.actions.SmartAction;
-import org.tybaco.ui.lib.context.ChildContext;
 
-import java.awt.*;
+import static org.tybaco.ui.lib.context.ChildContext.child;
+import static org.tybaco.ui.lib.window.Windows.findWindow;
 
 @ComponentScan(lazyInit = true)
 @Component
@@ -41,20 +40,9 @@ public class MainConfiguration {
   @Qualifier("log")
   public SmartAction groupZ_showLogFrameAction(AnnotationConfigApplicationContext context) {
     return new SmartAction("showLogs", "Show logs", "icon/logs.svg", e -> {
-      var windows = Window.getWindows();
-      for (var window : windows) {
-        if (window instanceof LogFrame f) {
-          f.setVisible(true);
-          f.toFront();
-          return;
-        }
-      }
-      var ctx = new ChildContext("logs", "Logs", context);
-      ctx.register(LogFrameConfig.class);
-      ctx.refresh();
-      var frame = ctx.getBean(LogFrame.class);
-      assert frame != null;
+      var frame = findWindow(LogFrame.class).orElseGet(() -> child("logs", "Logs", LogFrame.class, context));
       frame.setVisible(true);
+      frame.toFront();
     });
   }
 }

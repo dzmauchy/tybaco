@@ -32,8 +32,10 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.logging.Level.WARNING;
 
 public final class ChildContext extends AnnotationConfigApplicationContext {
 
@@ -67,9 +69,13 @@ public final class ChildContext extends AnnotationConfigApplicationContext {
     }
   }
 
-  public <W extends Window> W child(String id, String name, Class<W> type, AnnotationConfigApplicationContext ctx, Consumer<ChildContext> consumer) {
+  @SafeVarargs
+  public static <W extends Window> W child(String id, String name, Class<W> type, AnnotationConfigApplicationContext ctx, Consumer<ChildContext>... consumers) {
     var child = new ChildContext(id, name, ctx);
-    consumer.accept(child);
+    child.register(type);
+    for (var consumer : consumers) {
+      consumer.accept(child);
+    }
     child.refresh();
     var w = child.getBean(type);
     assert w != null;
@@ -84,12 +90,12 @@ public final class ChildContext extends AnnotationConfigApplicationContext {
         try (child) {
           child.stop();
         } catch (Throwable x) {
-          logger.error("Window close error", x);
+          var logger = Logger.getLogger(ChildContext.class.getName());
+          logger.log(WARNING, "Window close error", x);
         }
         w.removeWindowListener(this);
       }
     });
-    w.setVisible(true);
     return w;
   }
 }
