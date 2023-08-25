@@ -38,6 +38,8 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.logging.LogManager;
 
+import static java.awt.Color.DARK_GRAY;
+import static java.awt.Color.WHITE;
 import static java.awt.EventQueue.invokeLater;
 import static java.awt.RenderingHints.*;
 import static java.lang.System.setProperty;
@@ -119,13 +121,13 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
       g.setRenderingHint(KEY_ALPHA_INTERPOLATION, VALUE_ALPHA_INTERPOLATION_QUALITY);
       g.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
       int x = 20, y = 20;
-      var bounds = drawOutline(g, "Tybaco IDE", Color.WHITE, Color.DARK_GRAY, x, y, 2f);
+      var bounds = drawOutline(g, "Tybaco IDE", x, y, 2f);
       y += 40 + (int) bounds.getHeight();
-      g.setColor(Color.WHITE);
+      g.setColor(WHITE);
       g.drawLine(x, y, 700, y);
       g.setFont(createFont("fonts/fz.ttf", 36));
       updateSplash(splashScreen, FONT2_LOADED);
-      drawOutline(g, "A microservice visual IDE", Color.WHITE, Color.DARK_GRAY, x, y, 1f);
+      drawOutline(g, "A microservice visual IDE", x, y, 1f);
     } finally {
       g.dispose();
       splashScreen.update();
@@ -133,12 +135,12 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
     }
   }
 
-  private static Rectangle2D drawOutline(Graphics2D g, String text, Color back, Color front, int x, int y, float stroke) {
+  private static Rectangle2D drawOutline(Graphics2D g, String text, int x, int y, float stroke) {
     var vector = g.getFont().createGlyphVector(g.getFontRenderContext(), text);
     var bounds = vector.getVisualBounds();
-    g.setColor(back);
+    g.setColor(WHITE);
     g.drawGlyphVector(vector, x, y + (int) bounds.getHeight());
-    g.setColor(front);
+    g.setColor(DARK_GRAY);
     g.setStroke(new BasicStroke(stroke));
     g.draw(vector.getOutline(x, y + (int) bounds.getHeight()));
     return bounds;
@@ -163,7 +165,7 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
     var g = splashScreen.createGraphics();
     var statuses = SplashStatus.values();
     try {
-      g.setBackground(Color.WHITE);
+      g.setBackground(WHITE);
       var w = (b.width / statuses.length) * (status.ordinal() + 1);
       var y = b.height - 7;
       g.clearRect(0, y, w, y + 7);
