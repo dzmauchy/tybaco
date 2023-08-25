@@ -34,18 +34,15 @@ import org.tybaco.ui.main.MainConfiguration;
 import org.tybaco.ui.main.MainFrame;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.logging.LogManager;
 
 import static java.awt.EventQueue.invokeLater;
-import static java.awt.RenderingHints.KEY_ALPHA_INTERPOLATION;
-import static java.awt.RenderingHints.KEY_ANTIALIASING;
-import static java.awt.RenderingHints.KEY_RENDERING;
-import static java.awt.RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY;
-import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
-import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
+import static java.awt.RenderingHints.*;
 import static java.lang.System.setProperty;
 import static java.util.logging.Level.INFO;
+import static org.tybaco.ui.Main.SplashStatus.*;
 
 public final class Main implements ApplicationListener<ApplicationEvent> {
 
@@ -53,11 +50,11 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
     var splash = SplashScreen.getSplashScreen();
     updateSplash(splash);
     initLogging();
-    updateSplash(splash, SplashStatus.INIT_LOGGING);
+    updateSplash(splash, INIT_LOGGING);
     var ctx = new AnnotationConfigApplicationContext();
     var latch = new Latch(1);
     invokeLater(() -> bootstrap(splash, latch, ctx));
-    updateSplash(splash, SplashStatus.EVENT_QUEUE);
+    updateSplash(splash, EVENT_QUEUE_INITIALIZED);
     try {
       ctx.setId("root");
       ctx.setDisplayName("TybacoIDE");
@@ -66,10 +63,10 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
       ctx.setAllowBeanDefinitionOverriding(false);
       ctx.addApplicationListener(new Main());
       ctx.register(MainConfiguration.class);
-      updateSplash(splash, SplashStatus.CONTEXT_CONFIGURED);
+      updateSplash(splash, CONTEXT_CONFIGURED);
       FlatDarculaLaf.installLafInfo();
       FlatDarculaLaf.setup();
-      updateSplash(splash, SplashStatus.LAF_CONFIGURED);
+      updateSplash(splash, LAF_CONFIGURED);
     } finally {
       latch.releaseShared(1);
     }
@@ -77,12 +74,12 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
 
   private static void bootstrap(SplashScreen splash, Latch latch, GenericApplicationContext context) {
     latch.acquireShared(1);
-    updateSplash(splash, SplashStatus.UI_THREAD_CREATED);
+    updateSplash(splash, UI_THREAD_CREATED);
     context.refresh();
-    updateSplash(splash, SplashStatus.CONTEXT_REFRESHED);
+    updateSplash(splash, CONTEXT_REFRESHED);
     var mainFrame = context.getBean(MainFrame.class);
     assert mainFrame != null;
-    updateSplash(splash, SplashStatus.MAIN_FRAME_PREPARED);
+    updateSplash(splash, MAIN_FRAME_PREPARED);
     mainFrame.setVisible(true);
   }
 
@@ -102,7 +99,7 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
     if (splashScreen == null) {
       return;
     }
-    updateSplash(splashScreen, SplashStatus.BOOTSTRAP);
+    updateSplash(splashScreen, BOOTSTRAPPED);
     var classPath = Thread.currentThread().getContextClassLoader();
     var newUrl = classPath.getResource("images/logo.jpg");
     if (newUrl != null) {
@@ -112,41 +109,39 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
         e.printStackTrace(System.err);
       }
     }
-    updateSplash(splashScreen, SplashStatus.FIRST_UPDATE);
+    updateSplash(splashScreen, FIRST_UPDATE);
 
     var g = splashScreen.createGraphics();
     try {
       g.setFont(createFont("fonts/wf.otf", 72));
-      updateSplash(splashScreen, SplashStatus.LOAD_FONT1);
-      g.setColor(Color.WHITE);
+      updateSplash(splashScreen, FONT1_LOADED);
       g.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
       g.setRenderingHint(KEY_ALPHA_INTERPOLATION, VALUE_ALPHA_INTERPOLATION_QUALITY);
       g.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
-      var title = "Tybaco IDE";
-      var vector = g.getFont().createGlyphVector(g.getFontRenderContext(), title);
-      var bounds = vector.getVisualBounds();
-      var x = 20;
-      var y = (int) (bounds.getHeight() + 20d);
-      g.drawGlyphVector(vector, x, y);
-      g.setColor(Color.DARK_GRAY);
-      g.setStroke(new BasicStroke(2f));
-      g.draw(vector.getOutline(x, y));
-      y += 30;
+      int x = 20, y = 20;
+      var bounds = drawOutline(g, "Tybaco IDE", Color.WHITE, Color.DARK_GRAY, x, y, 2f);
+      y += 40 + (int) bounds.getHeight();
       g.setColor(Color.WHITE);
       g.drawLine(x, y, 700, y);
       g.setFont(createFont("fonts/fz.ttf", 36));
-      updateSplash(splashScreen, SplashStatus.LOAD_FONT2);
-      vector = g.getFont().createGlyphVector(g.getFontRenderContext(), "A microservice visual IDE");
-      y += (int) (vector.getVisualBounds().getHeight() + 10);
-      g.drawGlyphVector(vector, x, y);
-      g.setColor(Color.DARK_GRAY);
-      g.setStroke(new BasicStroke(1f));
-      g.draw(vector.getOutline(x, y));
+      updateSplash(splashScreen, FONT2_LOADED);
+      drawOutline(g, "A microservice visual IDE", Color.WHITE, Color.DARK_GRAY, x, y, 1f);
     } finally {
       g.dispose();
       splashScreen.update();
-      updateSplash(splashScreen, SplashStatus.SECOND_UPDATE);
+      updateSplash(splashScreen, SECOND_UPDATE);
     }
+  }
+
+  private static Rectangle2D drawOutline(Graphics2D g, String text, Color back, Color front, int x, int y, float stroke) {
+    var vector = g.getFont().createGlyphVector(g.getFontRenderContext(), text);
+    var bounds = vector.getVisualBounds();
+    g.setColor(back);
+    g.drawGlyphVector(vector, x, y + (int) bounds.getHeight());
+    g.setColor(front);
+    g.setStroke(new BasicStroke(stroke));
+    g.draw(vector.getOutline(x, y + (int) bounds.getHeight()));
+    return bounds;
   }
 
   private static Font createFont(String resource, int size) {
@@ -170,22 +165,22 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
     try {
       g.setBackground(Color.WHITE);
       var w = (b.width / statuses.length) * (status.ordinal() + 1);
-      var y = b.height - 10;
-      g.clearRect(0, y, w, y + 10);
+      var y = b.height - 7;
+      g.clearRect(0, y, w, y + 7);
     } finally {
       g.dispose();
       splashScreen.update();
     }
   }
 
-  private enum SplashStatus {
-    BOOTSTRAP,
+  enum SplashStatus {
+    BOOTSTRAPPED,
     FIRST_UPDATE,
-    LOAD_FONT1,
-    LOAD_FONT2,
+    FONT1_LOADED,
+    FONT2_LOADED,
     SECOND_UPDATE,
     INIT_LOGGING,
-    EVENT_QUEUE,
+    EVENT_QUEUE_INITIALIZED,
     CONTEXT_CONFIGURED,
     LAF_CONFIGURED,
     UI_THREAD_CREATED,
