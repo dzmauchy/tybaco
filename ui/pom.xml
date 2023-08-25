@@ -33,11 +33,6 @@
         <artifactId>commons-logging</artifactId>
         <version>1.2</version>
       </dependency>
-
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-jdk14</artifactId>
-      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -91,9 +86,21 @@
     </dependency>
 
     <dependency>
-      <groupId>org.graalvm.js</groupId>
-      <artifactId>js</artifactId>
-      <version>23.0.1</version>
+      <groupId>org.mozilla</groupId>
+      <artifactId>rhino</artifactId>
+      <version>1.7.14</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven.resolver</groupId>
+      <artifactId>maven-resolver-impl</artifactId>
+      <version>1.9.15</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.sourceforge.plantuml</groupId>
+      <artifactId>plantuml-mit</artifactId>
+      <version>1.2023.10</version>
     </dependency>
 
     <dependency>
@@ -105,6 +112,11 @@
       <groupId>org.montoni</groupId>
       <artifactId>tybaco-library</artifactId>
       <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
     </dependency>
   </dependencies>
 
@@ -118,6 +130,9 @@
             <manifest>
               <mainClass>${main.class}</mainClass>
             </manifest>
+            <manifestEntries>
+              <SplashScreen-Image>logo.jpg</SplashScreen-Image>
+            </manifestEntries>
           </archive>
         </configuration>
       </plugin>
@@ -141,6 +156,35 @@
             <goals>
               <goal>repackage</goal>
             </goals>
+            <configuration>
+              <layers>
+                <enabled>true</enabled>
+              </layers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-logo-files</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <jar
+                  destfile="${basedir}/target/${project.artifactId}-${project.version}.jar"
+                  basedir="${basedir}/src/logo"
+                  update="true"
+                  keepcompression="true"
+                />
+              </target>
+            </configuration>
           </execution>
         </executions>
       </plugin>

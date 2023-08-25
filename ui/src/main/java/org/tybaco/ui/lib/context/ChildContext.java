@@ -78,7 +78,6 @@ public final class ChildContext extends AnnotationConfigApplicationContext {
     }
     child.refresh();
     var w = child.getBean(type);
-    assert w != null;
     w.addWindowListener(new WindowAdapter() {
       @Override
       public void windowOpened(WindowEvent e) {
