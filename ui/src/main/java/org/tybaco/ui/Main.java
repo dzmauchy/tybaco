@@ -25,12 +25,13 @@ import com.formdev.flatlaf.FlatDarculaLaf;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.GenericApplicationContext;
 import org.tybaco.logging.FastConsoleHandler;
 import org.tybaco.logging.LoggingManager;
 import org.tybaco.ui.lib.logging.UILogHandler;
 import org.tybaco.ui.lib.utils.Latch;
-import org.tybaco.ui.lib.utils.ThreadUtils;
 import org.tybaco.ui.main.MainConfiguration;
 import org.tybaco.ui.main.MainFrame;
 
@@ -47,7 +48,10 @@ import static java.awt.Font.PLAIN;
 import static java.awt.RenderingHints.*;
 import static java.lang.System.setProperty;
 import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Logger.getLogger;
 import static org.jfree.chart.ChartColor.LIGHT_BLUE;
+import static org.springframework.context.support.AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME;
 import static org.tybaco.ui.Main.SplashStatus.*;
 import static org.tybaco.ui.lib.utils.ThreadUtils.tccl;
 
@@ -70,6 +74,18 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
       ctx.setAllowBeanDefinitionOverriding(false);
       ctx.addApplicationListener(new Main());
       ctx.register(MainConfiguration.class);
+      ctx.addApplicationListener(ev -> {
+        if (ev instanceof ContextRefreshedEvent e) {
+          var ictx = (AnnotationConfigApplicationContext) e.getApplicationContext();
+          assert ictx != null;
+          var beanFactory = ictx.getDefaultListableBeanFactory();
+          assert beanFactory != null;
+          var multicaster = beanFactory.getSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
+          if (multicaster instanceof SimpleApplicationEventMulticaster m) {
+            m.setErrorHandler(x -> getLogger("main").log(SEVERE, "Unknown error", x));
+          }
+        }
+      });
       updateSplash(splash, CONTEXT_CONFIGURED);
       FlatDarculaLaf.installLafInfo();
       FlatDarculaLaf.setup();
@@ -82,12 +98,21 @@ public final class Main implements ApplicationListener<ApplicationEvent> {
   private static void bootstrap(SplashScreen splash, Latch latch, GenericApplicationContext context) {
     latch.acquireShared(1);
     updateSplash(splash, UI_THREAD_CREATED);
-    context.refresh();
-    updateSplash(splash, CONTEXT_REFRESHED);
-    var mainFrame = context.getBean(MainFrame.class);
-    assert mainFrame != null;
-    updateSplash(splash, MAIN_FRAME_PREPARED);
-    mainFrame.setVisible(true);
+    try {
+      context.refresh();
+      updateSplash(splash, CONTEXT_REFRESHED);
+      var mainFrame = context.getBean(MainFrame.class);
+      assert mainFrame != null;
+      updateSplash(splash, MAIN_FRAME_PREPARED);
+      mainFrame.setVisible(true);
+    } catch (Throwable e) {
+      try (context) {
+        context.stop();
+      } catch (Throwable x) {
+        e.addSuppressed(x);
+      }
+      getLogger("main").log(SEVERE, "Bootstrap error", e);
+    }
   }
 
   private static void initLogging() {

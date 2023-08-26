@@ -27,7 +27,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.child.logging.LogFrame;
+import org.tybaco.ui.child.project.ProjectPane;
 import org.tybaco.ui.lib.actions.SmartAction;
+import org.tybaco.ui.lib.project.Projects;
 
 import static org.tybaco.ui.lib.context.ChildContext.child;
 import static org.tybaco.ui.lib.window.Windows.findWindow;
@@ -43,6 +45,14 @@ public class MainConfiguration {
       var frame = findWindow(LogFrame.class).orElseGet(() -> child("logs", "Logs", LogFrame.class, context));
       frame.setVisible(true);
       frame.toFront();
+    });
+  }
+
+  @Bean
+  @Qualifier("file")
+  public SmartAction groupA_newProject(MainTabPane tabPane) {
+    return new SmartAction("newProject", "New project", "", e -> {
+      tabPane.tab(Projects.generateId(), "Project", ProjectPane.class);
     });
   }
 }

@@ -22,20 +22,19 @@ package org.tybaco.ui.lib.context;
  */
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.MessageSource;
-import org.springframework.context.PayloadApplicationEvent;
+import org.springframework.context.*;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.*;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Level.WARNING;
+import static java.util.logging.Logger.getLogger;
 
 public final class ChildContext extends AnnotationConfigApplicationContext {
 
@@ -55,6 +54,15 @@ public final class ChildContext extends AnnotationConfigApplicationContext {
     addApplicationListener(event -> {
       if (event instanceof ContextClosedEvent) {
         parent.removeApplicationListener(parentEventListener);
+      } else if (event instanceof ContextRefreshedEvent ev) {
+        var ctx = (ChildContext) ev.getApplicationContext();
+        assert ctx != null;
+        var beanFactory = ctx.getDefaultListableBeanFactory();
+        assert beanFactory != null;
+        var multicaster = beanFactory.getSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
+        if (multicaster instanceof SimpleApplicationEventMulticaster m) {
+          m.setErrorHandler(e -> getLogger(id).log(SEVERE, "Unknown exception", e));
+        }
       }
     });
   }
@@ -76,25 +84,36 @@ public final class ChildContext extends AnnotationConfigApplicationContext {
     for (var consumer : consumers) {
       consumer.accept(child);
     }
-    child.refresh();
-    var w = child.getBean(type);
-    w.addWindowListener(new WindowAdapter() {
-      @Override
-      public void windowOpened(WindowEvent e) {
-        child.start();
-      }
-
-      @Override
-      public void windowClosed(WindowEvent e) {
-        try (child) {
-          child.stop();
-        } catch (Throwable x) {
-          var logger = Logger.getLogger(ChildContext.class.getName());
-          logger.log(WARNING, "Window close error", x);
+    try {
+      child.refresh();
+      var w = child.getBean(type);
+      assert w != null;
+      w.addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowOpened(WindowEvent e) {
+          child.start();
         }
-        w.removeWindowListener(this);
+
+        @Override
+        public void windowClosed(WindowEvent e) {
+          try (child) {
+            child.stop();
+          } catch (Throwable x) {
+            getLogger(id).log(WARNING, "Window close error", x);
+          } finally {
+            w.removeWindowListener(this);
+          }
+        }
+      });
+      return w;
+    } catch (Throwable e) {
+      try (child) {
+        child.stop();
+      } catch (Throwable x) {
+        e.addSuppressed(x);
       }
-    });
-    return w;
+      getLogger(id).log(SEVERE, "Child error", e);
+      throw e;
+    }
   }
 }
