@@ -21,5 +21,19 @@ package org.tybaco.ui.lib.context;
  * #L%
  */
 
+import org.springframework.context.event.SimpleApplicationEventMulticaster;
+import org.springframework.context.support.GenericApplicationContext;
+
+import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Logger.getLogger;
+import static org.springframework.context.support.AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME;
+
 public interface Propagated {
+
+  static void installErrorHandler(GenericApplicationContext ctx) {
+    var f = ctx.getDefaultListableBeanFactory();
+    if (f.getSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME) instanceof SimpleApplicationEventMulticaster m) {
+      m.setErrorHandler(e -> getLogger(ctx.getId()).log(SEVERE, "Multicaster error", e));
+    }
+  }
 }

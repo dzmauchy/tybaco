@@ -21,10 +21,10 @@ package org.tybaco.ui.lib.context;
  * #L%
  */
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.*;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.event.*;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -38,33 +38,32 @@ import static java.util.logging.Logger.getLogger;
 
 public final class ChildContext extends AnnotationConfigApplicationContext {
 
+  private final AnnotationConfigApplicationContext parent;
+  private final ApplicationListener<?> parentEventListener = event -> {
+    if (event instanceof Propagated || event instanceof PayloadApplicationEvent<?>) {
+      publishEvent(event);
+    }
+  };
+
   public ChildContext(String id, String name, AnnotationConfigApplicationContext parent) {
+    this.parent = parent;
     requireNonNull(getDefaultListableBeanFactory()).setParentBeanFactory(parent.getDefaultListableBeanFactory());
     setId(id);
     setDisplayName(name);
     requireNonNull(getEnvironment()).merge(parent.getEnvironment());
     setAllowBeanDefinitionOverriding(false);
     setAllowCircularReferences(false);
-    var parentEventListener = (ApplicationListener<?>) event -> {
-      if (event instanceof Propagated || event instanceof PayloadApplicationEvent<?>) {
-        publishEvent(event);
-      }
-    };
     parent.addApplicationListener(parentEventListener);
-    addApplicationListener(event -> {
-      if (event instanceof ContextClosedEvent) {
-        parent.removeApplicationListener(parentEventListener);
-      } else if (event instanceof ContextRefreshedEvent ev) {
-        var ctx = (ChildContext) ev.getApplicationContext();
-        assert ctx != null;
-        var beanFactory = ctx.getDefaultListableBeanFactory();
-        assert beanFactory != null;
-        var multicaster = beanFactory.getSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
-        if (multicaster instanceof SimpleApplicationEventMulticaster m) {
-          m.setErrorHandler(e -> getLogger(id).log(SEVERE, "Unknown exception", e));
-        }
-      }
-    });
+  }
+
+  @Override
+  protected void onClose() {
+    parent.removeApplicationListener(parentEventListener);
+  }
+
+  @Override
+  protected void onRefresh() throws BeansException {
+    Propagated.installErrorHandler(this);
   }
 
   @Override
@@ -87,7 +86,6 @@ public final class ChildContext extends AnnotationConfigApplicationContext {
     try {
       child.refresh();
       var w = child.getBean(type);
-      assert w != null;
       w.addWindowListener(new WindowAdapter() {
         @Override
         public void windowOpened(WindowEvent e) {
