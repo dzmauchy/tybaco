@@ -63,14 +63,14 @@ public final class Splash {
       g.setRenderingHint(KEY_ALPHA_INTERPOLATION, VALUE_ALPHA_INTERPOLATION_QUALITY);
       g.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
       int x = 20, y = 20;
-      var bounds = drawOutline(g, "Tybaco IDE", x, y, 2f);
+      var bounds = drawText(g, "Tybaco IDE", x, y);
       y += 30 + (int) bounds.getHeight();
       g.setColor(WHITE);
       g.drawLine(x, y, 700, y);
       y += 20;
       g.setFont(g.getFont().deriveFont(48f));
       updateSplash();
-      drawOutline(g, "A microservice visual IDE", x, y, 1f);
+      drawText(g, "A microservice visual IDE", x, y);
     } finally {
       g.dispose();
       splashScreen.update();
@@ -78,7 +78,7 @@ public final class Splash {
     }
   }
 
-  private static Rectangle2D drawOutline(Graphics2D g, String text, int x, int y, float stroke) {
+  private static Rectangle2D drawText(Graphics2D g, String text, int x, int y) {
     var vector = g.getFont().createGlyphVector(g.getFontRenderContext(), text);
     var bounds = vector.getVisualBounds();
     g.setColor(LIGHT_GRAY);
