@@ -42,5 +42,12 @@
         <exclude>*.*-javadoc.jar</exclude>
       </excludes>
     </fileSet>
+    <fileSet>
+      <outputDirectory>.</outputDirectory>
+      <directory>${project.build.directory}</directory>
+      <includes>
+        <include>ext/**</include>
+      </includes>
+    </fileSet>
   </fileSets>
 </assembly>
