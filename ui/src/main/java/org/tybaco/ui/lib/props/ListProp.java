@@ -21,7 +21,6 @@ package org.tybaco.ui.lib.props;
  * #L%
  */
 
-import org.tybaco.ui.lib.event.EventListeners;
 import org.tybaco.ui.lib.event.UniEventListeners;
 
 import javax.swing.*;
@@ -35,20 +34,18 @@ import static javax.swing.event.ListDataEvent.*;
 public final class ListProp<E> implements ListModel<E> {
 
   private final UniEventListeners<ListDataListener> eventListeners = new UniEventListeners<>();
-  private final Object source;
+  private final AbstractEntity source;
   private final String name;
-  private final EventListeners listeners;
   private final ArrayList<E> elements;
 
-  public ListProp(Object source, String name, EventListeners listeners, Collection<E> elements) {
+  public ListProp(AbstractEntity source, String name, Collection<E> elements) {
     this.source = source;
     this.name = name;
-    this.listeners = listeners;
     this.elements = new ArrayList<>(elements);
   }
 
-  public ListProp(Object source, String name, EventListeners listeners) {
-    this(source, name, listeners, List.of());
+  public ListProp(AbstractEntity source, String name) {
+    this(source, name, List.of());
   }
 
   @Override
@@ -73,9 +70,9 @@ public final class ListProp<E> implements ListModel<E> {
 
   private void fireParentEvents() {
     var propertyChangeEvent = new PropertyChangeEvent(source, name, this, this);
-    listeners.fireListeners(PropertyChangeListener.class, l -> l.propertyChange(propertyChangeEvent));
+    source.eventListeners.fireListeners(PropertyChangeListener.class, l -> l.propertyChange(propertyChangeEvent));
     var changeEvent = new ChangeEvent(source);
-    listeners.fireListeners(ChangeListener.class, l -> l.stateChanged(changeEvent));
+    source.eventListeners.fireListeners(ChangeListener.class, l -> l.stateChanged(changeEvent));
   }
 
   public void clear() {

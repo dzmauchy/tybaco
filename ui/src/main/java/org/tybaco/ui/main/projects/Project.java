@@ -22,27 +22,25 @@ package org.tybaco.ui.main.projects;
  */
 
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.tybaco.ui.lib.event.EventListeners;
 import org.tybaco.ui.lib.id.Ids;
-import org.tybaco.ui.lib.props.ListProp;
-import org.tybaco.ui.lib.props.Prop;
+import org.tybaco.ui.lib.props.*;
 import org.w3c.dom.Element;
 
-import java.beans.PropertyChangeListener;
 import java.util.Collection;
 import java.util.List;
 
 import static java.util.Objects.requireNonNullElse;
 import static org.tybaco.model.Xml.elementsByTags;
 
-public class Project {
+@Accessors(fluent = true)
+@Getter
+public final class Project extends AbstractEntity {
 
-  private final EventListeners eventListeners = new EventListeners();
-
-  @Getter private final String id;
-  @Getter private final Prop<String> name;
-  @Getter private final ListProp<DefaultArtifact> artifacts;
+  private final String id;
+  private final Prop<String> name;
+  private final ListProp<DefaultArtifact> artifacts;
 
   public Project(String name) {
     this(Ids.newId(), name, List.of());
@@ -50,16 +48,12 @@ public class Project {
 
   private Project(String id, String name, Collection<DefaultArtifact> artifacts) {
     this.id = id;
-    this.name = new Prop<>(this, "name", eventListeners, name);
-    this.artifacts = new ListProp<>(this, "artifacts", eventListeners, artifacts);
+    this.name = new Prop<>(this, "name", name);
+    this.artifacts = new ListProp<>(this, "artifacts", artifacts);
   }
 
-  public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
-    eventListeners.add(PropertyChangeListener.class, propertyChangeListener);
-  }
-
-  public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
-    eventListeners.remove(PropertyChangeListener.class, propertyChangeListener);
+  public String getName() {
+    return name.get();
   }
 
   public static Project loadFrom(Element element) {

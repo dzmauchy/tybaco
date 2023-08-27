@@ -21,22 +21,22 @@ package org.tybaco.ui.lib.actions;
  * #L%
  */
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.tybaco.ui.lib.images.ImageCache;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import static java.util.Objects.requireNonNullElse;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
 public final class SmartAction extends AbstractAction {
 
+  private static final String GROUP_KEY = "actionGroup";
   public static final int SMALL_ICON_SIZE = 18;
   public static final int LARGE_ICON_SIZE = 24;
   public static final ActionListener EMPTY_ACTION = e -> {};
@@ -111,6 +111,15 @@ public final class SmartAction extends AbstractAction {
     return this;
   }
 
+  public SmartAction group(String group) {
+    putValue(GROUP_KEY, group);
+    return this;
+  }
+
+  public String getGroup() {
+    return requireNonNullElse(getValue(GROUP_KEY), "").toString();
+  }
+
   private static ActionListener merge(ActionListener[] actions) {
     return switch (actions.length) {
       case 0 -> EMPTY_ACTION;
@@ -132,16 +141,7 @@ public final class SmartAction extends AbstractAction {
     action.actionPerformed(e);
   }
 
-  public static TreeMap<String, List<SmartAction>> group(Map<String, SmartAction> actions) {
-    return actions.entrySet().stream().collect(groupingBy(
-      e -> extractGroupFromName(e.getKey()),
-      TreeMap::new,
-      mapping(Entry::getValue, toList())
-    ));
-  }
-
-  private static String extractGroupFromName(String name) {
-    var idx = name.indexOf('_');
-    return idx < 0 ? "" : name.substring(0, idx);
+  public static TreeMap<String, List<SmartAction>> group(ObjectProvider<SmartAction> actions) {
+    return actions.orderedStream().collect(groupingBy(SmartAction::getGroup, TreeMap::new, toList()));
   }
 }

@@ -21,18 +21,18 @@ package org.tybaco.ui.lib.menus;
  * #L%
  */
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.tybaco.ui.lib.actions.SmartAction;
 
 import javax.swing.*;
-import java.util.Map;
 
 public final class Menus {
 
   private Menus() {
   }
 
-  public static void addMenuItems(JMenu menu, Map<String, SmartAction> map) {
-    var grouped = SmartAction.group(map);
+  public static void addMenuItems(JMenu menu, ObjectProvider<SmartAction> actions) {
+    var grouped = SmartAction.group(actions);
     for (var it = grouped.values().iterator(); it.hasNext(); ) {
       var l = it.next();
       l.forEach(menu::add);
@@ -40,7 +40,7 @@ public final class Menus {
     }
   }
 
-  public static void addMenuItems(JPopupMenu menu, Map<String, SmartAction> map) {
+  public static void addMenuItems(JPopupMenu menu, ObjectProvider<SmartAction> map) {
     var grouped = SmartAction.group(map);
     for (var it = grouped.values().iterator(); it.hasNext(); ) {
       var l = it.next();

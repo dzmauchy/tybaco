@@ -21,6 +21,7 @@ package org.tybaco.ui.main.menu;
  * #L%
  */
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -28,14 +29,13 @@ import org.tybaco.ui.lib.actions.SmartAction;
 import org.tybaco.ui.lib.menus.Menus;
 
 import javax.swing.*;
-import java.util.Map;
 
 @Component
 @Order(1)
 @Qualifier("main")
 public class FileMenu extends JMenu {
 
-  public FileMenu(@Qualifier("file") Map<String, SmartAction> actions) {
+  public FileMenu(@Qualifier("file") ObjectProvider<SmartAction> actions) {
     super("File");
     Menus.addMenuItems(this, actions);
   }

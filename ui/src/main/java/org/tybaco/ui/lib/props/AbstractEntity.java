@@ -21,34 +21,28 @@ package org.tybaco.ui.lib.props;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import org.tybaco.ui.lib.event.EventListeners;
 
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Objects;
 
-@AllArgsConstructor
-public class Prop<T> {
+public abstract class AbstractEntity {
 
-  @Getter private final AbstractEntity source;
-  @Getter private final String name;
+  protected final EventListeners eventListeners = new EventListeners();
 
-  private T value;
-
-  public void set(T value) {
-    if (!Objects.equals(this.value, value)) {
-      var event = new PropertyChangeEvent(source, name, this.value, value);
-      var changeEvent = new ChangeEvent(source);
-      this.value = value;
-      source.eventListeners.fireListeners(PropertyChangeListener.class, l -> l.propertyChange(event));
-      source.eventListeners.fireListeners(ChangeListener.class, l -> l.stateChanged(changeEvent));
-    }
+  public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+    eventListeners.add(PropertyChangeListener.class, propertyChangeListener);
   }
 
-  public T get() {
-    return value;
+  public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+    eventListeners.remove(PropertyChangeListener.class, propertyChangeListener);
+  }
+
+  public void addChangeListener(ChangeListener changeListener) {
+    eventListeners.add(ChangeListener.class, changeListener);
+  }
+
+  public void removeChangeListener(ChangeListener changeListener) {
+    eventListeners.remove(ChangeListener.class, changeListener);
   }
 }

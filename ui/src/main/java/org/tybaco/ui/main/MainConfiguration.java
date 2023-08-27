@@ -26,10 +26,7 @@ import org.springframework.context.annotation.*;
 import org.tybaco.ui.child.logging.LogFrame;
 import org.tybaco.ui.child.project.ProjectPane;
 import org.tybaco.ui.lib.actions.SmartAction;
-import org.tybaco.ui.lib.images.ImageCache;
 import org.tybaco.ui.main.projects.Project;
-
-import javax.swing.*;
 
 import static javax.swing.JOptionPane.QUESTION_MESSAGE;
 import static javax.swing.JOptionPane.showInputDialog;
@@ -43,17 +40,17 @@ public class MainConfiguration {
 
   @Bean
   @Qualifier("log")
-  public SmartAction groupZ_showLogFrameAction(AnnotationConfigApplicationContext context) {
+  public SmartAction showLogFrameAction(AnnotationConfigApplicationContext context) {
     return new SmartAction("showLogs", "Show logs", "icon/logs.svg", e -> {
       var frame = findWindow(LogFrame.class).orElseGet(() -> child("logs", "Logs", LogFrame.class, context));
       frame.setVisible(true);
       frame.toFront();
-    });
+    }).group("|");
   }
 
   @Bean
   @Qualifier("file")
-  public SmartAction groupA_newProject(MainTabPane tabPane) {
+  public SmartAction newProjectAction(MainTabPane tabPane) {
     return new SmartAction("newProject", "New project", "icon/project.svg", e -> {
       var defName = tabPane.guessNewProjectName();
       var name = showInputDialog(tabPane, "Project name", "New project", QUESTION_MESSAGE, svgIcon("icon/project.svg", 24), null, defName);
@@ -61,7 +58,7 @@ public class MainConfiguration {
         return;
       }
       var project = new Project(name.toString());
-      tabPane.tab(project.getId(), project.getName().get(), ProjectPane.class, c -> c.registerBean(Project.class, () -> project));
-    });
+      tabPane.tab(project.id(), project.getName(), ProjectPane.class, c -> c.registerBean(Project.class, () -> project));
+    }).group("a");
   }
 }
