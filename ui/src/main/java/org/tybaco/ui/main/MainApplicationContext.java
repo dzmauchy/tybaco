@@ -22,6 +22,7 @@ package org.tybaco.ui.main;
  */
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.ResolvableType;
 import org.tybaco.ui.lib.context.Propagated;
@@ -46,11 +47,10 @@ public final class MainApplicationContext extends AnnotationConfigApplicationCon
   }
 
   @Override
-  protected void prepareRefresh() {
-    var beanFactory = getDefaultListableBeanFactory();
+  protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
     beanFactory.addBeanPostProcessor(new SplashBeanPostProcessor());
     beanFactory.addBeanPostProcessor(new LogBeanPostProcessor(this));
-    super.prepareRefresh();
+    super.prepareBeanFactory(beanFactory);
   }
 
   @Override

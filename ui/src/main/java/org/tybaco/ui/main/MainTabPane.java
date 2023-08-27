@@ -86,4 +86,23 @@ public class MainTabPane extends CloseableTabPane {
       log.log(info("Context {0} closing error", e, context));
     }
   }
+
+  public String guessNewProjectName() {
+    int max = 0;
+    for (int i = 0; i < getTabCount(); i++) {
+      var title = getTitleAt(i);
+      if (title.startsWith("Project ")) {
+        var possibleNumberText = title.substring("Project ".length()).trim();
+        try {
+          var n = Integer.parseInt(possibleNumberText);
+          if (n > max) {
+            max = n;
+          }
+        } catch (NumberFormatException ignore) {
+          // ignore
+        }
+      }
+    }
+    return "Project " + (max + 1);
+  }
 }
