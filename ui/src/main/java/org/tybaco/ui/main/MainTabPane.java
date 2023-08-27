@@ -61,14 +61,13 @@ public class MainTabPane extends CloseableTabPane {
     try {
       child.refresh();
       var component = child.getBean(tabType);
-      assert component != null;
       component.putClientProperty("TY_TAB_ID", id);
       addTab(name, svgIcon("icon/project.svg", 18), component);
       child.start();
       contexts.put(component, child);
       return component;
     } catch (Throwable e) {
-      log.log(warn("Unable to refresh the context {}", e, child));
+      log.log(warn("Unable to refresh the context {0}", e, child));
       try (child) {
         child.stop();
         throw e;
@@ -78,13 +77,13 @@ public class MainTabPane extends CloseableTabPane {
 
   @Override
   protected void onTabClose(int index) {
-    var component = getTabComponentAt(index);
+    var component = getComponentAt(index);
     removeTabAt(index);
     var context = contexts.remove(component);
     try (context) {
-      log.log(INFO, "Closing {}", context);
+      log.log(INFO, "Closing {0}", context);
     } catch (Throwable e) {
-      log.log(info("Context {} closing error", e, context));
+      log.log(info("Context {0} closing error", e, context));
     }
   }
 }

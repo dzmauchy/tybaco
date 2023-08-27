@@ -25,6 +25,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.*;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.tybaco.ui.lib.logging.LogBeanPostProcessor;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -54,6 +55,13 @@ public final class ChildContext extends AnnotationConfigApplicationContext {
     setAllowBeanDefinitionOverriding(false);
     setAllowCircularReferences(false);
     parent.addApplicationListener(parentEventListener);
+  }
+
+  @Override
+  protected void prepareRefresh() {
+    var beanFactory = getDefaultListableBeanFactory();
+    beanFactory.addBeanPostProcessor(new LogBeanPostProcessor(this));
+    super.prepareRefresh();
   }
 
   @Override

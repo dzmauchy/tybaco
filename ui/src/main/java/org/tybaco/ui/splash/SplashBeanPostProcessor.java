@@ -21,24 +21,16 @@ package org.tybaco.ui.splash;
  * #L%
  */
 
-import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
-import org.tybaco.ui.lib.logging.Logging;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.LogManager;
 
 import static org.tybaco.ui.splash.Splash.updateSplash;
 import static org.tybaco.ui.splash.SplashStatus.incrementStep;
 
-public class SplashBeanPostProcessor implements DestructionAwareBeanPostProcessor {
+public class SplashBeanPostProcessor implements BeanPostProcessor {
 
   private final AtomicLong lastTime = new AtomicLong(System.nanoTime());
-
-  @Override
-  public Object postProcessBeforeInitialization(Object bean, String beanName) {
-    info("Initializing {0}", beanName);
-    return bean;
-  }
 
   @Override
   public Object postProcessAfterInitialization(Object bean, String beanName) {
@@ -48,19 +40,6 @@ public class SplashBeanPostProcessor implements DestructionAwareBeanPostProcesso
     if (nextTime == time) {
       updateSplash(false);
     }
-    info("Initialized {0}", beanName);
     return bean;
-  }
-
-  @Override
-  public void postProcessBeforeDestruction(Object bean, String beanName) {
-    info("Destructing {0}", beanName);
-  }
-
-  private void info(String message, Object... args) {
-    var info = Logging.info(message, args);
-    info.setSourceClassName(null);
-    info.setLoggerName("init");
-    LogManager.getLogManager().getLogger("").log(info);
   }
 }

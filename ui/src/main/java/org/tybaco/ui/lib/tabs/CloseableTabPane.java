@@ -76,16 +76,12 @@ public abstract class CloseableTabPane extends JTabbedPane {
   }
 
   public void setTabCloseable(int index, boolean closeable) {
-    var component = getTabComponentAt(index);
-    if (component instanceof JComponent c) {
-      c.putClientProperty(TABBED_PANE_TAB_CLOSABLE, closeable);
-    }
+    setTabCloseable(getComponentAt(index), closeable);
   }
 
   public void setTabCloseable(Component component, boolean closeable) {
-    var index = indexOfTabComponent(component);
-    if (index >= 0) {
-      setTabCloseable(index, closeable);
+    if (component instanceof JComponent c) {
+      c.putClientProperty(TABBED_PANE_TAB_CLOSABLE, closeable);
     }
   }
 
