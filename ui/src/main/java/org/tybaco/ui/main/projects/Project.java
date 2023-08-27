@@ -24,32 +24,34 @@ package org.tybaco.ui.main.projects;
 import lombok.Getter;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.tybaco.ui.lib.event.EventListeners;
+import org.tybaco.ui.lib.id.Ids;
+import org.tybaco.ui.lib.props.ListProp;
+import org.tybaco.ui.lib.props.Prop;
+import org.w3c.dom.Element;
 
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static java.util.Objects.requireNonNullElse;
+import static org.tybaco.model.Xml.elementsByTags;
 
 public class Project {
 
   private final EventListeners eventListeners = new EventListeners();
-  private final ArrayList<DefaultArtifact> dependencies = new ArrayList<>();
 
-  @Getter private String name;
+  @Getter private final String id;
+  @Getter private final Prop<String> name;
+  @Getter private final ListProp<DefaultArtifact> artifacts;
 
   public Project(String name) {
-    this.name = name;
+    this(Ids.newId(), name, List.of());
   }
 
-  public void setName(String name) {
-    if (!name.equals(this.name)) {
-      var event = new PropertyChangeEvent(this, "name", this.name, name);
-      var changeEvent = new ChangeEvent(this);
-      this.name = name;
-      eventListeners.fireListeners(PropertyChangeListener.class, l -> l.propertyChange(event));
-      eventListeners.fireListeners(ChangeListener.class, l -> l.stateChanged(changeEvent));
-    }
+  private Project(String id, String name, Collection<DefaultArtifact> artifacts) {
+    this.id = id;
+    this.name = new Prop<>(this, "name", eventListeners, name);
+    this.artifacts = new ListProp<>(this, "artifacts", eventListeners, artifacts);
   }
 
   public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
@@ -58,5 +60,23 @@ public class Project {
 
   public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
     eventListeners.remove(PropertyChangeListener.class, propertyChangeListener);
+  }
+
+  public static Project loadFrom(Element element) {
+    return new Project(
+      element.getAttribute("id"),
+      element.getAttribute("name"),
+      elementsByTags(element, "artifacts", "artifact").map(Project::artifactFrom).toList()
+    );
+  }
+
+  private static DefaultArtifact artifactFrom(Element element) {
+    return new DefaultArtifact(
+      element.getAttribute("groupId"),
+      element.getAttribute("artifactId"),
+      requireNonNullElse(element.getAttribute("classifier"), ""),
+      requireNonNullElse(element.getAttribute("extension"), "jar"),
+      element.getAttribute("version")
+    );
   }
 }

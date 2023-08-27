@@ -25,9 +25,13 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
+import java.awt.*;
 
 @ComponentScan(lazyInit = true)
 @Component
 public class ProjectPane extends JPanel {
 
+  public ProjectPane() {
+    super(new BorderLayout());
+  }
 }

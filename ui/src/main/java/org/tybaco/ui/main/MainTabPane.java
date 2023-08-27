@@ -33,6 +33,7 @@ import java.util.IdentityHashMap;
 import java.util.function.Consumer;
 
 import static java.util.logging.Level.INFO;
+import static org.tybaco.ui.lib.images.ImageCache.svgIcon;
 import static org.tybaco.ui.lib.logging.Logging.info;
 import static org.tybaco.ui.lib.logging.Logging.warn;
 
@@ -62,7 +63,7 @@ public class MainTabPane extends CloseableTabPane {
       var component = child.getBean(tabType);
       assert component != null;
       component.putClientProperty("TY_TAB_ID", id);
-      addTab(name, component);
+      addTab(name, svgIcon("icon/project.svg", 18), component);
       child.start();
       contexts.put(component, child);
       return component;

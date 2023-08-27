@@ -22,20 +22,17 @@ package org.tybaco.ui.main;
  */
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.*;
 import org.tybaco.ui.child.logging.LogFrame;
 import org.tybaco.ui.child.project.ProjectPane;
 import org.tybaco.ui.lib.actions.SmartAction;
-import org.tybaco.ui.lib.project.Projects;
+import org.tybaco.ui.main.projects.Project;
 
 import static org.tybaco.ui.lib.context.ChildContext.child;
 import static org.tybaco.ui.lib.window.Windows.findWindow;
 
 @ComponentScan(lazyInit = true)
-@Component
+@Configuration(proxyBeanMethods = false)
 public class MainConfiguration {
 
   @Bean
@@ -51,8 +48,9 @@ public class MainConfiguration {
   @Bean
   @Qualifier("file")
   public SmartAction groupA_newProject(MainTabPane tabPane) {
-    return new SmartAction("newProject", "New project", "", e -> {
-      tabPane.tab(Projects.generateId(), "Project", ProjectPane.class);
+    return new SmartAction("newProject", "New project", "icon/project.svg", e -> {
+      var project = new Project("Project");
+      tabPane.tab(project.getId(), project.getName().get(), ProjectPane.class, c -> c.registerBean(Project.class, () -> project));
     });
   }
 }

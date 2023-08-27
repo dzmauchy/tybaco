@@ -1,4 +1,4 @@
-package org.tybaco.ui.lib.project;
+package org.tybaco.ui.lib.id;
 
 /*-
  * #%L
@@ -21,21 +21,22 @@ package org.tybaco.ui.lib.project;
  * #L%
  */
 
-import lombok.SneakyThrows;
-
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static java.util.Base64.getUrlEncoder;
+public final class Ids {
 
-public class Projects {
-
-  private Projects() {
+  private Ids() {
   }
 
-  @SneakyThrows
-  public static String generateId() {
-    var bytes = new byte[16];
-    ThreadLocalRandom.current().nextBytes(bytes);
-    return getUrlEncoder().encodeToString(bytes);
+  public static String newId() {
+    var time = System.currentTimeMillis();
+    var tlr = ThreadLocalRandom.current();
+    var raw = ByteBuffer.allocate(16)
+      .putLong(0, (time << 16) | (tlr.nextLong() & 0xffffL))
+      .putLong(8, tlr.nextLong())
+      .array();
+    return new BigInteger(1, raw).toString(Character.MAX_RADIX);
   }
 }
