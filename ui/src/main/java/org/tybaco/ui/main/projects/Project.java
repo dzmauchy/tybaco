@@ -52,10 +52,6 @@ public final class Project extends AbstractEntity {
     this.artifacts = new ListProp<>(this, "artifacts", artifacts);
   }
 
-  public String getName() {
-    return name.get();
-  }
-
   public static Project loadFrom(Element element) {
     return new Project(
       element.getAttribute("id"),

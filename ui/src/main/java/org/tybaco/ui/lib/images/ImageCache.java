@@ -141,6 +141,10 @@ public class ImageCache {
     return SVG_ICON_CACHE.computeIfAbsent(new IconKey(path, size), k -> new ImageIcon(svgImage(path, size)));
   }
 
+  public static ImageIcon smartIcon(String path, int size) {
+    return path.endsWith(".svg") ? svgIcon(path, size) : icon(path, size);
+  }
+
   private record ImageKey(String path, int w, int h) {
   }
 

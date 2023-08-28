@@ -28,10 +28,8 @@ import org.tybaco.ui.child.project.ProjectPane;
 import org.tybaco.ui.lib.actions.SmartAction;
 import org.tybaco.ui.main.projects.Project;
 
-import static javax.swing.JOptionPane.QUESTION_MESSAGE;
-import static javax.swing.JOptionPane.showInputDialog;
 import static org.tybaco.ui.lib.context.ChildContext.child;
-import static org.tybaco.ui.lib.images.ImageCache.svgIcon;
+import static org.tybaco.ui.lib.dialogs.Dialogs.input;
 import static org.tybaco.ui.lib.window.Windows.findWindow;
 
 @ComponentScan(lazyInit = true)
@@ -53,12 +51,10 @@ public class MainConfiguration {
   public SmartAction newProjectAction(MainTabPane tabPane) {
     return new SmartAction("newProject", "New project", "icon/project.svg", e -> {
       var defName = tabPane.guessNewProjectName();
-      var name = showInputDialog(tabPane, "Project name", "New project", QUESTION_MESSAGE, svgIcon("icon/project.svg", 24), null, defName);
-      if (name == null) {
-        return;
-      }
-      var project = new Project(name.toString());
-      tabPane.tab(project.id(), project.getName(), ProjectPane.class, c -> c.registerBean(Project.class, () -> project));
+      input(tabPane, "Project name", "New project", "icon/project.svg", defName, name -> {
+        var project = new Project(name);
+        tabPane.tab(project.id(), project.name().get(), ProjectPane.class, c -> c.registerBean(Project.class, () -> project));
+      });
     }).group("a");
   }
 }
