@@ -21,8 +21,6 @@ package org.tybaco.ui.lib.tabs;
  * #L%
  */
 
-import lombok.Getter;
-import lombok.Setter;
 import org.intellij.lang.annotations.MagicConstant;
 
 import javax.swing.*;
@@ -36,9 +34,7 @@ public abstract class CloseableTabPane extends JTabbedPane {
 
   private final IntConsumer onTabClose = this::onTabClose;
 
-  @Getter
-  @Setter
-  private boolean defaultCloseable = true;
+  public boolean defaultCloseable = true;
 
   public CloseableTabPane() {
     this(TOP, SCROLL_TAB_LAYOUT);

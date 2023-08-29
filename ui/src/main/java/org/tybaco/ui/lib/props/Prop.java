@@ -21,22 +21,24 @@ package org.tybaco.ui.lib.props;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Objects;
 
-@AllArgsConstructor
 public class Prop<T> {
 
-  @Getter private final AbstractEntity source;
-  @Getter private final String name;
+  private final AbstractEntity source;
+  private final String name;
 
   private T value;
+
+  public Prop(AbstractEntity source, String name, T value) {
+    this.source = source;
+    this.name = name;
+    this.value = value;
+  }
 
   public void set(T value) {
     if (!Objects.equals(this.value, value)) {
@@ -50,5 +52,9 @@ public class Prop<T> {
 
   public T get() {
     return value;
+  }
+
+  public String getName() {
+    return name;
   }
 }

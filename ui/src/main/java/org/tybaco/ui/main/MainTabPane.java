@@ -21,8 +21,6 @@ package org.tybaco.ui.main;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.extern.java.Log;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.context.ChildContext;
@@ -31,6 +29,7 @@ import org.tybaco.ui.lib.tabs.CloseableTabPane;
 import javax.swing.*;
 import java.util.IdentityHashMap;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 import static java.util.logging.Level.INFO;
 import static org.tybaco.ui.lib.images.ImageCache.svgIcon;
@@ -38,12 +37,16 @@ import static org.tybaco.ui.lib.logging.Logging.info;
 import static org.tybaco.ui.lib.logging.Logging.warn;
 
 @Component
-@Log
-@AllArgsConstructor
 public class MainTabPane extends CloseableTabPane {
+
+  private static final Logger LOG = Logger.getLogger("MainTabPane");
 
   private final IdentityHashMap<Object, ChildContext> contexts = new IdentityHashMap<>();
   private final AnnotationConfigApplicationContext parent;
+
+  public MainTabPane(AnnotationConfigApplicationContext parent) {
+    this.parent = parent;
+  }
 
   @SafeVarargs
   public final <T extends JComponent> T tab(String id, String name, Class<T> tabType, Consumer<ChildContext>... consumers) {
@@ -67,7 +70,7 @@ public class MainTabPane extends CloseableTabPane {
       contexts.put(component, child);
       return component;
     } catch (Throwable e) {
-      log.log(warn("Unable to refresh the context {0}", e, child));
+      LOG.log(warn("Unable to refresh the context {0}", e, child));
       try (child) {
         child.stop();
         throw e;
@@ -81,9 +84,9 @@ public class MainTabPane extends CloseableTabPane {
     removeTabAt(index);
     var context = contexts.remove(component);
     try (context) {
-      log.log(INFO, "Closing {0}", context);
+      LOG.log(INFO, "Closing {0}", context);
     } catch (Throwable e) {
-      log.log(info("Context {0} closing error", e, context));
+      LOG.log(info("Context {0} closing error", e, context));
     }
   }
 

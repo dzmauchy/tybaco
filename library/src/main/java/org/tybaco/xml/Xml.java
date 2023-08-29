@@ -1,4 +1,4 @@
-package org.tybaco.model;
+package org.tybaco.xml;
 
 /*-
  * #%L
@@ -103,23 +103,24 @@ public class Xml {
     }
   }
 
-  public static <T> void saveTo(Path path, T obj, Function<T, Element> func) {
+  public static void saveTo(Path path, String tag, Consumer<Element> consumer) {
     try (var writer = Files.newBufferedWriter(path, UTF_8)) {
-      saveTo(new StreamResult(writer), obj, func);
+      saveTo(new StreamResult(writer), tag, consumer);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
   }
 
-  public static <T> void saveTo(Result result, T obj, Function<T, Element> func) {
-    var element = func.apply(obj);
-    var doc = element.getOwnerDocument();
-    if (doc.getDocumentElement() == null) {
-      doc.appendChild(element);
-    }
+  public static void saveTo(Result result, String tag, Consumer<Element> consumer) {
+    var dbf = DocumentBuilderFactory.newDefaultInstance();
     var tf = TransformerFactory.newDefaultInstance();
     tf.setAttribute("indent-number", 2);
     try {
+      var db = dbf.newDocumentBuilder();
+      var doc = db.newDocument();
+      var docElement = doc.createElement(tag);
+      doc.appendChild(docElement);
+      consumer.accept(docElement);
       var t = tf.newTransformer();
       t.setOutputProperty(OutputKeys.INDENT, "yes");
       t.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
@@ -132,6 +133,8 @@ public class Xml {
       } else {
         throw new IllegalStateException(e);
       }
+    } catch (ParserConfigurationException e) {
+      throw new IllegalStateException(e);
     }
   }
 }

@@ -21,52 +21,69 @@ package org.tybaco.ui.main.projects;
  * #L%
  */
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
-import org.eclipse.aether.artifact.DefaultArtifact;
+import org.tybaco.xml.Xml;
 import org.tybaco.ui.lib.id.Ids;
 import org.tybaco.ui.lib.props.*;
 import org.w3c.dom.Element;
 
-import java.util.Collection;
-import java.util.List;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.function.Consumer;
 
-import static java.util.Objects.requireNonNullElse;
-import static org.tybaco.model.Xml.elementsByTags;
+import static org.tybaco.xml.Xml.elementsByTags;
+import static org.tybaco.xml.Xml.withChild;
 
-@Accessors(fluent = true)
-@Getter
 public final class Project extends AbstractEntity {
 
-  private final String id;
-  private final Prop<String> name;
-  private final ListProp<DefaultArtifact> artifacts;
+  private final BitSet blockIds = new BitSet();
+  public final String id;
+  public final Prop<String> name;
+  public final ListProp<Library> libs;
+  public final ListProp<Block> blocks;
 
   public Project(String name) {
-    this(Ids.newId(), name, List.of());
+    this(Ids.newId(), name, List.of(), List.of());
   }
 
-  private Project(String id, String name, Collection<DefaultArtifact> artifacts) {
+  private Project(String id, String name, Collection<Library> libs, Collection<Block> blocks) {
     this.id = id;
     this.name = new Prop<>(this, "name", name);
-    this.artifacts = new ListProp<>(this, "artifacts", artifacts);
+    this.libs = new ListProp<>(this, "libs", libs);
+    this.blocks = new ListProp<>(this, "blocks", blocks);
+    blocks.forEach(b -> blockIds.set(b.id));
   }
 
   public static Project loadFrom(Element element) {
     return new Project(
       element.getAttribute("id"),
       element.getAttribute("name"),
-      elementsByTags(element, "artifacts", "artifact").map(Project::artifactFrom).toList()
+      elementsByTags(element, "libs", "lib").map(Library::loadFrom).toList(),
+      elementsByTags(element, "blocks", "block").map(Block::loadFrom).toList()
     );
   }
 
-  private static DefaultArtifact artifactFrom(Element element) {
-    return new DefaultArtifact(
-      element.getAttribute("groupId"),
-      element.getAttribute("artifactId"),
-      requireNonNullElse(element.getAttribute("classifier"), ""),
-      requireNonNullElse(element.getAttribute("extension"), "jar"),
-      element.getAttribute("version")
-    );
+  public static Project loadFrom(Path path) {
+    return Xml.loadFrom(path, Project::loadFrom);
+  }
+
+  public void saveTo(Element element) {
+    element.setAttribute("id", id);
+    element.setAttribute("name", name.get());
+    withChild(element, "libs", libs -> this.libs.forEach(l -> withChild(libs, "lib", l::saveTo)));
+    withChild(element, "blocks", blocks -> this.blocks.forEach(b -> withChild(blocks, "block", b::saveTo)));
+  }
+
+  public void saveTo(Path path) {
+    Xml.saveTo(path, "project", this::saveTo);
+  }
+
+  public Block addBlock(String factory, String method, String name) {
+    var block = new Block(blockIds.nextClearBit(0), factory, method, name);
+    blockIds.set(block.id);
+    return block;
+  }
+
+  public void addBlock(String factory, String method, String name, Consumer<Block> consumer) {
+    consumer.accept(addBlock(factory, method, name));
   }
 }

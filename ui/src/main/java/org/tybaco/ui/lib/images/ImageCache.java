@@ -21,7 +21,6 @@ package org.tybaco.ui.lib.images;
  * #L%
  */
 
-import lombok.extern.java.Log;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
@@ -33,6 +32,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import static java.awt.Image.SCALE_SMOOTH;
 import static java.awt.Toolkit.getDefaultToolkit;
@@ -44,8 +44,9 @@ import static org.apache.batik.transcoder.SVGAbstractTranscoder.KEY_MAX_HEIGHT;
 import static org.apache.batik.transcoder.SVGAbstractTranscoder.KEY_MAX_WIDTH;
 import static org.apache.batik.transcoder.SVGAbstractTranscoder.KEY_WIDTH;
 
-@Log
 public class ImageCache {
+
+  private static final Logger LOG = Logger.getLogger("ImageCache");
 
   private static final ConcurrentHashMap<String, Image> CACHE = new ConcurrentHashMap<>(32, 0.5f);
   private static final ConcurrentHashMap<ImageKey, Image> SIZED_CACHE = new ConcurrentHashMap<>(32, 0.5f);
@@ -60,7 +61,7 @@ public class ImageCache {
     var classLoader = Thread.currentThread().getContextClassLoader();
     try (var is = classLoader.getResourceAsStream(path)) {
       if (is == null) {
-        log.log(WARNING, "Unable to find an image {0}", path);
+        LOG.log(WARNING, "Unable to find an image {0}", path);
       } else {
         return getDefaultToolkit().createImage(is.readAllBytes());
       }
@@ -68,7 +69,7 @@ public class ImageCache {
       var r = new LogRecord(WARNING, "Unable to find an image {0}");
       r.setParameters(new Object[]{path});
       r.setThrown(e);
-      log.log(r);
+      LOG.log(r);
     }
     return null;
   }
@@ -127,7 +128,7 @@ public class ImageCache {
         var r = new LogRecord(WARNING, "Unable to find an image {0}");
         r.setParameters(new Object[]{path});
         r.setThrown(e);
-        log.log(r);
+        LOG.log(r);
       }
       return defaultImage(w, h);
     });

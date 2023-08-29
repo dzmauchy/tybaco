@@ -21,23 +21,20 @@ package org.tybaco.types.resolver;
  * #L%
  */
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
-import org.eclipse.jdt.internal.compiler.lookup.ParameterizedTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.eclipse.jdt.internal.compiler.lookup.TagBits;
-import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.eclipse.jdt.internal.compiler.lookup.*;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
 
 import static org.eclipse.jdt.internal.compiler.lookup.TypeBinding.VOID;
 
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public final class ResolvedType {
 
   final TypeBinding type;
+
+  ResolvedType(TypeBinding type) {
+    this.type = type;
+  }
 
   public boolean isPrimitive() {
     return type.isPrimitiveType();

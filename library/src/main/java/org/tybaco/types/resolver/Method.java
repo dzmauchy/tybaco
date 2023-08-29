@@ -21,9 +21,6 @@ package org.tybaco.types.resolver;
  * #L%
  */
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 
 import java.util.AbstractList;
@@ -34,10 +31,13 @@ import java.util.stream.Stream;
 
 import static java.util.stream.IntStream.range;
 
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public final class Method {
 
   final MethodBinding method;
+
+  Method(MethodBinding method) {
+    this.method = method;
+  }
 
   public String getName() {
     return new String(method.selector);
@@ -104,12 +104,15 @@ public final class Method {
     }
   }
 
-  @AllArgsConstructor(access = AccessLevel.PRIVATE)
   public static final class Arg {
 
     private final MethodBinding method;
-    @Getter
     private final int index;
+
+    private Arg(MethodBinding method, int index) {
+      this.method = method;
+      this.index = index;
+    }
 
     public ResolvedType getType() {
       return new ResolvedType(method.parameters[index]);
@@ -119,12 +122,19 @@ public final class Method {
       var names = method.parameterNames;
       return names.length == method.parameters.length ? new String(names[index]) : "arg" + index;
     }
+
+    public int getIndex() {
+      return index;
+    }
   }
 
-  @AllArgsConstructor(access = AccessLevel.PRIVATE)
   private static final class ArgList extends AbstractList<Arg> implements RandomAccess {
 
     private final MethodBinding method;
+
+    private ArgList(MethodBinding method) {
+      this.method = method;
+    }
 
     @Override
     public Arg get(int index) {

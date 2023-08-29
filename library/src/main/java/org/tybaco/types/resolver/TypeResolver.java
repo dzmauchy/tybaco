@@ -21,7 +21,6 @@ package org.tybaco.types.resolver;
  * #L%
  */
 
-import lombok.extern.java.Log;
 import org.eclipse.jdt.core.compiler.CategorizedProblem;
 import org.eclipse.jdt.internal.compiler.ASTVisitor;
 import org.eclipse.jdt.internal.compiler.Compiler;
@@ -36,13 +35,15 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Logger;
 
 import static java.util.logging.Level.WARNING;
 import static org.tybaco.types.resolver.EcjHelper.compoundName;
 import static org.tybaco.types.resolver.ResolvedTypes.add;
 
-@Log(topic = "TypeResolver")
 public final class TypeResolver implements AutoCloseable {
+
+  private static final Logger LOG = Logger.getLogger("TypeResolver");
 
   private final String name;
   private final Compiler compiler;
@@ -107,7 +108,7 @@ public final class TypeResolver implements AutoCloseable {
           continue PROBLEMS;
         }
       }
-      log.log(WARNING, "{0}", formatProblem(p));
+      LOG.log(WARNING, "{0}", formatProblem(p));
     }
     return results;
   }
@@ -117,7 +118,7 @@ public final class TypeResolver implements AutoCloseable {
       .append("public class ")
       .append(className)
       .append(" {").append(System.lineSeparator())
-      .append("public void method() {").append(System.lineSeparator());
+      .append("public void method() throws Exception {").append(System.lineSeparator());
     for (var e : expressions.entrySet())
       charStream
         .append("var ")

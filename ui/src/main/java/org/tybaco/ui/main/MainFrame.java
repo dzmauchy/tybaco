@@ -21,7 +21,6 @@ package org.tybaco.ui.main;
  * #L%
  */
 
-import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -31,6 +30,7 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
+import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
 import static java.awt.BorderLayout.CENTER;
@@ -39,8 +39,9 @@ import static java.util.logging.Level.SEVERE;
 import static org.tybaco.ui.lib.images.ImageCache.svgImage;
 
 @Component
-@Log
 public final class MainFrame extends JFrame {
+
+  private static final Logger LOG = Logger.getLogger("MainFrame");
 
   private final GenericApplicationContext context;
 
@@ -77,7 +78,7 @@ public final class MainFrame extends JFrame {
         try (context) {
           context.stop();
         } catch (Throwable x) {
-          log.log(SEVERE, "Unable to close the context", x);
+          LOG.log(SEVERE, "Unable to close the context", x);
         }
       }
     }

@@ -21,7 +21,6 @@ package org.tybaco.types.resolver;
  * #L%
  */
 
-import lombok.extern.java.Log;
 import org.eclipse.jdt.internal.compiler.CompilationResult;
 import org.eclipse.jdt.internal.compiler.Compiler;
 import org.eclipse.jdt.internal.compiler.ICompilerRequestor;
@@ -42,7 +41,6 @@ import static org.eclipse.jdt.internal.compiler.batch.FileSystem.getClasspath;
 import static org.eclipse.jdt.internal.compiler.batch.FileSystem.getJrtClasspath;
 import static org.eclipse.jdt.internal.compiler.impl.CompilerOptions.releaseToJDKLevel;
 
-@Log(topic = "EcjHelper")
 final class EcjHelper implements IErrorHandlingPolicy, ICompilerRequestor {
 
   private static final Pattern DOT_PATTERN = Pattern.compile("\\.");

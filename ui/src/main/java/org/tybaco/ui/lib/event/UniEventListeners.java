@@ -21,8 +21,6 @@ package org.tybaco.ui.lib.event;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-
 import java.util.EventListener;
 import java.util.function.*;
 import java.util.stream.Stream;
@@ -71,9 +69,14 @@ public final class UniEventListeners<L extends EventListener> {
     return item == null ? empty() : iterate(item, i -> i.next != null, i -> i.next).map(i -> i.listener);
   }
 
-  @AllArgsConstructor
   private static final class Item<L> {
+
     private final L listener;
     private Item<L> next;
+
+    private Item(L listener, Item<L> next) {
+      this.listener = listener;
+      this.next = next;
+    }
   }
 }

@@ -21,7 +21,6 @@ package org.tybaco.ui.lib.repo;
  * #L%
  */
 
-import lombok.extern.java.Log;
 import org.eclipse.aether.RepositoryEvent;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
@@ -39,13 +38,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static java.util.logging.Level.INFO;
 import static org.apache.maven.artifact.Artifact.SCOPE_COMPILE_PLUS_RUNTIME;
 import static org.apache.maven.artifact.Artifact.SCOPE_RUNTIME;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.io.CleanupMode.ALWAYS;
 
-@Log
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 class RepositorySystemTest {
 
@@ -61,8 +58,6 @@ class RepositorySystemTest {
       var repoEvents = new ConcurrentLinkedQueue<RepositoryEvent>();
       var session = system.session(tempDir, txEvents::add, repoEvents::add);
       var result = system.resolve(req, session);
-      txEvents.forEach(e -> log.log(INFO, "{0}", e));
-      repoEvents.forEach(e -> log.log(INFO, "{0}", e));
       assertTrue(result.isResolved());
       assertFalse(result.isMissing());
       assertTrue(result.getArtifact().getFile().length() > 0L);
@@ -80,8 +75,6 @@ class RepositorySystemTest {
       var repoEvents = new ConcurrentLinkedQueue<RepositoryEvent>();
       var session = system.session(tempDir, txEvents::add, repoEvents::add);
       var result = system.collect(request, session);
-      txEvents.forEach(e -> log.log(INFO, "{0}", e));
-      repoEvents.forEach(e -> log.log(INFO, "{0}", e));
       assertFalse(txEvents.isEmpty());
       assertFalse(repoEvents.isEmpty());
       assertNotNull(result.getRoot());
@@ -99,8 +92,6 @@ class RepositorySystemTest {
       var repoEvents = new ConcurrentLinkedQueue<RepositoryEvent>();
       var session = system.session(tempDir, txEvents::add, repoEvents::add);
       var result = system.resolve(request, session);
-      txEvents.forEach(e -> log.log(INFO, "{0}", e));
-      repoEvents.forEach(e -> log.log(INFO, "{0}", e));
       assertFalse(txEvents.isEmpty());
       assertFalse(repoEvents.isEmpty());
       assertNotNull(result.getRoot());

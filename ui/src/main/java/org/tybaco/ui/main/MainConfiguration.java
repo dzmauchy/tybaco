@@ -53,7 +53,7 @@ public class MainConfiguration {
       var defName = tabPane.guessNewProjectName();
       input(tabPane, "Project name", "New project", "icon/project.svg", defName, name -> {
         var project = new Project(name);
-        tabPane.tab(project.id(), project.name().get(), ProjectPane.class, c -> c.registerBean(Project.class, () -> project));
+        tabPane.tab(project.id, project.name.get(), ProjectPane.class, c -> c.registerBean(Project.class, () -> project));
       });
     }).group("a");
   }

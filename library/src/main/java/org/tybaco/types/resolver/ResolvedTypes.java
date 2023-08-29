@@ -21,14 +21,8 @@ package org.tybaco.types.resolver;
  * #L%
  */
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
-import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.TypeVariableBinding;
-import org.eclipse.jdt.internal.compiler.lookup.WildcardBinding;
+import org.eclipse.jdt.internal.compiler.lookup.*;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -39,8 +33,6 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static org.eclipse.jdt.internal.compiler.lookup.Scope.convertEliminatingTypeVariables;
 
-@Log(topic = "ResolvedTypes")
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class ResolvedTypes {
 
   private final CompilationUnitDeclaration cu;
@@ -49,6 +41,10 @@ public final class ResolvedTypes {
   final ConcurrentSkipListMap<String, List<String>> errors = new ConcurrentSkipListMap<>();
   final ConcurrentSkipListMap<String, List<String>> warns = new ConcurrentSkipListMap<>();
   final ConcurrentSkipListMap<String, List<String>> infos = new ConcurrentSkipListMap<>();
+
+  ResolvedTypes(CompilationUnitDeclaration cu) {
+    this.cu = cu;
+  }
 
   public ResolvedType getType(String name) {
     var type = types.get(name);
