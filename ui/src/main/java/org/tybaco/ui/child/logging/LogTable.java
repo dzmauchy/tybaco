@@ -21,14 +21,19 @@ package org.tybaco.ui.child.logging;
  * #L%
  */
 
-import org.springframework.stereotype.Component;
+import org.tybaco.ui.lib.context.UIComponent;
 import org.tybaco.ui.lib.logging.UILogHandler;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+
+import java.awt.*;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static org.tybaco.ui.lib.tables.Tables.initColumns;
 
-@Component
+@UIComponent
 public class LogTable extends JTable {
 
   public LogTable() {
@@ -36,5 +41,22 @@ public class LogTable extends JTable {
     setShowGrid(true);
     setAutoResizeMode(AUTO_RESIZE_LAST_COLUMN);
     initColumns(this, 80, 300, 500);
+    setDefaultRenderer(Instant.class, new InstantCellRenderer());
+  }
+
+  private static final class InstantCellRenderer extends DefaultTableCellRenderer {
+
+    private Object value(Object value) {
+      if (value instanceof Instant v) {
+        return v.truncatedTo(ChronoUnit.MILLIS).toString();
+      } else {
+        return null;
+      }
+    }
+
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      return super.getTableCellRendererComponent(table, value(value), isSelected, hasFocus, row, column);
+    }
   }
 }

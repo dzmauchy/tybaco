@@ -21,14 +21,16 @@ package org.tybaco.ui.main.projects;
  * #L%
  */
 
-import org.tybaco.xml.Xml;
 import org.tybaco.ui.lib.id.Ids;
 import org.tybaco.ui.lib.props.*;
+import org.tybaco.xml.Xml;
 import org.w3c.dom.Element;
 
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static org.tybaco.xml.Xml.elementsByTags;
 import static org.tybaco.xml.Xml.withChild;
@@ -37,19 +39,21 @@ public final class Project extends AbstractEntity {
 
   private final BitSet blockIds = new BitSet();
   public final String id;
-  public final Prop<String> name;
-  public final ListProp<Library> libs;
-  public final ListProp<Block> blocks;
+  private final Prop<String> name;
+  private final ListProp<Library> libs;
+  private final ListProp<Block> blocks;
+  private final ListProp<Link> links;
 
   public Project(String name) {
-    this(Ids.newId(), name, List.of(), List.of());
+    this(Ids.newId(), name, List.of(), List.of(), List.of());
   }
 
-  private Project(String id, String name, Collection<Library> libs, Collection<Block> blocks) {
+  private Project(String id, String name, Collection<Library> libs, Collection<Block> blocks, Collection<Link> links) {
     this.id = id;
     this.name = new Prop<>(this, "name", name);
     this.libs = new ListProp<>(this, "libs", libs);
     this.blocks = new ListProp<>(this, "blocks", blocks);
+    this.links = new ListProp<>(this, "links", links);
     blocks.forEach(b -> blockIds.set(b.id));
   }
 
@@ -58,7 +62,8 @@ public final class Project extends AbstractEntity {
       element.getAttribute("id"),
       element.getAttribute("name"),
       elementsByTags(element, "libs", "lib").map(Library::loadFrom).toList(),
-      elementsByTags(element, "blocks", "block").map(Block::loadFrom).toList()
+      elementsByTags(element, "blocks", "block").map(Block::loadFrom).toList(),
+      elementsByTags(element, "links", "link").map(Link::loadFrom).toList()
     );
   }
 
@@ -71,6 +76,7 @@ public final class Project extends AbstractEntity {
     element.setAttribute("name", name.get());
     withChild(element, "libs", libs -> this.libs.forEach(l -> withChild(libs, "lib", l::saveTo)));
     withChild(element, "blocks", blocks -> this.blocks.forEach(b -> withChild(blocks, "block", b::saveTo)));
+    withChild(element, "links", links -> this.links.forEach(l -> withChild(links, "link", l::saveTo)));
   }
 
   public void saveTo(Path path) {
@@ -83,7 +89,55 @@ public final class Project extends AbstractEntity {
     return block;
   }
 
-  public void addBlock(String factory, String method, String name, Consumer<Block> consumer) {
-    consumer.accept(addBlock(factory, method, name));
+  public Block addBlock(String factory, String method, String name, Consumer<Block> consumer) {
+    var block = addBlock(factory, method, name);
+    consumer.accept(block);
+    return block;
+  }
+
+  public Link addLink(Connector out, Connector in) {
+    var link = new Link(out, in);
+    links.add(link);
+    return link;
+  }
+
+  public void addLink(Link link) {
+    links.add(link);
+  }
+
+  public Block removeBlock(int index) {
+    return blocks.remove(index);
+  }
+
+  public List<Block> removeBlocks(Predicate<Block> predicate) {
+    return blocks.removeAll(predicate);
+  }
+
+  public void removeBlock(Block block) {
+    blocks.remove(block);
+  }
+
+  public void removeLink(Link link) {
+    links.remove(link);
+  }
+
+  public List<Link> removeLinks(Predicate<Link> predicate) {
+    return links.removeAll(predicate);
+  }
+
+  public Stream<Link> linksFrom(Connector out) {
+    return links.findAll(l -> l.out().equals(out));
+  }
+
+  public Stream<Link> linksTo(Connector in) {
+    return links.findAll(l -> l.in().equals(in));
+  }
+
+  public String getName() {
+    return name.get();
+  }
+
+  public void setName(String name) {
+    this.name.set(name);
   }
 }

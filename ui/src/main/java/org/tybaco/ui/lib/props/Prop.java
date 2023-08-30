@@ -22,9 +22,7 @@ package org.tybaco.ui.lib.props;
  */
 
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.Objects;
 
 public class Prop<T> {
@@ -45,8 +43,8 @@ public class Prop<T> {
       var event = new PropertyChangeEvent(source, name, this.value, value);
       var changeEvent = new ChangeEvent(source);
       this.value = value;
-      source.eventListeners.fireListeners(PropertyChangeListener.class, l -> l.propertyChange(event));
-      source.eventListeners.fireListeners(ChangeListener.class, l -> l.stateChanged(changeEvent));
+      source.propertyChangeListeners.forEach(l -> l.propertyChange(event));
+      source.changeListeners.forEach(l -> l.stateChanged(changeEvent));
     }
   }
 

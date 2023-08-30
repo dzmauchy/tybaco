@@ -26,26 +26,22 @@ import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoField;
-import java.util.Locale;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
 import static java.time.ZoneOffset.UTC;
+import static java.time.temporal.ChronoField.*;
+import static java.util.Locale.UK;
 
 public class FastConsoleHandler extends Handler {
 
   private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
-    .append(DateTimeFormatter.ISO_DATE)
+    .appendValue(YEAR, 4).appendLiteral('-').appendValue(MONTH_OF_YEAR, 2).appendLiteral('-').appendValue(DAY_OF_MONTH, 2)
     .appendLiteral('T')
-    .appendValue(ChronoField.HOUR_OF_DAY, 2)
-    .appendLiteral(':')
-    .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
-    .appendLiteral(':')
-    .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+    .appendValue(HOUR_OF_DAY, 2).appendLiteral(':').appendValue(MINUTE_OF_HOUR, 2).appendLiteral(':').appendValue(SECOND_OF_MINUTE, 2)
     .appendLiteral('.')
-    .appendValue(ChronoField.MILLI_OF_SECOND, 3)
-    .toFormatter(Locale.UK);
+    .appendValue(MILLI_OF_SECOND, 3)
+    .toFormatter(UK);
 
   @Override
   public void publish(LogRecord record) {

@@ -21,28 +21,29 @@ package org.tybaco.ui.lib.props;
  * #L%
  */
 
-import org.tybaco.ui.lib.event.EventListeners;
+import org.tybaco.ui.lib.event.UniEventListeners;
 
 import javax.swing.event.ChangeListener;
 import java.beans.PropertyChangeListener;
 
 public abstract class AbstractEntity {
 
-  protected final EventListeners eventListeners = new EventListeners();
+  protected final UniEventListeners<PropertyChangeListener> propertyChangeListeners = new UniEventListeners<>();
+  protected final UniEventListeners<ChangeListener> changeListeners = new UniEventListeners<>();
 
   public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
-    eventListeners.add(PropertyChangeListener.class, propertyChangeListener);
+    propertyChangeListeners.add(propertyChangeListener);
   }
 
   public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
-    eventListeners.remove(PropertyChangeListener.class, propertyChangeListener);
+    propertyChangeListeners.remove(propertyChangeListener);
   }
 
   public void addChangeListener(ChangeListener changeListener) {
-    eventListeners.add(ChangeListener.class, changeListener);
+    changeListeners.add(changeListener);
   }
 
   public void removeChangeListener(ChangeListener changeListener) {
-    eventListeners.remove(ChangeListener.class, changeListener);
+    changeListeners.remove(changeListener);
   }
 }

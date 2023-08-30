@@ -1,4 +1,4 @@
-package org.tybaco.ui.lib.event;
+package org.tybaco.ui.main.projects;
 
 /*-
  * #%L
@@ -21,18 +21,19 @@ package org.tybaco.ui.lib.event;
  * #L%
  */
 
-import javax.swing.event.EventListenerList;
-import java.util.EventListener;
-import java.util.function.Consumer;
+import org.w3c.dom.Element;
 
-public final class EventListeners extends EventListenerList {
+public record Connector(int blockId, String selector) {
 
-  public <L extends EventListener> void fireListeners(Class<L> type, Consumer<L> consumer) {
-    var list = listenerList;
-    for (int i = list.length - 2; i >= 0; i -= 2) {
-      if (list[i] == type) {
-        consumer.accept(type.cast(list[i + 1]));
-      }
-    }
+  public static Connector loadFrom(Element element) {
+    return new Connector(
+      Integer.parseInt(element.getAttribute("block")),
+      element.getAttribute("selector")
+    );
+  }
+
+  public void saveTo(Element element) {
+    element.setAttribute("block", Integer.toString(blockId));
+    element.setAttribute("selector", selector);
   }
 }

@@ -27,9 +27,11 @@ import org.tybaco.ui.lib.event.UniEventListeners;
 import javax.swing.*;
 import javax.swing.event.*;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.copyOf;
 import static java.util.Arrays.copyOfRange;
@@ -38,7 +40,7 @@ import static org.apache.commons.lang3.ArrayUtils.EMPTY_OBJECT_ARRAY;
 
 public final class ListProp<E> implements ListModel<E> {
 
-  private final UniEventListeners<ListDataListener> eventListeners = new UniEventListeners<>();
+  private final UniEventListeners<ListDataListener> listListeners = new UniEventListeners<>();
   private final AbstractEntity source;
   private final String name;
   private final InternalList<E> elements;
@@ -69,41 +71,49 @@ public final class ListProp<E> implements ListModel<E> {
 
   @Override
   public void addListDataListener(ListDataListener l) {
-    eventListeners.add(l);
+    listListeners.add(l);
   }
 
   @Override
   public void removeListDataListener(ListDataListener l) {
-    eventListeners.remove(l);
+    listListeners.remove(l);
   }
 
   private void fireParentEvents() {
     var propertyChangeEvent = new PropertyChangeEvent(source, name, this, this);
-    source.eventListeners.fireListeners(PropertyChangeListener.class, l -> l.propertyChange(propertyChangeEvent));
+    source.propertyChangeListeners.forEach(l -> l.propertyChange(propertyChangeEvent));
     var changeEvent = new ChangeEvent(source);
-    source.eventListeners.fireListeners(ChangeListener.class, l -> l.stateChanged(changeEvent));
+    source.changeListeners.forEach(l -> l.stateChanged(changeEvent));
   }
 
   public void clear() {
     if (elements.isEmpty()) return;
     var event = new ListDataEvent(source, INTERVAL_REMOVED, 0, elements.size() - 1);
     elements.clear();
-    eventListeners.forEach(l -> l.intervalRemoved(event));
+    listListeners.forEach(l -> l.intervalRemoved(event));
     fireParentEvents();
   }
 
   public E remove(int index) {
     var element = elements.remove(index);
     var event = new ListDataEvent(source, INTERVAL_REMOVED, index, index);
-    eventListeners.forEach(l -> l.intervalRemoved(event));
+    listListeners.forEach(l -> l.intervalRemoved(event));
     fireParentEvents();
     return element;
+  }
+
+  public void remove(E element) {
+    var i = find(element);
+    if (i >= 0) {
+      var e = remove(i);
+      assert e != null;
+    }
   }
 
   public List<E> remove(int from, int to) {
     var result = elements.remove(from, to);
     var event = new ListDataEvent(source, INTERVAL_REMOVED, from, to - 1);
-    eventListeners.forEach(l -> l.intervalRemoved(event));
+    listListeners.forEach(l -> l.intervalRemoved(event));
     fireParentEvents();
     return result;
   }
@@ -111,7 +121,7 @@ public final class ListProp<E> implements ListModel<E> {
   public void add(E element) {
     var event = new ListDataEvent(source, INTERVAL_ADDED, elements.size(), elements.size());
     elements.add(element);
-    eventListeners.forEach(l -> l.intervalAdded(event));
+    listListeners.forEach(l -> l.intervalAdded(event));
     fireParentEvents();
     postProcessNewElement(element);
   }
@@ -119,7 +129,7 @@ public final class ListProp<E> implements ListModel<E> {
   public void add(int index, E element) {
     elements.add(index, element);
     var event = new ListDataEvent(source, INTERVAL_ADDED, index, index);
-    eventListeners.forEach(l -> l.intervalAdded(event));
+    listListeners.forEach(l -> l.intervalAdded(event));
     fireParentEvents();
     postProcessNewElement(element);
   }
@@ -128,7 +138,7 @@ public final class ListProp<E> implements ListModel<E> {
     if (collection.isEmpty()) return;
     var event = new ListDataEvent(source, INTERVAL_ADDED, elements.size(), elements.size() + collection.size() - 1);
     elements.addAll(collection);
-    eventListeners.forEach(l -> l.intervalAdded(event));
+    listListeners.forEach(l -> l.intervalAdded(event));
     fireParentEvents();
     collection.forEach(this::postProcessNewElement);
   }
@@ -137,7 +147,7 @@ public final class ListProp<E> implements ListModel<E> {
     if (collection.isEmpty()) return;
     elements.addAll(index, collection);
     var event = new ListDataEvent(source, INTERVAL_ADDED, index, index + collection.size() - 1);
-    eventListeners.forEach(l -> l.intervalAdded(event));
+    listListeners.forEach(l -> l.intervalAdded(event));
     fireParentEvents();
     collection.forEach(this::postProcessNewElement);
   }
@@ -145,7 +155,7 @@ public final class ListProp<E> implements ListModel<E> {
   public void set(int index, E element) {
     elements.set(index, element);
     var event = new ListDataEvent(source, CONTENTS_CHANGED, index, index);
-    eventListeners.forEach(l -> l.contentsChanged(event));
+    listListeners.forEach(l -> l.contentsChanged(event));
     fireParentEvents();
     postProcessNewElement(element);
   }
@@ -156,7 +166,7 @@ public final class ListProp<E> implements ListModel<E> {
       elements.set(i + index, list.get(i));
     }
     var event = new ListDataEvent(source, CONTENTS_CHANGED, index, index + listSize - 1);
-    eventListeners.forEach(l -> l.contentsChanged(event));
+    listListeners.forEach(l -> l.contentsChanged(event));
     fireParentEvents();
     list.forEach(this::postProcessNewElement);
   }
@@ -167,32 +177,40 @@ public final class ListProp<E> implements ListModel<E> {
     for (int i = indices.length - 1; i >= 0; i--) {
       int index = indices[i];
       var event = new ListDataEvent(source, INTERVAL_REMOVED, index, index);
-      eventListeners.forEach(l -> l.intervalRemoved(event));
+      listListeners.forEach(l -> l.intervalRemoved(event));
     }
     fireParentEvents();
     return result;
   }
 
-  public int find(E element) {
-    return find0(element);
+  public List<E> removeAll(Predicate<E> predicate) {
+    var indices = IntStream.range(0, elements.size())
+      .filter(i -> predicate.test(elements.get(i)))
+      .toArray();
+    return removeAll(indices);
   }
 
-  private int find0(Object element) {
-    int size = elements.size();
-    for (int i = 0; i < size; i++) {
-      var e = elements.get(i);
-      if (e == element) {
-        return i;
-      }
-    }
-    return -1;
+  public int find(E element) {
+    return elements.find(element);
+  }
+
+  public E findOne(Predicate<E> predicate) {
+    return elements.findOne(predicate);
+  }
+
+  public Optional<E> find(Predicate<E> predicate) {
+    return elements.find(predicate);
+  }
+
+  public Stream<E> findAll(Predicate<E> predicate) {
+    return elements.findAll(predicate);
   }
 
   private void onChangeChild(ChangeEvent event) {
-    var i = find0(event.getSource());
+    var i = elements.find(event.getSource());
     if (i < 0) return;
     var listDataEvent = new ListDataEvent(source, CONTENTS_CHANGED, i, i);
-    eventListeners.forEach(l -> l.contentsChanged(listDataEvent));
+    listListeners.forEach(l -> l.contentsChanged(listDataEvent));
     fireParentEvents();
   }
 
@@ -281,6 +299,40 @@ public final class ListProp<E> implements ListModel<E> {
       }
       data = ArrayUtils.removeAll(data, indices);
       return (List<E>) List.of(result);
+    }
+
+    private int find(Object element) {
+      int size = data.length;
+      for (int i = 0; i < size; i++) {
+        var e = data[i];
+        if (e == element) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
+    private E findOne(Predicate<E> predicate) {
+      for (var e : data) {
+        if (predicate.test((E) e)) {
+          return (E) e;
+        }
+      }
+      throw new NoSuchElementException();
+    }
+
+    private Optional<E> find(Predicate<E> predicate) {
+      for (var e : data) {
+        if (predicate.test((E) e)) {
+          return Optional.of((E) e);
+        }
+      }
+      return Optional.empty();
+    }
+
+    private Stream<E> findAll(Predicate<E> predicate) {
+      var stream = (Stream<E>) Arrays.stream(data);
+      return stream.filter(predicate);
     }
   }
 }
