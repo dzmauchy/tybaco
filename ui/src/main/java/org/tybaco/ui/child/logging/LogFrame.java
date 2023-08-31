@@ -21,7 +21,6 @@ package org.tybaco.ui.child.logging;
  * #L%
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -31,8 +30,11 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
+import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
+import static java.awt.BorderLayout.CENTER;
+import static java.util.logging.Level.SEVERE;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import static org.tybaco.ui.lib.images.ImageCache.svgImage;
@@ -41,21 +43,18 @@ import static org.tybaco.ui.lib.images.ImageCache.svgImage;
 @Component
 public class LogFrame extends JFrame {
 
+  private static final Logger LOG = Logger.getLogger("LogFrame");
+
   private final GenericApplicationContext context;
 
-  public LogFrame(GenericApplicationContext context) {
+  public LogFrame(GenericApplicationContext context, LogTable logTable) {
     super("Log");
     this.context = context;
     setIconImages(IntStream.of(18, 24).mapToObj(size -> svgImage("icon/logs.svg", size)).toList());
     setType(Type.UTILITY);
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     setPreferredSize(new Dimension(1024, 768));
-  }
-
-  @Autowired
-  public void withLogTable(LogTable table) {
-    var sp = new JScrollPane(table, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    add(sp, BorderLayout.CENTER);
+    add(new JScrollPane(logTable, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED), CENTER);
   }
 
   @EventListener
@@ -66,11 +65,19 @@ public class LogFrame extends JFrame {
 
   @Override
   protected void processWindowEvent(WindowEvent e) {
-    super.processWindowEvent(e);
-    switch (e.getID()) {
-      case WindowEvent.WINDOW_OPENED -> context.start();
-      case WindowEvent.WINDOW_CLOSING -> context.stop();
-      case WindowEvent.WINDOW_CLOSED -> context.close();
+    try {
+      super.processWindowEvent(e);
+    } finally {
+      switch (e.getID()) {
+        case WindowEvent.WINDOW_OPENED -> context.start();
+        case WindowEvent.WINDOW_CLOSED -> {
+          try (context) {
+            context.stop();
+          } catch (Throwable x) {
+            LOG.log(SEVERE, "Unable to close the context", x);
+          }
+        }
+      }
     }
   }
 }

@@ -21,22 +21,23 @@ package org.tybaco.ui.lib.id;
  * #L%
  */
 
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.Base64;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class Ids {
+
+  private static final Base64.Encoder ENCODER = Base64.getUrlEncoder().withoutPadding();
 
   private Ids() {
   }
 
   public static String newId() {
-    var time = System.currentTimeMillis();
-    var tlr = ThreadLocalRandom.current();
-    var raw = ByteBuffer.allocate(16)
-      .putLong(0, (time << 16) | (tlr.nextLong() & 0xffffL))
-      .putLong(8, tlr.nextLong())
+    var rnd = ThreadLocalRandom.current().nextLong();
+    var raw = ByteBuffer.allocate(12)
+      .putLong(0, (System.currentTimeMillis() << 8) | (rnd & 0xffL))
+      .putInt(8, (int) ((rnd >>> 8) & 0xffff_ffffL))
       .array();
-    return new BigInteger(1, raw).toString(Character.MAX_RADIX);
+    return ENCODER.encodeToString(raw);
   }
 }

@@ -24,16 +24,20 @@ package org.tybaco.ui.lib.tables;
 import org.tybaco.ui.lib.event.UniEventListeners;
 
 import javax.swing.*;
-import javax.swing.event.TableModelListener;
+import javax.swing.event.*;
 import javax.swing.table.TableModel;
 
-public abstract class TableListModelAdapter<E> implements TableModel {
+import static javax.swing.event.TableModelEvent.*;
 
-  private final UniEventListeners<TableModelListener> listeners = new UniEventListeners<>();
-  private final ListModel<E> listModel;
+public abstract class TableListModelAdapter<E> implements TableModel, AutoCloseable {
+
+  protected final UniEventListeners<TableModelListener> listeners = new UniEventListeners<>();
+  protected final ListListener listListener = new ListListener();
+  protected final ListModel<E> listModel;
 
   protected TableListModelAdapter(ListModel<E> listModel) {
     this.listModel = listModel;
+    this.listModel.addListDataListener(listListener);
   }
 
   @Override
@@ -46,7 +50,13 @@ public abstract class TableListModelAdapter<E> implements TableModel {
     return getValueAt(listModel.getElementAt(rowIndex), columnIndex);
   }
 
+  @Override
+  public final boolean isCellEditable(int rowIndex, int columnIndex) {
+    return isCellEditable(listModel.getElementAt(rowIndex), columnIndex);
+  }
+
   protected abstract Object getValueAt(E element, int columnIndex);
+  protected abstract boolean isCellEditable(E element, int columnIndex);
 
   @Override
   public void addTableModelListener(TableModelListener l) {
@@ -56,5 +66,31 @@ public abstract class TableListModelAdapter<E> implements TableModel {
   @Override
   public void removeTableModelListener(TableModelListener l) {
     listeners.remove(l);
+  }
+
+  @Override
+  public void close() {
+    listModel.removeListDataListener(listListener);
+  }
+
+  protected final class ListListener implements ListDataListener {
+
+    @Override
+    public void intervalAdded(ListDataEvent e) {
+      var ev = new TableModelEvent(TableListModelAdapter.this, e.getIndex0(), e.getIndex1(), ALL_COLUMNS, INSERT);
+      listeners.forEach(l -> l.tableChanged(ev));
+    }
+
+    @Override
+    public void intervalRemoved(ListDataEvent e) {
+      var ev = new TableModelEvent(TableListModelAdapter.this, e.getIndex0(), e.getIndex1(), ALL_COLUMNS, DELETE);
+      listeners.forEach(l -> l.tableChanged(ev));
+    }
+
+    @Override
+    public void contentsChanged(ListDataEvent e) {
+      var ev = new TableModelEvent(TableListModelAdapter.this, e.getIndex0(), e.getIndex1(), ALL_COLUMNS, UPDATE);
+      listeners.forEach(l -> l.tableChanged(ev));
+    }
   }
 }

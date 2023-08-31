@@ -22,22 +22,20 @@ package org.tybaco.ui.main;
  */
 
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import java.awt.*;
 
+import static javax.swing.SwingConstants.VERTICAL;
+
 @Component
 public class MainMenuBar extends JMenuBar {
 
-  public MainMenuBar() {
+  public MainMenuBar(@Qualifier("main") ObjectProvider<JMenu> menus) {
     setMargin(new Insets(4, 4, 4, 4));
-  }
-
-  @Autowired
-  public void withMenus(@Qualifier("main") ObjectProvider<JMenu> menus) {
     menus.forEach(this::add);
+    add(new JSeparator(VERTICAL));
   }
 }
