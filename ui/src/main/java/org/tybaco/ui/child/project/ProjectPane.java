@@ -27,11 +27,19 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import java.awt.*;
 
+import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
+
 @ComponentScan(lazyInit = true)
 @Component
 public class ProjectPane extends JPanel {
 
-  public ProjectPane() {
+  private final JSplitPane splitPane;
+
+  public ProjectPane(ProjectBlockTable blockTable, ProjectDiagramPane diagramPane) {
     super(new BorderLayout());
+    add(splitPane = new JSplitPane(HORIZONTAL_SPLIT, false, new JScrollPane(blockTable), new JScrollPane(diagramPane)));
+    splitPane.setDividerLocation(505);
+    splitPane.setOneTouchExpandable(true);
+    splitPane.getLeftComponent().setMinimumSize(new Dimension(605, 300));
   }
 }

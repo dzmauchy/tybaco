@@ -39,10 +39,10 @@ public final class Project extends AbstractEntity {
 
   private final BitSet blockIds = new BitSet();
   public final String id;
-  private final Prop<String> name;
-  private final ListProp<Library> libs;
-  private final ListProp<Block> blocks;
-  private final ListProp<Link> links;
+  public final Prop<String> name;
+  public final ListProp<Library> libs;
+  public final ListProp<Block> blocks;
+  public final ListProp<Link> links;
 
   public Project(String name) {
     this(Ids.newId(), name, List.of(), List.of(), List.of());

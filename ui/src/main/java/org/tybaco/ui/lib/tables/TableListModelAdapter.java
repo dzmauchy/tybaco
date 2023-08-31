@@ -52,19 +52,23 @@ public abstract class TableListModelAdapter<E> implements TableModel, AutoClosea
 
   @Override
   public final boolean isCellEditable(int rowIndex, int columnIndex) {
-    return isCellEditable(listModel.getElementAt(rowIndex), columnIndex);
+    return false;
+  }
+
+  @Override
+  public final void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+    throw new UnsupportedOperationException();
   }
 
   protected abstract Object getValueAt(E element, int columnIndex);
-  protected abstract boolean isCellEditable(E element, int columnIndex);
 
   @Override
-  public void addTableModelListener(TableModelListener l) {
+  public final void addTableModelListener(TableModelListener l) {
     listeners.add(l);
   }
 
   @Override
-  public void removeTableModelListener(TableModelListener l) {
+  public final void removeTableModelListener(TableModelListener l) {
     listeners.remove(l);
   }
 

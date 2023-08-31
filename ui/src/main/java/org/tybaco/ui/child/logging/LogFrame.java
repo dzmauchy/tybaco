@@ -35,8 +35,6 @@ import java.util.stream.IntStream;
 
 import static java.awt.BorderLayout.CENTER;
 import static java.util.logging.Level.SEVERE;
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import static org.tybaco.ui.lib.images.ImageCache.svgImage;
 
 @ComponentScan(lazyInit = true)
@@ -54,7 +52,7 @@ public class LogFrame extends JFrame {
     setType(Type.UTILITY);
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     setPreferredSize(new Dimension(1024, 768));
-    add(new JScrollPane(logTable, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED), CENTER);
+    add(new JScrollPane(logTable), CENTER);
   }
 
   @EventListener
