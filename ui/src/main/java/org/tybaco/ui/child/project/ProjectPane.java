@@ -38,8 +38,8 @@ public class ProjectPane extends JPanel {
   public ProjectPane(ProjectBlockTable blockTable, ProjectDiagramPane diagramPane) {
     super(new BorderLayout());
     add(splitPane = new JSplitPane(HORIZONTAL_SPLIT, false, new JScrollPane(blockTable), new JScrollPane(diagramPane)));
-    splitPane.setDividerLocation(505);
+    splitPane.setDividerLocation(605);
     splitPane.setOneTouchExpandable(true);
-    splitPane.getLeftComponent().setMinimumSize(new Dimension(605, 300));
+    splitPane.getLeftComponent().setMinimumSize(new Dimension(splitPane.getDividerLocation(), 300));
   }
 }

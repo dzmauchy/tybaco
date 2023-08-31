@@ -27,8 +27,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.function.IntConsumer;
 
-import static com.formdev.flatlaf.FlatClientProperties.TABBED_PANE_TAB_CLOSABLE;
-import static com.formdev.flatlaf.FlatClientProperties.TABBED_PANE_TAB_CLOSE_CALLBACK;
+import static com.formdev.flatlaf.FlatClientProperties.*;
 
 public abstract class CloseableTabPane extends JTabbedPane {
 
@@ -38,6 +37,9 @@ public abstract class CloseableTabPane extends JTabbedPane {
 
   public CloseableTabPane() {
     this(TOP, SCROLL_TAB_LAYOUT);
+    putClientProperty(TABBED_PANE_TABS_POPUP_POLICY, TABBED_PANE_POLICY_AS_NEEDED);
+    putClientProperty(TABBED_PANE_SCROLL_BUTTONS_POLICY, TABBED_PANE_POLICY_AS_NEEDED);
+    putClientProperty(TABBED_PANE_SCROLL_BUTTONS_PLACEMENT, TABBED_PANE_PLACEMENT_BOTH);
   }
 
   public CloseableTabPane(

@@ -109,7 +109,7 @@
 
     <dependency>
       <groupId>net.sourceforge.plantuml</groupId>
-      <artifactId>plantuml-mit</artifactId>
+      <artifactId>plantuml-lgpl</artifactId>
       <version>1.2023.10</version>
     </dependency>
 
