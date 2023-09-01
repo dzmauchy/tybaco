@@ -75,8 +75,9 @@ public class MainApplication extends Application {
   private static void initLaf() {
     try {
       var styleManagerClass = currentThread().getContextClassLoader().loadClass("com.sun.javafx.css.StyleManager");
+      var instance = styleManagerClass.getMethod("getInstance").invoke(null);
       var addUserAgentStylesheet = styleManagerClass.getMethod("addUserAgentStylesheet", String.class);
-      addUserAgentStylesheet.invoke(null, "theme/ui.css");
+      addUserAgentStylesheet.invoke(instance, "theme/ui.css");
     } catch (Exception e) {
       throw new IllegalStateException(e);
     } finally {

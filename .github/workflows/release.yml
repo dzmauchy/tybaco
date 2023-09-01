@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '20'
-          distribution: 'adopt'
+          distribution: 'temurin'
       - name: Git User
         run: |
           git config user.email "dzmiter.auchynnikau@gmail.com"
