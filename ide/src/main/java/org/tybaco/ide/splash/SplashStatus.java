@@ -1,4 +1,4 @@
-package org.tybaco.ui.splash;
+package org.tybaco.ide.splash;
 
 /*-
  * #%L
@@ -21,6 +21,7 @@ package org.tybaco.ui.splash;
  * #L%
  */
 
+import java.awt.*;
 import java.util.prefs.Preferences;
 
 import static java.util.prefs.Preferences.userNodeForPackage;
@@ -34,11 +35,11 @@ public class SplashStatus {
   }
 
   static synchronized int maxStep() {
-    var max = preferences.getInt("maxSteps", 10);
+    var max = preferences.getInt("maxSteps", 100);
     return Math.max(step, max);
   }
 
-  static synchronized int incrementStep() {
+  public static synchronized int incrementStep() {
     return ++step;
   }
 
@@ -47,6 +48,9 @@ public class SplashStatus {
   }
 
   public static synchronized void updateSplashStatus() {
+    if (SplashScreen.getSplashScreen() == null) {
+      return;
+    }
     preferences.putInt("maxSteps", step);
   }
 }

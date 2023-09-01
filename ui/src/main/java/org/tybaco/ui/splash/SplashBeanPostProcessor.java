@@ -22,23 +22,24 @@ package org.tybaco.ui.splash;
  */
 
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.lang.Nullable;
 
 import java.util.concurrent.atomic.AtomicLong;
-
-import static org.tybaco.ui.splash.Splash.updateSplash;
-import static org.tybaco.ui.splash.SplashStatus.incrementStep;
 
 public class SplashBeanPostProcessor implements BeanPostProcessor {
 
   private final AtomicLong lastTime = new AtomicLong(System.nanoTime());
 
+  public static volatile Runnable incrementStep = () -> {};
+  public static volatile Runnable updateSplash = () -> {};
+
   @Override
-  public Object postProcessAfterInitialization(Object bean, String beanName) {
-    incrementStep();
+  public Object postProcessAfterInitialization(@Nullable Object bean, @Nullable String beanName) {
+    incrementStep.run();
     var time = System.nanoTime();
     var nextTime = lastTime.updateAndGet(t -> time - t > 100_000_000L ? time : t);
     if (nextTime == time) {
-      updateSplash(false);
+      updateSplash.run();
     }
     return bean;
   }

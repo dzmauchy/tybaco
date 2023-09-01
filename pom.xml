@@ -45,6 +45,7 @@
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+    <javafx.version>20.0.2</javafx.version>
     <slf4j.version>2.0.7</slf4j.version>
     <junit.version>5.10.0</junit.version>
 
@@ -128,6 +129,8 @@
   <modules>
     <module>library</module>
     <module>ui</module>
+    <module>ide</module>
+    <module>uideps</module>
   </modules>
 
   <build>

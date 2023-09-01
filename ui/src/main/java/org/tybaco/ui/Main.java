@@ -21,57 +21,35 @@ package org.tybaco.ui;
  * #L%
  */
 
-import org.springframework.context.support.GenericApplicationContext;
+import javafx.application.Application;
 import org.tybaco.logging.FastConsoleHandler;
 import org.tybaco.logging.LoggingManager;
 import org.tybaco.ui.lib.logging.UILogHandler;
-import org.tybaco.ui.main.MainApplicationContext;
+import org.tybaco.ui.main.MainApplication;
 
-import static java.awt.EventQueue.invokeLater;
+import java.util.Arrays;
+
 import static java.lang.System.setProperty;
-import static java.util.logging.Level.SEVERE;
 import static java.util.logging.LogManager.getLogManager;
-import static java.util.logging.Logger.getLogger;
-import static org.tybaco.ui.splash.Splash.renderSplash;
-import static org.tybaco.ui.splash.Splash.updateSplash;
-import static org.tybaco.ui.splash.SplashStatus.updateSplashStatus;
 
 public final class Main {
 
+  public static volatile Runnable updateSplash = () -> {};
+  public static volatile Runnable updateSplashStatus = () -> {};
+
   public static void main(String... args) {
-    renderSplash();
     initLogging();
-    var ctx = new MainApplicationContext();
-    updateLaf();
-    invokeLater(() -> bootstrap(ctx));
+    Application.launch(MainApplication.class, args);
   }
 
-  private static void bootstrap(GenericApplicationContext context) {
-    updateSplash();
-    try {
-      context.refresh();
-      updateSplash();
-      updateSplash();
-      updateSplashStatus();
-    } catch (Throwable e) {
-      try (context) {
-        context.stop();
-      } catch (Throwable x) {
-        e.addSuppressed(x);
-      }
-      getLogger("main").log(SEVERE, "Bootstrap error", e);
-    }
-  }
-
-  private static void initLogging() {
+  public static void initLogging() {
     setProperty("java.util.logging.manager", LoggingManager.class.getName());
     var rootLogger = getLogManager().getLogger("");
-    rootLogger.addHandler(new FastConsoleHandler());
+    if (Arrays.stream(rootLogger.getHandlers()).noneMatch(FastConsoleHandler.class::isInstance)) {
+      rootLogger.addHandler(new FastConsoleHandler());
+    }
     rootLogger.addHandler(new UILogHandler());
-    updateSplash();
-  }
-
-  private static void updateLaf() {
-    updateSplash();
+    updateSplash.run();
+    rootLogger.info("Logging initialized");
   }
 }

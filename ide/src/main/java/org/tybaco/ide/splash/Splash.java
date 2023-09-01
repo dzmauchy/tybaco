@@ -1,4 +1,4 @@
-package org.tybaco.ui.splash;
+package org.tybaco.ide.splash;
 
 /*-
  * #%L
@@ -30,8 +30,6 @@ import static java.awt.Color.WHITE;
 import static java.awt.Font.BOLD;
 import static java.awt.Font.PLAIN;
 import static java.awt.RenderingHints.*;
-import static org.tybaco.ui.lib.utils.ThreadUtils.tccl;
-import static org.tybaco.ui.splash.SplashStatus.*;
 
 public final class Splash {
 
@@ -44,7 +42,7 @@ public final class Splash {
       return;
     }
     updateSplash();
-    var newUrl = tccl().getResource("images/logo.jpg");
+    var newUrl = Thread.currentThread().getContextClassLoader().getResource("images/logo.jpg");
     if (newUrl != null) {
       try {
         splashScreen.setImageURL(newUrl);
@@ -86,7 +84,7 @@ public final class Splash {
   }
 
   private static Font createFont(String resource, int size) {
-    try (var is = tccl().getResourceAsStream(resource)) {
+    try (var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resource)) {
       if (is != null) {
         return Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(PLAIN, size);
       }
@@ -100,7 +98,7 @@ public final class Splash {
     updateSplash(true);
   }
 
-  public static void updateSplash(boolean increment) {
+  public static synchronized void updateSplash(boolean increment) {
     var splashScreen = SplashScreen.getSplashScreen();
     if (splashScreen == null) {
       return;
@@ -109,8 +107,8 @@ public final class Splash {
     var g = splashScreen.createGraphics();
     try {
       g.setBackground(Color.BLUE.brighter());
-      var nextStep = increment ? incrementStep() : step();
-      var maxStep = maxStep();
+      var nextStep = increment ? SplashStatus.incrementStep() : SplashStatus.step();
+      var maxStep = SplashStatus.maxStep();
       var w = (b.width * nextStep) / maxStep;
       var y = b.height - 7;
       g.clearRect(0, y, w, y + 7);

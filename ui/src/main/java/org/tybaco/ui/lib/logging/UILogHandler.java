@@ -21,6 +21,8 @@ package org.tybaco.ui.lib.logging;
  * #L%
  */
 
+import javafx.application.Platform;
+
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
@@ -29,16 +31,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.LogRecord;
+import java.util.logging.*;
 
-import static java.awt.EventQueue.invokeLater;
 import static java.util.prefs.Preferences.userNodeForPackage;
-import static javax.swing.event.TableModelEvent.ALL_COLUMNS;
-import static javax.swing.event.TableModelEvent.DELETE;
-import static javax.swing.event.TableModelEvent.INSERT;
+import static javax.swing.event.TableModelEvent.*;
 
 public class UILogHandler extends Handler implements TableModel {
 
@@ -51,9 +47,8 @@ public class UILogHandler extends Handler implements TableModel {
 
   @Override
   public void publish(LogRecord record) {
-    invokeLater(() -> primordial.removeIf(this::add));
     if (flushed) {
-      invokeLater(() -> add(record));
+      Platform.runLater(() -> add(record));
     } else {
       primordial.add(record);
     }
@@ -68,8 +63,8 @@ public class UILogHandler extends Handler implements TableModel {
   public void close() {
   }
 
-  private boolean add(LogRecord record) {
-    invokeLater(() -> {
+  private void add(LogRecord record) {
+    Platform.runLater(() -> {
       if (records.size() >= maxRecords) {
         var toDelete = maxRecords - records.size();
         while (records.size() >= maxRecords) records.remove(0);
@@ -80,7 +75,6 @@ public class UILogHandler extends Handler implements TableModel {
       records.add(record);
       listeners.forEach(l -> l.tableChanged(event));
     });
-    return true;
   }
 
   @Override

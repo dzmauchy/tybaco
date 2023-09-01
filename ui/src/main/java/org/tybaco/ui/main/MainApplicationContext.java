@@ -25,6 +25,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.ResolvableType;
+import org.tybaco.ui.Main;
 import org.tybaco.ui.lib.context.Propagated;
 import org.tybaco.ui.lib.logging.LogBeanPostProcessor;
 import org.tybaco.ui.splash.SplashBeanPostProcessor;
@@ -32,7 +33,6 @@ import org.tybaco.ui.splash.SplashBeanPostProcessor;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.LogManager.getLogManager;
 import static org.tybaco.ui.lib.utils.ThreadUtils.tccl;
-import static org.tybaco.ui.splash.Splash.updateSplash;
 
 public final class MainApplicationContext extends AnnotationConfigApplicationContext {
 
@@ -42,7 +42,7 @@ public final class MainApplicationContext extends AnnotationConfigApplicationCon
     setClassLoader(tccl());
     setAllowCircularReferences(false);
     setAllowBeanDefinitionOverriding(false);
-    updateSplash();
+    Main.updateSplash.run();
   }
 
   @Override
