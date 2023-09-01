@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.montoni</groupId>
   <artifactId>tybaco</artifactId>
-  <version>0.1.9-SNAPSHOT</version>
+  <version>0.1.9</version>
   <packaging>pom</packaging>
 
   <inceptionYear>2023</inceptionYear>
@@ -33,7 +32,7 @@
     <url>https://github.com/dzmauchy/tybaco.git</url>
     <connection>scm:git:https://github.com/dzmauchy/tybaco.git</connection>
     <developerConnection>scm:git:https://github.com/dzmauchy/tybaco.git</developerConnection>
-    <tag>tybaco-0.1.4</tag>
+    <tag>tybaco-0.1.9</tag>
   </scm>
 
   <properties>
@@ -401,12 +400,12 @@
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
           <archive>
-            <addMavenDescriptor/>
-            <compress/>
-            <pomPropertiesFile/>
-            <manifestFile/>
+            <addMavenDescriptor />
+            <compress />
+            <pomPropertiesFile />
+            <manifestFile />
             <manifest>
-              <addDefaultEntries/>
+              <addDefaultEntries />
             </manifest>
             <manifestEntries>
               <Automatic-Module-Name>${project.groupId}.${project.name}</Automatic-Module-Name>
