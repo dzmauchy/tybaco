@@ -21,7 +21,6 @@ package org.tybaco.ui.main;
  * #L%
  */
 
-import com.sun.javafx.css.StyleManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -29,6 +28,8 @@ import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 import org.tybaco.ui.Main;
 import org.tybaco.ui.lib.logging.UILogHandler;
+
+import static java.lang.Thread.currentThread;
 
 public class MainApplication extends Application {
 
@@ -47,11 +48,7 @@ public class MainApplication extends Application {
     updateSplash();
     Application.setUserAgentStylesheet(STYLESHEET_MODENA);
     updateSplash();
-    Platform.runLater(() -> {
-      var styleManager = StyleManager.getInstance();
-      styleManager.addUserAgentStylesheet("theme/ui.css");
-      updateSplash();
-    });
+    Platform.runLater(MainApplication::initLaf);
   }
 
   @Override
@@ -72,6 +69,18 @@ public class MainApplication extends Application {
     } catch (Throwable e) {
       stage.close();
       throw e;
+    }
+  }
+
+  private static void initLaf() {
+    try {
+      var styleManagerClass = currentThread().getContextClassLoader().loadClass("com.sun.javafx.css.StyleManager");
+      var addUserAgentStylesheet = styleManagerClass.getMethod("addUserAgentStylesheet", String.class);
+      addUserAgentStylesheet.invoke(null, "theme/ui.css");
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    } finally {
+      updateSplash();
     }
   }
 }
