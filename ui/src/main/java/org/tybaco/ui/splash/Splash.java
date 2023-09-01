@@ -30,7 +30,6 @@ import static java.awt.Color.WHITE;
 import static java.awt.Font.BOLD;
 import static java.awt.Font.PLAIN;
 import static java.awt.RenderingHints.*;
-import static org.jfree.chart.ChartColor.LIGHT_BLUE;
 import static org.tybaco.ui.lib.utils.ThreadUtils.tccl;
 import static org.tybaco.ui.splash.SplashStatus.*;
 
@@ -109,7 +108,7 @@ public final class Splash {
     var b = splashScreen.getBounds();
     var g = splashScreen.createGraphics();
     try {
-      g.setBackground(LIGHT_BLUE);
+      g.setBackground(Color.BLUE.brighter());
       var nextStep = increment ? incrementStep() : step();
       var maxStep = maxStep();
       var w = (b.width * nextStep) / maxStep;

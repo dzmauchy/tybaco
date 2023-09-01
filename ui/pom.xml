@@ -43,59 +43,6 @@
   </dependencyManagement>
 
   <dependencies>
-    <dependency>
-      <groupId>com.formdev</groupId>
-      <artifactId>flatlaf</artifactId>
-      <version>3.2</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jfree</groupId>
-      <artifactId>jfreechart</artifactId>
-      <version>1.5.4</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.netbeans.modules</groupId>
-      <artifactId>org-netbeans-swing-laf-flatlaf</artifactId>
-      <version>${nb.release}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.netbeans.api</groupId>
-      <artifactId>org-netbeans-swing-outline</artifactId>
-      <version>${nb.release}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.netbeans.modules</groupId>
-      <artifactId>org-netbeans-swing-dirchooser</artifactId>
-      <version>${nb.release}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-swing</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-rasterizer</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.xmlgraphics</groupId>
-      <artifactId>batik-rasterizer-ext</artifactId>
-      <version>${batik.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.mozilla</groupId>
-      <artifactId>rhino</artifactId>
-      <version>1.7.14</version>
-    </dependency>
 
     <dependency>
       <groupId>org.apache.maven.resolver</groupId>
@@ -105,12 +52,6 @@
     <dependency>
       <groupId>javax.inject</groupId>
       <artifactId>javax.inject</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>net.sourceforge.plantuml</groupId>
-      <artifactId>plantuml-lgpl</artifactId>
-      <version>1.2023.10</version>
     </dependency>
 
     <dependency>

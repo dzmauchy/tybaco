@@ -21,13 +21,11 @@ package org.tybaco.ui;
  * #L%
  */
 
-import com.formdev.flatlaf.FlatDarculaLaf;
 import org.springframework.context.support.GenericApplicationContext;
 import org.tybaco.logging.FastConsoleHandler;
 import org.tybaco.logging.LoggingManager;
 import org.tybaco.ui.lib.logging.UILogHandler;
 import org.tybaco.ui.main.MainApplicationContext;
-import org.tybaco.ui.main.MainFrame;
 
 import static java.awt.EventQueue.invokeLater;
 import static java.lang.System.setProperty;
@@ -53,10 +51,8 @@ public final class Main {
     try {
       context.refresh();
       updateSplash();
-      var mainFrame = context.getBean(MainFrame.class);
       updateSplash();
       updateSplashStatus();
-      mainFrame.setVisible(true);
     } catch (Throwable e) {
       try (context) {
         context.stop();
@@ -76,8 +72,6 @@ public final class Main {
   }
 
   private static void updateLaf() {
-    FlatDarculaLaf.installLafInfo();
-    FlatDarculaLaf.setup();
     updateSplash();
   }
 }

@@ -42,7 +42,6 @@ public final class MainApplicationContext extends AnnotationConfigApplicationCon
     setClassLoader(tccl());
     setAllowCircularReferences(false);
     setAllowBeanDefinitionOverriding(false);
-    register(MainConfiguration.class);
     updateSplash();
   }
 
