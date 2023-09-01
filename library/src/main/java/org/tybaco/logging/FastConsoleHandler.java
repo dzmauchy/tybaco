@@ -26,8 +26,7 @@ import java.io.StringWriter;
 import java.text.MessageFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
+import java.util.logging.*;
 
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoField.*;
@@ -49,7 +48,7 @@ public class FastConsoleHandler extends Handler {
     var buffer = writer.getBuffer();
     DATE_TIME_FORMATTER.formatTo(record.getInstant().atZone(UTC), buffer);
     buffer
-      .append(' ').append((record.getLevel().intValue() / 100) - 1)
+      .append(' ').append(level(record.getLevel()))
       .append(" [").append(record.getLongThreadID()).append("] ");
     var method = record.getSourceMethodName();
     var className = record.getSourceClassName();
@@ -86,5 +85,18 @@ public class FastConsoleHandler extends Handler {
 
   @Override
   public void close() {
+  }
+
+  private static char level(Level level) {
+    return switch (level.intValue()) {
+      case 1000 -> 'E';
+      case 900 -> 'W';
+      case 800 -> 'I';
+      case 700 -> 'C';
+      case 500 -> 'D';
+      case 400 -> 'T';
+      case 300 -> 'F';
+      default -> 'U';
+    };
   }
 }

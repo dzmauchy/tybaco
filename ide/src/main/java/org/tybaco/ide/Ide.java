@@ -23,6 +23,8 @@ package org.tybaco.ide;
 
 import org.tybaco.ide.splash.Splash;
 import org.tybaco.ide.splash.SplashStatus;
+import org.tybaco.logging.FastConsoleHandler;
+import org.tybaco.logging.LoggingManager;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -30,12 +32,13 @@ import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
 import java.util.jar.JarInputStream;
+import java.util.logging.LogManager;
 import java.util.stream.Stream;
 
+import static java.lang.System.setProperty;
 import static java.util.concurrent.ForkJoinPool.commonPool;
+import static java.util.logging.LogManager.getLogManager;
 import static org.tybaco.ide.splash.Splash.renderSplash;
 import static org.tybaco.ide.splash.Splash.updateSplash;
 
@@ -43,16 +46,23 @@ public class Ide {
 
   public static void main(String... args) throws Exception {
     renderSplash();
+    initLogging();
+    var logger = LogManager.getLogManager().getLogger("");
+    logger.info("Initializing classpath");
     var libUrlsF = commonPool().submit(Ide::libUrls);
     var javafxUrlsF = commonPool().submit(Ide::javafxLibs);
     var libUrls = libUrlsF.join();
     var javafxUrls = javafxUrlsF.join();
     var allUrls = Stream.concat(libUrls.stream(), javafxUrls.stream()).toList();
+    logger.info("Classpath initialized");
     updateSplash();
     var classLoader = new IdeClassLoader("ide", allUrls, Thread.currentThread().getContextClassLoader());
     Thread.currentThread().setContextClassLoader(classLoader);
+    logger.info("Preparing UI");
     bootstrapSplash(classLoader);
+    logger.info("UI prepared");
     invokeMain(classLoader, args);
+    logger.info("UI launched");
     Runtime.getRuntime().addShutdownHook(new Thread(classLoader::close));
   }
 
@@ -76,7 +86,7 @@ public class Ide {
     mainMethod.invoke(null, (Object) args);
   }
 
-  private static List<URL> javafxLibs() {
+  private static List<URL> javafxLibs() throws Exception {
     var classifier = classifier();
     var artifacts = new String[]{
       "base",
@@ -86,18 +96,14 @@ public class Ide {
       "web"
     };
     var version = "20.0.2";
-    try (var pool = new ForkJoinPool(artifacts.length)) {
-      var results = Arrays.stream(artifacts)
-        .map(a -> {
-          var base = "https://repo.maven.apache.org/maven2/org/openjfx/javafx-" + a;
-          return base + "/" + version + "/" + "javafx-" + a + "-" + version + "-" + classifier + ".jar";
-        })
-        .map(a -> pool.submit(() -> new URI(a).toURL()))
-        .toList();
-      var result = results.stream().map(ForkJoinTask::join).toList();
-      updateSplash();
-      return result;
+    var list = new LinkedList<URL>();
+    for (var a : artifacts) {
+      var base = "https://repo.maven.apache.org/maven2/org/openjfx/javafx-" + a;
+      var url = base + "/" + version + "/" + "javafx-" + a + "-" + version + "-" + classifier + ".jar";
+      list.add(new URI(url).toURL());
     }
+    updateSplash();
+    return list;
   }
 
   private static List<URL> libUrls() throws Exception {
@@ -137,7 +143,17 @@ public class Ide {
     }
   }
 
+  private static void initLogging() {
+    setProperty("java.util.logging.manager", LoggingManager.class.getName());
+    var rootLogger = getLogManager().getLogger("");
+    rootLogger.addHandler(new FastConsoleHandler());
+  }
+
   private static final class IdeClassLoader extends URLClassLoader {
+
+    static {
+      registerAsParallelCapable();
+    }
 
     private IdeClassLoader(String name, List<URL> urls, ClassLoader parent) {
       super(name, urls.toArray(URL[]::new), parent);

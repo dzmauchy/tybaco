@@ -175,7 +175,12 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <configuration>
-          <mainClass>${main.class}</mainClass>
+          <workingDirectory>${project.build.directory}</workingDirectory>
+          <executable>${java.home}/bin/java</executable>
+          <arguments>
+            <argument>-jar</argument>
+            <argument>${project.artifactId}-${project.version}.jar</argument>
+          </arguments>
         </configuration>
       </plugin>
     </plugins>
