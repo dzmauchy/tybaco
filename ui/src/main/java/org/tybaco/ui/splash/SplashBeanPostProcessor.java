@@ -21,8 +21,8 @@ package org.tybaco.ui.splash;
  * #L%
  */
 
+import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.lang.Nullable;
 
 import java.util.concurrent.atomic.AtomicLong;
 

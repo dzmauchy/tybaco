@@ -98,12 +98,6 @@
     </dependency>
 
     <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-      <version>3.0.2</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
       <version>${junit.version}</version>
@@ -145,6 +139,12 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.11.0</version>
+          <configuration>
+            <parameters>true</parameters>
+            <compilerReuseStrategy>reuseSame</compilerReuseStrategy>
+            <useIncrementalCompilation>false</useIncrementalCompilation>
+            <forceJavacCompilerUse>true</forceJavacCompilerUse>
+          </configuration>
         </plugin>
 
         <plugin>
@@ -393,14 +393,6 @@
     </pluginManagement>
 
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <parameters>true</parameters>
-        </configuration>
-      </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
