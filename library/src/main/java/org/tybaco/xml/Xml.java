@@ -35,8 +35,7 @@ import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.*;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -66,6 +65,10 @@ public class Xml {
     var child = doc.createElement(tag);
     element.appendChild(child);
     consumer.accept(child);
+  }
+
+  public static <T> void withChildren(Element element, String enclosingTag, String tag, Iterable<T> children, BiConsumer<T, Element> consumer) {
+    withChild(element, enclosingTag, p -> children.forEach(c -> withChild(p, tag, e -> consumer.accept(c, e))));
   }
 
   public static <T> T loadFrom(Path path, Function<Element, T> func) {

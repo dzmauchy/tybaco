@@ -24,7 +24,7 @@ package org.tybaco.ui.main;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.TabPane;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.tybaco.ui.Main;
 import org.tybaco.ui.lib.logging.UILogHandler;
@@ -59,7 +59,7 @@ public class MainApplication extends Application {
       updateSplash();
       context.refresh();
       updateSplash();
-      stage.setScene(new Scene(new TabPane(), 800, 600));
+      stage.setScene(new Scene(new Pane(), 800, 600));
       stage.setMaximized(true);
       stage.show();
       updateSplash();

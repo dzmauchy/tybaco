@@ -27,9 +27,8 @@ import org.tybaco.logging.LoggingManager;
 import org.tybaco.ui.lib.logging.UILogHandler;
 import org.tybaco.ui.main.MainApplication;
 
-import java.util.Arrays;
-
 import static java.lang.System.setProperty;
+import static java.util.Arrays.stream;
 import static java.util.logging.LogManager.getLogManager;
 
 public final class Main {
@@ -45,7 +44,7 @@ public final class Main {
   public static void initLogging() {
     setProperty("java.util.logging.manager", LoggingManager.class.getName());
     var rootLogger = getLogManager().getLogger("");
-    if (Arrays.stream(rootLogger.getHandlers()).noneMatch(FastConsoleHandler.class::isInstance)) {
+    if (stream(rootLogger.getHandlers()).noneMatch(FastConsoleHandler.class::isInstance)) {
       rootLogger.addHandler(new FastConsoleHandler());
     }
     rootLogger.addHandler(new UILogHandler());

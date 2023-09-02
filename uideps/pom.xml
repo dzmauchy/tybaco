@@ -10,6 +10,10 @@
   <name>uideps</name>
   <artifactId>tybaco-uideps</artifactId>
 
+  <properties>
+    <ikonli.version>12.3.1</ikonli.version>
+  </properties>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -65,9 +69,33 @@
     </dependency>
 
     <dependency>
-      <groupId>org.graalvm.js</groupId>
-      <artifactId>js</artifactId>
-      <version>23.0.1</version>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-javafx</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-materialdesign-pack</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-materialdesign2-pack</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-fluentui-pack</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-unicons-pack</artifactId>
+      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
