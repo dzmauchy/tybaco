@@ -26,18 +26,16 @@ import org.tybaco.ide.splash.SplashStatus;
 import org.tybaco.logging.FastConsoleHandler;
 import org.tybaco.logging.LoggingManager;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.io.File;
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
-import java.util.jar.JarInputStream;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.jar.JarFile;
 import java.util.logging.LogManager;
-import java.util.stream.Stream;
 
 import static java.lang.System.setProperty;
-import static java.util.concurrent.ForkJoinPool.commonPool;
 import static java.util.logging.LogManager.getLogManager;
 import static org.tybaco.ide.splash.Splash.renderSplash;
 import static org.tybaco.ide.splash.Splash.updateSplash;
@@ -49,21 +47,16 @@ public class Ide {
     initLogging();
     var logger = LogManager.getLogManager().getLogger("");
     logger.info("Initializing classpath");
-    var libUrlsF = commonPool().submit(Ide::libUrls);
-    var javafxUrlsF = commonPool().submit(Ide::javafxLibs);
-    var libUrls = libUrlsF.join();
-    var javafxUrls = javafxUrlsF.join();
-    var allUrls = Stream.concat(libUrls.stream(), javafxUrls.stream()).toList();
+    var urls = libUrls();
     logger.info("Classpath initialized");
     updateSplash();
-    var classLoader = new IdeClassLoader("ide", allUrls, Thread.currentThread().getContextClassLoader());
+    var classLoader = new URLClassLoader("ide", urls, Thread.currentThread().getContextClassLoader());
     Thread.currentThread().setContextClassLoader(classLoader);
     logger.info("Preparing UI");
     bootstrapSplash(classLoader);
     logger.info("UI prepared");
     invokeMain(classLoader, args);
     logger.info("UI launched");
-    Runtime.getRuntime().addShutdownHook(new Thread(classLoader::close));
   }
 
   private static void bootstrapSplash(URLClassLoader classLoader) throws Exception {
@@ -86,49 +79,38 @@ public class Ide {
     mainMethod.invoke(null, (Object) args);
   }
 
-  private static List<URL> javafxLibs() throws Exception {
+  private static URL[] libUrls() throws Exception {
     var classifier = classifier();
-    var artifacts = new String[]{
-      "base",
-      "graphics",
-      "controls",
-      "media",
-      "web"
-    };
-    var version = "20.0.2";
+    var excludedLibs = new HashMap<String, String>(32, 0.5f);
     var list = new LinkedList<URL>();
-    for (var a : artifacts) {
-      var base = "https://repo.maven.apache.org/maven2/org/openjfx/javafx-" + a;
-      var url = base + "/" + version + "/" + "javafx-" + a + "-" + version + "-" + classifier + ".jar";
-      list.add(new URI(url).toURL());
-    }
-    updateSplash();
-    return list;
-  }
-
-  private static List<URL> libUrls() throws Exception {
-    var url = Ide.class.getProtectionDomain().getCodeSource().getLocation();
-    var excludedLibs = new HashSet<String>();
-    try (var jarInputStream = new JarInputStream(url.openStream())) {
-      var manifest = jarInputStream.getManifest();
-      var mainAttributes = manifest.getMainAttributes();
-      var classPath = mainAttributes.getValue("Class-Path");
+    try (var jarFile = new JarFile(new File(Ide.class.getProtectionDomain().getCodeSource().getLocation().toURI()), false)) {
+      var manifest = jarFile.getManifest();
+      var classPath = manifest.getMainAttributes().getValue("Class-Path");
       for (var entry : classPath.split(" ")) {
         if (entry.startsWith("lib/") && entry.endsWith(".jar")) {
-          excludedLibs.add(entry.substring("lib/".length()));
+          excludedLibs.put(entry.substring("lib/".length()), null);
+          var i = entry.indexOf("/javafx-");
+          if (i > 0) {
+            var j = entry.indexOf('-', i + "/javafx-".length());
+            var artifact = entry.substring(i + 1, j);
+            var version = entry.substring(j + 1, entry.length() - ".jar".length());
+            var base = "https://repo.maven.apache.org/maven2/org/openjfx/" + artifact;
+            var fxUrl = base + "/" + version + "/" + artifact + "-" + version + "-" + classifier + ".jar";
+            var url = URL.of(new URI(fxUrl), null);
+            list.addLast(url);
+          }
         }
       }
     }
-    var libPath = Path.of(url.toURI()).getParent().resolve("lib");
-    var list = new LinkedList<URL>();
+    var libPath = Path.of(Ide.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent().resolve("lib");
     try (var ds = Files.newDirectoryStream(libPath, "*.jar")) {
       for (var lib : ds) {
-        if (!excludedLibs.contains(lib.getFileName().toString())) {
-          list.add(lib.toUri().toURL());
+        if (!excludedLibs.containsKey(lib.getFileName().toString())) {
+          list.addLast(lib.toUri().toURL());
         }
       }
     }
-    return list;
+    return list.toArray(URL[]::new);
   }
 
   private static String classifier() {
@@ -147,25 +129,5 @@ public class Ide {
     setProperty("java.util.logging.manager", LoggingManager.class.getName());
     var rootLogger = getLogManager().getLogger("");
     rootLogger.addHandler(new FastConsoleHandler());
-  }
-
-  private static final class IdeClassLoader extends URLClassLoader {
-
-    static {
-      registerAsParallelCapable();
-    }
-
-    private IdeClassLoader(String name, List<URL> urls, ClassLoader parent) {
-      super(name, urls.toArray(URL[]::new), parent);
-    }
-
-    @Override
-    public void close() {
-      try {
-        super.close();
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-    }
   }
 }
