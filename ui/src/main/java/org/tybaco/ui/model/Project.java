@@ -27,8 +27,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.w3c.dom.Element;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static org.tybaco.xml.Xml.elementsByTags;
 import static org.tybaco.xml.Xml.withChildren;
@@ -38,13 +38,15 @@ public final class Project {
   public final String id;
   public final SimpleStringProperty name;
   public final ObservableList<Block> blocks;
+  public final ObservableList<Link> links;
   public final ObservableList<Lib> libs;
   private final Observable[] observables;
 
-  Project(String id, String name, Collection<Block> blocks, Collection<Lib> libs) {
+  Project(String id, String name, Collection<Block> blocks, Collection<Link> links, Collection<Lib> libs) {
     this.id = id;
     this.name = new SimpleStringProperty(this, "name", name);
     this.blocks = Block.newList(blocks);
+    this.links = Link.newList(links);
     this.libs = Lib.libs(libs);
     this.observables = new Observable[] {this.name, this.blocks, this.libs};
   }
@@ -54,6 +56,7 @@ public final class Project {
       element.getAttribute("id"),
       element.getAttribute("name"),
       elementsByTags(element, "blocks", "block").map(Block::new).toList(),
+      elementsByTags(element, "links", "link").map(Link::new).toList(),
       elementsByTags(element, "libs", "lib").map(Lib::new).toList()
     );
   }
@@ -62,6 +65,7 @@ public final class Project {
     element.setAttribute("id", id);
     element.setAttribute("name", name.get());
     withChildren(element, "blocks", "block", blocks, Block::saveTo);
+    withChildren(element, "links", "link", links, Link::saveTo);
     withChildren(element, "libs", "lib", libs, Lib::saveTo);
   }
 
@@ -71,5 +75,28 @@ public final class Project {
 
   public static ObservableList<Project> newList(Collection<Project> projects) {
     return FXCollections.observableList(new ArrayList<>(projects), Project::observables);
+  }
+
+  public Block blockById(int id) {
+    return blocks.stream()
+      .filter(b -> b.id == id)
+      .findFirst()
+      .orElseThrow(() -> new NoSuchElementException("Block" + id + " not found"));
+  }
+
+  public Stream<Link> linksFrom(Connector out) {
+    return links.stream().filter(l -> l.out().equals(out));
+  }
+
+  public Stream<Link> linksTo(Connector in) {
+    return links.stream().filter(l -> l.in().equals(in));
+  }
+
+  public Stream<Link> linksFrom(Block block) {
+    return links.stream().filter(l -> l.out().blockId() == block.id);
+  }
+
+  public Stream<Link> linksTo(Block block) {
+    return links.stream().filter(l -> l.in().blockId() == block.id);
   }
 }

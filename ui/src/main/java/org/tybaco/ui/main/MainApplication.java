@@ -24,6 +24,7 @@ package org.tybaco.ui.main;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.tybaco.ui.Main;
@@ -57,8 +58,10 @@ public class MainApplication extends Application {
       updateSplash();
       UILogHandler.getInstance().flush();
       updateSplash();
+      context.getDefaultListableBeanFactory().registerSingleton("primaryStage", stage);
       context.refresh();
       updateSplash();
+      stage.getIcons().add(new Image("icon/project.png"));
       stage.setScene(new Scene(new Pane(), 800, 600));
       stage.setMaximized(true);
       stage.show();
