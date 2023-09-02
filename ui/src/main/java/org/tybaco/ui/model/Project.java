@@ -25,11 +25,13 @@ import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.tybaco.ui.lib.id.Ids;
 import org.w3c.dom.Element;
 
 import java.util.*;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static org.tybaco.xml.Xml.elementsByTags;
 import static org.tybaco.xml.Xml.withChildren;
 
@@ -49,6 +51,10 @@ public final class Project {
     this.links = Link.newList(links);
     this.libs = Lib.libs(libs);
     this.observables = new Observable[] {this.name, this.blocks, this.libs};
+  }
+
+  public Project(String name) {
+    this(Ids.newId(), name, emptyList(), emptyList(), emptyList());
   }
 
   public Project(Element element) {
@@ -75,6 +81,10 @@ public final class Project {
 
   public static ObservableList<Project> newList(Collection<Project> projects) {
     return FXCollections.observableList(new ArrayList<>(projects), Project::observables);
+  }
+
+  public static ObservableList<Project> newList() {
+    return FXCollections.observableArrayList(Project::observables);
   }
 
   public Block blockById(int id) {

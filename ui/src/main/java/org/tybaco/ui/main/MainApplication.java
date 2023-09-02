@@ -59,10 +59,15 @@ public class MainApplication extends Application {
       UILogHandler.getInstance().flush();
       updateSplash();
       context.getDefaultListableBeanFactory().registerSingleton("primaryStage", stage);
+      context.register(MainPane.class);
+      updateSplash();
       context.refresh();
       updateSplash();
       stage.getIcons().add(new Image("icon/project.png"));
-      stage.setScene(new Scene(new Pane(), 800, 600));
+      updateSplash();
+      var mainPane = context.getBean(MainPane.class);
+      updateSplash();
+      stage.setScene(new Scene(mainPane, 800, 600));
       stage.setMaximized(true);
       stage.show();
       updateSplash();

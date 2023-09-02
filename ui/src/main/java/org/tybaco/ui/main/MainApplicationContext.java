@@ -21,6 +21,7 @@ package org.tybaco.ui.main;
  * #L%
  */
 
+import jakarta.annotation.Nonnull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -32,14 +33,13 @@ import org.tybaco.ui.splash.SplashBeanPostProcessor;
 
 import static java.util.logging.Level.INFO;
 import static java.util.logging.LogManager.getLogManager;
-import static org.tybaco.ui.lib.utils.ThreadUtils.tccl;
 
 public final class MainApplicationContext extends AnnotationConfigApplicationContext {
 
   public MainApplicationContext() {
     setId("root");
     setDisplayName("TybacoIDE");
-    setClassLoader(tccl());
+    setClassLoader(Thread.currentThread().getContextClassLoader());
     setAllowCircularReferences(false);
     setAllowBeanDefinitionOverriding(false);
     Main.updateSplash.run();
@@ -53,7 +53,7 @@ public final class MainApplicationContext extends AnnotationConfigApplicationCon
   }
 
   @Override
-  protected void publishEvent(Object event, ResolvableType typeHint) {
+  protected void publishEvent(@Nonnull Object event, ResolvableType typeHint) {
     getLogManager().getLogger("").log(INFO, "{0}", event);
     super.publishEvent(event, typeHint);
   }

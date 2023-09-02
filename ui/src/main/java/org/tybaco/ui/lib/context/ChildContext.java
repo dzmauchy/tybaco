@@ -28,15 +28,10 @@ import org.springframework.context.*;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.tybaco.ui.lib.logging.LogBeanPostProcessor;
 
-import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.logging.Level.SEVERE;
-import static java.util.logging.Level.WARNING;
-import static java.util.logging.Logger.getLogger;
 
 public final class ChildContext extends AnnotationConfigApplicationContext {
 
@@ -84,42 +79,19 @@ public final class ChildContext extends AnnotationConfigApplicationContext {
     }
   }
 
-  @SafeVarargs
-  public static <W extends Window> W child(String id, String name, Class<W> type, AnnotationConfigApplicationContext ctx, Consumer<ChildContext>... consumers) {
-    var child = new ChildContext(id, name, ctx);
-    child.register(type);
-    for (var consumer : consumers) {
-      consumer.accept(child);
-    }
+  public <T> T refreshAndStart(Function<ChildContext, T> refresh) {
     try {
-      child.refresh();
-      var w = child.getBean(type);
-      w.addWindowListener(new WindowAdapter() {
-        @Override
-        public void windowOpened(WindowEvent e) {
-          child.start();
-        }
-
-        @Override
-        public void windowClosed(WindowEvent e) {
-          try (child) {
-            child.stop();
-          } catch (Throwable x) {
-            getLogger(id).log(WARNING, "Window close error", x);
-          } finally {
-            w.removeWindowListener(this);
-          }
-        }
-      });
-      return w;
+      refresh();
+      var t = refresh.apply(this);
+      start();
+      return t;
     } catch (Throwable e) {
-      try (child) {
-        child.stop();
+      try (this) {
+        throw e;
       } catch (Throwable x) {
         e.addSuppressed(x);
+        throw e;
       }
-      getLogger(id).log(SEVERE, "Child error", e);
-      throw e;
     }
   }
 }

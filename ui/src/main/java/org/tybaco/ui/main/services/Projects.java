@@ -1,4 +1,4 @@
-package org.tybaco.ui.lib.utils;
+package org.tybaco.ui.main.services;
 
 /*-
  * #%L
@@ -21,12 +21,12 @@ package org.tybaco.ui.lib.utils;
  * #L%
  */
 
-public final class ThreadUtils {
+import javafx.collections.ObservableList;
+import org.springframework.stereotype.Component;
+import org.tybaco.ui.model.Project;
 
-  private ThreadUtils() {
-  }
+@Component
+public class Projects {
 
-  public static ClassLoader tccl() {
-    return Thread.currentThread().getContextClassLoader();
-  }
+  public final ObservableList<Project> projects = Project.newList();
 }
