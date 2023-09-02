@@ -124,24 +124,14 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>copy-runtime-libs</id>
+            <id>copy-libs</id>
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
               <outputDirectory>${project.build.directory}/lib</outputDirectory>
-              <includeScope>runtime</includeScope>
+              <includeScope>compile</includeScope>
               <excludeClassifiers>linux,win,mac,linux-aarch64,mac-aarch64</excludeClassifiers>
-            </configuration>
-          </execution>
-          <execution>
-            <id>copy-provided-libs</id>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}/lib</outputDirectory>
-              <includeScope>provided</includeScope>
             </configuration>
           </execution>
         </executions>
