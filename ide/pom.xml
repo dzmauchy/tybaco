@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.montoni</groupId>
     <artifactId>tybaco</artifactId>
-    <version>0.1.11-SNAPSHOT</version>
+    <version>0.1.11</version>
   </parent>
 
   <name>ide</name>
