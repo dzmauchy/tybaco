@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.montoni</groupId>
@@ -12,6 +13,35 @@
 
   <properties>
     <main.class>org.tybaco.ide.Ide</main.class>
+    <javafx.base>javafx-base-${javafx.version}</javafx.base>
+    <javafx.media>javafx-media-${javafx.version}</javafx.media>
+    <javafx.graphics>javafx-graphics-${javafx.version}</javafx.graphics>
+    <javafx.controls>javafx-controls-${javafx.version}</javafx.controls>
+    <javafx.web>javafx-controls-${javafx.version}</javafx.web>
+    <javafx.base.lin>libl/${javafx.base}-linux.jar</javafx.base.lin>
+    <javafx.base.win>libw/${javafx.base}-win.jar</javafx.base.win>
+    <javafx.base.mac>libm/${javafx.base}-mac.jar</javafx.base.mac>
+    <javafx.base.maC>libM/${javafx.base}-mac-aarch64.jar</javafx.base.maC>
+    <javafx.media.lin>libl/${javafx.media}-linux.jar</javafx.media.lin>
+    <javafx.media.win>libw/${javafx.media}-win.jar</javafx.media.win>
+    <javafx.media.mac>libm/${javafx.media}-mac.jar</javafx.media.mac>
+    <javafx.media.maC>libM/${javafx.media}-mac-aarch64.jar</javafx.media.maC>
+    <javafx.graphics.lin>libl/${javafx.graphics}-linux.jar</javafx.graphics.lin>
+    <javafx.graphics.win>libw/${javafx.graphics}-win.jar</javafx.graphics.win>
+    <javafx.graphics.mac>libm/${javafx.graphics}-mac.jar</javafx.graphics.mac>
+    <javafx.graphics.maC>libM/${javafx.graphics}-mac-aarch64.jar</javafx.graphics.maC>
+    <javafx.controls.lin>libl/${javafx.controls}-linux.jar</javafx.controls.lin>
+    <javafx.controls.win>libw/${javafx.controls}-win.jar</javafx.controls.win>
+    <javafx.controls.mac>libm/${javafx.controls}-mac.jar</javafx.controls.mac>
+    <javafx.controls.maC>libM/${javafx.controls}-mac-aarch64.jar</javafx.controls.maC>
+    <javafx.web.lin>libl/${javafx.web}-linux.jar</javafx.web.lin>
+    <javafx.web.win>libw/${javafx.web}-win.jar</javafx.web.win>
+    <javafx.web.mac>libm/${javafx.web}-mac.jar</javafx.web.mac>
+    <javafx.web.maC>libM/${javafx.web}-mac-aarch64.jar</javafx.web.maC>
+    <javafx.classpath.lin>${javafx.base.lin} ${javafx.media.lin} ${javafx.graphics.lin} ${javafx.controls.lin} ${javafx.web.lin}</javafx.classpath.lin>
+    <javafx.classpath.win>${javafx.base.win} ${javafx.media.win} ${javafx.graphics.win} ${javafx.controls.win} ${javafx.web.win}</javafx.classpath.win>
+    <javafx.classpath.mac>${javafx.base.mac} ${javafx.media.mac} ${javafx.graphics.mac} ${javafx.controls.mac} ${javafx.web.mac}</javafx.classpath.mac>
+    <javafx.classpath.maC>${javafx.base.maC} ${javafx.media.maC} ${javafx.graphics.maC} ${javafx.controls.maC} ${javafx.web.maC}</javafx.classpath.maC>
   </properties>
 
   <dependencies>
@@ -25,6 +55,237 @@
       <groupId>org.montoni</groupId>
       <artifactId>tybaco-ui</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.openjfx</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- javafx base libs -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-base</artifactId>
+      <version>${javafx.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-media</artifactId>
+      <version>${javafx.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <version>${javafx.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>${javafx.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-web</artifactId>
+      <version>${javafx.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- javafx base -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-base</artifactId>
+      <classifier>linux</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-base</artifactId>
+      <classifier>win</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-base</artifactId>
+      <classifier>mac</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-base</artifactId>
+      <classifier>mac-aarch64</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- javafx media -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-media</artifactId>
+      <classifier>linux</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-media</artifactId>
+      <classifier>win</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-media</artifactId>
+      <classifier>mac</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-media</artifactId>
+      <classifier>mac-aarch64</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- javafx graphics -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <classifier>linux</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <classifier>win</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <classifier>mac</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <classifier>mac-aarch64</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- javafx controls -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <classifier>linux</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <classifier>win</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <classifier>mac</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <classifier>mac-aarch64</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- javafx web -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-web</artifactId>
+      <classifier>linux</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-web</artifactId>
+      <classifier>win</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-web</artifactId>
+      <classifier>mac</classifier>
+      <version>${javafx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-web</artifactId>
+      <classifier>mac-aarch64</classifier>
+      <version>${javafx.version}</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
@@ -34,11 +295,81 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>make-linux-jar</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>linux</classifier>
+              <archive>
+                <manifest>
+                  <classpathPrefix>libl/</classpathPrefix>
+                </manifest>
+                <manifestEntries>
+                  <Class-Path>ext/ ${javafx.classpath.lin}</Class-Path>
+                </manifestEntries>
+              </archive>
+            </configuration>
+          </execution>
+          <execution>
+            <id>make-windows-jar</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>windows</classifier>
+              <archive>
+                <manifest>
+                  <classpathPrefix>libw/</classpathPrefix>
+                </manifest>
+                <manifestEntries>
+                  <Class-Path>ext/ ${javafx.classpath.win}</Class-Path>
+                </manifestEntries>
+              </archive>
+            </configuration>
+          </execution>
+          <execution>
+            <id>make-mac-jar</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>mac</classifier>
+              <archive>
+                <manifest>
+                  <classpathPrefix>libm/</classpathPrefix>
+                </manifest>
+                <manifestEntries>
+                  <Class-Path>ext/ ${javafx.classpath.mac}</Class-Path>
+                </manifestEntries>
+              </archive>
+            </configuration>
+          </execution>
+          <execution>
+            <id>make-mac-aarch64-jar</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>mac-aarch64</classifier>
+              <archive>
+                <manifest>
+                  <classpathPrefix>libM/</classpathPrefix>
+                </manifest>
+                <manifestEntries>
+                  <Class-Path>ext/ ${javafx.classpath.maC}</Class-Path>
+                </manifestEntries>
+              </archive>
+            </configuration>
+          </execution>
+        </executions>
         <configuration>
           <archive>
             <manifest>
               <mainClass>${main.class}</mainClass>
-              <classpathPrefix>lib/</classpathPrefix>
+              <classpathPrefix>libl/</classpathPrefix>
               <addClasspath>true</addClasspath>
               <addDefaultEntries>true</addDefaultEntries>
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
@@ -46,7 +377,6 @@
               <addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
             </manifest>
             <manifestEntries>
-              <Class-Path>ext/</Class-Path>
               <SplashScreen-Image>images/logo.jpg</SplashScreen-Image>
             </manifestEntries>
           </archive>
@@ -58,24 +388,47 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>copy-runtime-libs</id>
+            <id>copy-linux-libs</id>
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/lib</outputDirectory>
-              <includeScope>runtime</includeScope>
+              <outputDirectory>${project.build.directory}/libl</outputDirectory>
+              <includeScope>compile</includeScope>
+              <excludeClassifiers>win,mac,mac-aarch64</excludeClassifiers>
             </configuration>
           </execution>
           <execution>
-            <id>copy-provided-libs</id>
+            <id>copy-win-libs</id>
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/lib</outputDirectory>
-              <includeScope>provided</includeScope>
-              <excludeClassifiers>linux,win,mac,linux-aarch64,mac-aarch64</excludeClassifiers>
+              <outputDirectory>${project.build.directory}/libw</outputDirectory>
+              <includeScope>compile</includeScope>
+              <excludeClassifiers>linux,mac,mac-aarch64</excludeClassifiers>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-mac-libs</id>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/libm</outputDirectory>
+              <includeScope>compile</includeScope>
+              <excludeClassifiers>linux,win,mac-aarch64</excludeClassifiers>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-mac-aarch64-libs</id>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/libM</outputDirectory>
+              <includeScope>compile</includeScope>
+              <excludeClassifiers>linux,win,mac</excludeClassifiers>
             </configuration>
           </execution>
         </executions>

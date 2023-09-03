@@ -8,3 +8,6 @@ indent_style = space
 insert_final_newline = true
 max_line_length = 160
 tab_width = 2
+
+[pom.xml]
+max_line_length = 240
