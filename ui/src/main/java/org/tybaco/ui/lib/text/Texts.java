@@ -27,7 +27,6 @@ import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 
-import javax.lang.model.element.Element;
 import java.io.IOException;
 import java.io.StringReader;
 import java.text.MessageFormat;
@@ -49,25 +48,17 @@ public class Texts {
   private static final SimpleObjectProperty<Locale> LOCALE = new SimpleObjectProperty<>(Texts.class, "locale", defaultLocale());
   private static final Logger LOGGER = Logger.getLogger("Texts");
 
-  private static ResourceBundle TEXTS = rb("l10n.texts", LOCALE.get());
-  private static ResourceBundle MESSAGES = rb("l10n.messages", LOCALE.get());
+  private volatile static ResourceBundle TEXTS = rb("l10n.texts", LOCALE.get());
+  private volatile static ResourceBundle MESSAGES = rb("l10n.messages", LOCALE.get());
 
   static {
     PREFERENCES.addPreferenceChangeListener(ev -> {
       if ("locale".equals(ev.getKey())) {
-        Platform.runLater(() -> {
-          if (ev.getNewValue() == null) {
-            LOCALE.set(Locale.getDefault());
-          } else {
-            LOCALE.set(Locale.forLanguageTag(ev.getNewValue()));
-          }
-        });
+        var newLocale = ev.getNewValue() == null ? Locale.getDefault() : Locale.forLanguageTag(ev.getNewValue());
+        TEXTS = rb("l10n.texts", newLocale);
+        MESSAGES = rb("l10n.messages", newLocale);
+        Platform.runLater(() -> LOCALE.set(newLocale));
       }
-    });
-    LOCALE.addListener((o, oldValue, newValue) -> {
-      LOGGER.log(INFO, "Set locale to {0}", newValue);
-      TEXTS = rb("l10n.texts", newValue);
-      MESSAGES = rb("l10n.messages", newValue);
     });
   }
 
@@ -81,7 +72,7 @@ public class Texts {
 
       @Override
       public Locale getFallbackLocale(String baseName, Locale locale) {
-        return null;
+        return Locale.ENGLISH;
       }
 
       @Override

@@ -45,7 +45,7 @@ public class MainMenuActions {
   public Action langsMenu() {
     return new Action("Languages").actions(
       new Action("English", "icon/us.png", e -> Texts.setLocale(Locale.ENGLISH)),
-      new Action("Español", "icon/es.png", e -> Texts.setLocale(Locale.forLanguageTag("es"))),
+      new Action("Español", "icon/es.png", e -> Texts.setLocale(Locale.of("es"))),
       new Action("Italiano", "icon/it.png", e -> Texts.setLocale(Locale.ITALIAN)),
       new Action(),
       new Action("Set to system default", MaterialDesignE.ERASER, e -> Texts.setLocale(null))
