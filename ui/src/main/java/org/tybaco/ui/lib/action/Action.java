@@ -60,7 +60,9 @@ public final class Action {
   }
 
   public Action(String text) {
-    this.text.bind(Texts.text(text));
+    if (text != null) {
+      this.text.bind(Texts.text(text));
+    }
   }
 
   public Action(String text, String icon, EventHandler<ActionEvent> handler) {
@@ -101,6 +103,12 @@ public final class Action {
   public Action(String text, Ikon icon, String description, EventHandler<ActionEvent> handler) {
     this(text, icon, description);
     this.handler.bind(new SimpleObjectProperty<>(handler));
+  }
+
+  public Action(boolean vertical) {
+    if (vertical) {
+      this.description.bind(new SimpleStringProperty("|"));
+    }
   }
 
   public Action fmt(String fmt, Object... args) {

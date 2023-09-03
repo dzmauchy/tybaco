@@ -25,6 +25,8 @@ import javafx.collections.ObservableList;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.model.Project;
 
+import java.math.BigInteger;
+
 @Component
 public class Projects {
 
@@ -37,9 +39,10 @@ public class Projects {
       .filter(name -> name.startsWith(prefix))
       .map(name -> name.substring(prefix.length()))
       .filter(s -> s.chars().allMatch(Character::isDigit))
-      .mapToInt(Integer::parseInt)
-      .max()
-      .orElse(1);
+      .map(BigInteger::new)
+      .max(BigInteger::compareTo)
+      .orElse(BigInteger.ZERO)
+      .add(BigInteger.ONE);
     projects.add(new Project(prefix + nextNum));
   }
 }

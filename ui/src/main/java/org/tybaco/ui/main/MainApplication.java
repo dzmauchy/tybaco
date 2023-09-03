@@ -29,8 +29,6 @@ import javafx.stage.Stage;
 import org.tybaco.ui.Main;
 import org.tybaco.ui.lib.logging.UILogHandler;
 
-import static java.lang.Thread.currentThread;
-
 public class MainApplication extends Application {
 
   private final MainApplicationContext context = new MainApplicationContext();
@@ -49,6 +47,7 @@ public class MainApplication extends Application {
     Application.setUserAgentStylesheet(STYLESHEET_MODENA);
     updateSplash();
     Platform.runLater(MainApplication::initLaf);
+    Platform.runLater(MainApplication::initWebView);
   }
 
   @Override
@@ -67,7 +66,7 @@ public class MainApplication extends Application {
       updateSplash();
       var mainPane = context.getBean(MainPane.class);
       updateSplash();
-      stage.setScene(new Scene(mainPane, 800, 600));
+      stage.setScene(new Scene(mainPane, 1024, 768));
       stage.setMaximized(true);
       stage.show();
       updateSplash();
@@ -75,21 +74,21 @@ public class MainApplication extends Application {
       updateSplash();
       updateSplashStatus();
     } catch (Throwable e) {
-      stage.close();
+      try (context) {
+        stage.close();
+      } catch (Throwable x) {
+        e.addSuppressed(x);
+      }
       throw e;
     }
   }
 
   private static void initLaf() {
-    try {
-      var styleManagerClass = currentThread().getContextClassLoader().loadClass("com.sun.javafx.css.StyleManager");
-      var instance = styleManagerClass.getMethod("getInstance").invoke(null);
-      var addUserAgentStylesheet = styleManagerClass.getMethod("addUserAgentStylesheet", String.class);
-      addUserAgentStylesheet.invoke(instance, "theme/ui.css");
-    } catch (Exception e) {
-      throw new IllegalStateException(e);
-    } finally {
-      updateSplash();
-    }
+    com.sun.javafx.css.StyleManager.getInstance().addUserAgentStylesheet("theme/ui.css");
+    updateSplash();
+  }
+
+  private static void initWebView() {
+
   }
 }

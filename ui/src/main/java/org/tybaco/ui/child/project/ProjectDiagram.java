@@ -21,14 +21,19 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
-import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
-import org.tybaco.ui.lib.context.UIRootComponent;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
-@UIRootComponent
-public class ProjectPane extends BorderPane {
+@Component
+public class ProjectDiagram {
 
-  public ProjectPane(ProjectToolbar toolbar, WebView webView) {
-    super(webView, null, null, null, toolbar);
+  @Bean
+  public WebView projectWebView() {
+    var view = new WebView();
+    view.setContextMenuEnabled(true);
+    view.setPageFill(Color.BLACK);
+    return view;
   }
 }

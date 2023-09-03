@@ -21,14 +21,22 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
-import javafx.scene.layout.BorderPane;
-import javafx.scene.web.WebView;
-import org.tybaco.ui.lib.context.UIRootComponent;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignB;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+import org.tybaco.ui.lib.action.Action;
 
-@UIRootComponent
-public class ProjectPane extends BorderPane {
+@Component
+public class ProjectActions {
 
-  public ProjectPane(ProjectToolbar toolbar, WebView webView) {
-    super(webView, null, null, null, toolbar);
+  @Bean
+  @Qualifier("projectAction")
+  @Order(1)
+  public Action newBlockAction() {
+    return new Action(null, MaterialDesignB.BABY_BOTTLE, "New block", ev -> {
+
+    });
   }
 }
