@@ -21,18 +21,22 @@ package org.tybaco.ui.lib.action;
  * #L%
  */
 
+import javafx.beans.Observable;
+import javafx.beans.*;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.*;
 import javafx.beans.value.ObservableBooleanValue;
 import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.*;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCombination;
 import org.tybaco.ui.lib.icon.Icons;
 import org.tybaco.ui.lib.text.Texts;
 
+import java.util.*;
 import java.util.function.Consumer;
 
 import static javafx.beans.binding.Bindings.createObjectBinding;
@@ -46,6 +50,8 @@ public final class Action {
   private final SimpleObjectProperty<KeyCombination> accelerator = new SimpleObjectProperty<>(this, "accelerator");
   private final SimpleObjectProperty<String> icon = new SimpleObjectProperty<>(this, "icon");
   private final SimpleBooleanProperty selected = new SimpleBooleanProperty(this, "selected");
+  private final SimpleListProperty<Action> actions = new SimpleListProperty<>(this, "actions");
+  private final SimpleStringProperty group = new SimpleStringProperty(this, "group");
 
   public Action() {
   }
@@ -119,6 +125,60 @@ public final class Action {
     return this;
   }
 
+  public Action actions(ObservableValue<ObservableList<Action>> actions) {
+    this.actions.bind(actions);
+    return this;
+  }
+
+  public Action actions(ObservableList<Action> actions) {
+    return actions(new SimpleObjectProperty<>(actions));
+  }
+
+  public Action actions(Collection<Action> actions) {
+    return actions(newList(actions));
+  }
+
+  public Action actions(Action... actions) {
+    return actions(newList(List.of(actions)));
+  }
+
+  public Action group(ObservableValue<String> group) {
+    this.group.bind(group);
+    return this;
+  }
+
+  public Action group(String group) {
+    return group(new SimpleStringProperty(group));
+  }
+
+  public boolean isActionsBound() {
+    return actions.isBound();
+  }
+
+  public boolean isTextBound() {
+    return text.isBound();
+  }
+
+  public boolean isDescriptionBound() {
+    return description.isBound();
+  }
+
+  public boolean isAcceleratorBound() {
+    return accelerator.isBound();
+  }
+
+  public boolean isIconBound() {
+    return icon.isBound();
+  }
+
+  public boolean isSelectedBound() {
+    return selected.isBound();
+  }
+
+  public boolean isGroupBound() {
+    return group.isBound();
+  }
+
   public ObjectBinding<Node> graphic(int size) {
     return createObjectBinding(() -> Icons.icon(icon.get(), size), icon);
   }
@@ -131,12 +191,13 @@ public final class Action {
   }
 
   @SafeVarargs
-  public final Menu toMenu(Consumer<Menu>... consumers) {
+  public final Menu toMenu(Consumer<? super Menu>... consumers) {
     var menu = new Menu();
     menu.textProperty().bind(text);
     menu.graphicProperty().bind(graphic(20));
     menu.acceleratorProperty().bind(accelerator);
     menu.onActionProperty().bind(handler);
+    menu.setUserData(new ActionUserData(this));
     for (var consumer : consumers) {
       consumer.accept(menu);
     }
@@ -144,12 +205,13 @@ public final class Action {
   }
 
   @SafeVarargs
-  public final MenuItem toMenuItem(Consumer<MenuItem>... consumers) {
+  public final MenuItem toMenuItem(Consumer<? super MenuItem>... consumers) {
     var menuItem = new MenuItem();
     menuItem.textProperty().bind(text);
     menuItem.graphicProperty().bind(graphic(20));
     menuItem.acceleratorProperty().bind(accelerator);
     menuItem.onActionProperty().bind(handler);
+    menuItem.setUserData(new ActionUserData(this));
     for (var consumer : consumers) {
       consumer.accept(menuItem);
     }
@@ -157,12 +219,43 @@ public final class Action {
   }
 
   @SafeVarargs
-  public final Button toButton(Consumer<Button>... consumers) {
+  public final CheckMenuItem toCheckMenuItem(Consumer<? super CheckMenuItem>... consumers) {
+    var menuItem = new CheckMenuItem();
+    menuItem.textProperty().bind(text);
+    menuItem.graphicProperty().bind(graphic(20));
+    menuItem.acceleratorProperty().bind(accelerator);
+    menuItem.onActionProperty().bind(handler);
+    menuItem.selectedProperty().bind(selected);
+    menuItem.setUserData(new ActionUserData(this));
+    for (var consumer : consumers) {
+      consumer.accept(menuItem);
+    }
+    return menuItem;
+  }
+
+  @SafeVarargs
+  public final RadioMenuItem toRadioMenuItem(Consumer<? super RadioMenuItem>... consumers) {
+    var menuItem = new RadioMenuItem();
+    menuItem.textProperty().bind(text);
+    menuItem.graphicProperty().bind(graphic(20));
+    menuItem.acceleratorProperty().bind(accelerator);
+    menuItem.onActionProperty().bind(handler);
+    menuItem.selectedProperty().bind(selected);
+    menuItem.setUserData(new ActionUserData(this));
+    for (var consumer : consumers) {
+      consumer.accept(menuItem);
+    }
+    return menuItem;
+  }
+
+  @SafeVarargs
+  public final Button toButton(Consumer<? super Button>... consumers) {
     var button = new Button();
     button.textProperty().bind(text);
     button.graphicProperty().bind(graphic(24));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
+    button.setUserData(new ActionUserData(this));
     for (var consumer : consumers) {
       consumer.accept(button);
     }
@@ -170,13 +263,14 @@ public final class Action {
   }
 
   @SafeVarargs
-  public final ToggleButton toToggleButton(Consumer<ToggleButton>... consumers) {
+  public final ToggleButton toToggleButton(Consumer<? super ToggleButton>... consumers) {
     var button = new ToggleButton();
     button.selectedProperty().bind(selected);
     button.textProperty().bind(text);
     button.graphicProperty().bind(graphic(24));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
+    button.setUserData(new ActionUserData(this));
     for (var consumer : consumers) {
       consumer.accept(button);
     }
@@ -184,13 +278,14 @@ public final class Action {
   }
 
   @SafeVarargs
-  public final RadioButton toRadioButton(Consumer<RadioButton>... consumers) {
+  public final RadioButton toRadioButton(Consumer<? super RadioButton>... consumers) {
     var button = new RadioButton();
     button.selectedProperty().bind(selected);
     button.textProperty().bind(text);
     button.graphicProperty().bind(graphic(24));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
+    button.setUserData(new ActionUserData(this));
     for (var consumer : consumers) {
       consumer.accept(button);
     }
@@ -198,14 +293,140 @@ public final class Action {
   }
 
   @SafeVarargs
-  public final Tab toTab(Consumer<Tab>... consumers) {
+  public final MenuButton toMenuButton(Consumer<? super MenuButton>... consumers) {
+    var button = new MenuButton();
+    button.textProperty().bind(text);
+    button.graphicProperty().bind(graphic(24));
+    button.onActionProperty().bind(handler);
+    button.tooltipProperty().bind(tooltip());
+    button.setUserData(new ActionUserData(this));
+    for (var consumer : consumers) {
+      consumer.accept(button);
+    }
+    return button;
+  }
+
+  @SafeVarargs
+  public final Tab toTab(Consumer<? super Tab>... consumers) {
     var tab = new Tab();
     tab.textProperty().bind(text);
     tab.graphicProperty().bind(graphic(20));
     tab.tooltipProperty().bind(tooltip());
+    tab.setUserData(new ActionUserData(this));
     for (var consumer : consumers) {
       consumer.accept(tab);
     }
     return tab;
+  }
+
+  @SafeVarargs
+  public final Menu toSmartMenu(Consumer<? super MenuItem>... consumers) {
+    var menu = toSmartMenuItem(consumers);
+    return menu instanceof Menu m ? m : toMenu(consumers);
+  }
+
+  @SuppressWarnings("unchecked")
+  @SafeVarargs
+  public final MenuItem toSmartMenuItem(Consumer<? super MenuItem>... consumers) {
+    if (selected.isBound()) {
+      if (group.isBound()) {
+        return toRadioMenuItem(consumers);
+      } else {
+        return toCheckMenuItem(consumers);
+      }
+    } else {
+      if (actions.isBound()) {
+        var menu = toMenu(consumers);
+        var data = (ActionUserData) menu.getUserData();
+        data.invalidationListener = o -> {
+          var newItems = new ArrayList<MenuItem>();
+          for (var action : (Collection<Action>) o) {
+            newItems.add(action.toSmartMenuItem(consumers));
+          }
+          menu.getItems().setAll(newItems);
+          var groups = new TreeMap<String, ToggleGroup>();
+          menu.getItems().forEach(menuItem -> {
+            if (menuItem instanceof RadioMenuItem i) {
+              var d = (ActionUserData) i.getUserData();
+              var group = groups.computeIfAbsent(d.action.group.get(), g -> new ToggleGroup());
+              i.setToggleGroup(group);
+            }
+          });
+        };
+        actions.addListener(new WeakInvalidationListener(data.invalidationListener));
+        data.invalidationListener.invalidated(actions);
+        return menu;
+      } else {
+        if (text.isBound() || icon.isBound()) {
+          return toMenuItem(consumers);
+        } else {
+          return new SeparatorMenuItem();
+        }
+      }
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  @SafeVarargs
+  public final ButtonBase toSmartButton(Map<String, ToggleGroup> map, Consumer<? super EventTarget>... consumers) {
+    if (selected.isBound()) {
+      if (group.isBound()) {
+        var button = toRadioButton(consumers);
+        button.toggleGroupProperty().bind(
+          createObjectBinding(() -> map.computeIfAbsent(group.get(), k -> new ToggleGroup()), group)
+        );
+        return button;
+      } else {
+        return toToggleButton(consumers);
+      }
+    } else {
+      if (actions.isBound()) {
+        var button = toMenuButton(consumers);
+        var data = (ActionUserData) button.getUserData();
+        data.invalidationListener = o -> {
+          var newItems = new ArrayList<MenuItem>();
+          for (var action : (Collection<Action>) o) {
+            newItems.add(action.toSmartMenuItem(consumers));
+          }
+          button.getItems().setAll(newItems);
+          var groups = new TreeMap<String, ToggleGroup>();
+          button.getItems().forEach(menuItem -> {
+            if (menuItem instanceof RadioMenuItem i) {
+              var d = (ActionUserData) i.getUserData();
+              var group = groups.computeIfAbsent(d.action.group.get(), g -> new ToggleGroup());
+              i.setToggleGroup(group);
+            }
+          });
+        };
+        actions.addListener(new WeakInvalidationListener(data.invalidationListener));
+        data.invalidationListener.invalidated(actions);
+        return button;
+      } else {
+        return new Button();
+      }
+    }
+  }
+
+  public ObservableList<Action> newList(Collection<Action> actions) {
+    return FXCollections.observableList(new ArrayList<>(actions), a -> new Observable[] {
+      this.handler,
+      this.text,
+      this.description,
+      this.accelerator,
+      this.icon,
+      this.selected,
+      this.actions,
+      this.group
+    });
+  }
+
+  private static final class ActionUserData {
+
+    private final Action action;
+    private InvalidationListener invalidationListener;
+
+    private ActionUserData(Action action) {
+      this.action = action;
+    }
   }
 }
