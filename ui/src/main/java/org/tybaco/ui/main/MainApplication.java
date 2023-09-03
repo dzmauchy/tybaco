@@ -56,6 +56,7 @@ public class MainApplication extends Application {
     try {
       updateSplash();
       UILogHandler.getInstance().flush();
+      stage.setTitle("Tybaco IDE");
       updateSplash();
       context.getDefaultListableBeanFactory().registerSingleton("primaryStage", stage);
       context.register(MainPane.class);

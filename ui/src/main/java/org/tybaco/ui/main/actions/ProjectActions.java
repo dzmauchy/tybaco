@@ -53,7 +53,6 @@ public class ProjectActions {
   @Qualifier("projectMenu")
   public Action saveAllProjectsAction() {
     return new Action("Save all projects", MaterialDesignD.DISC, ev -> {
-
     });
   }
 }
