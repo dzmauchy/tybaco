@@ -25,6 +25,8 @@ import org.tybaco.ide.splash.Splash;
 import org.tybaco.ide.splash.SplashStatus;
 import org.tybaco.logging.FastConsoleHandler;
 import org.tybaco.logging.LoggingManager;
+import org.tybaco.ui.Main;
+import org.tybaco.ui.splash.SplashBeanPostProcessor;
 
 import java.util.logging.LogManager;
 
@@ -35,36 +37,28 @@ import static org.tybaco.ide.splash.Splash.updateSplash;
 
 public class Ide {
 
-  public static void main(String... args) throws Exception {
+  public static void main(String... args) {
     renderSplash();
     initLogging();
     var logger = LogManager.getLogManager().getLogger("");
     updateSplash();
     logger.info("Preparing UI");
-    bootstrapSplash(Thread.currentThread().getContextClassLoader());
+    bootstrapSplash();
     logger.info("UI prepared");
-    invokeMain(Thread.currentThread().getContextClassLoader(), args);
+    invokeMain(args);
     logger.info("UI launched");
   }
 
-  private static void bootstrapSplash(ClassLoader classLoader) throws Exception {
+  private static void bootstrapSplash() {
     updateSplash();
-    var mainClass = classLoader.loadClass("org.tybaco.ui.Main");
-    var updateSplash = mainClass.getField("updateSplash");
-    updateSplash.set(null, (Runnable) Splash::updateSplash);
-    var updateSplashStatus = mainClass.getField("updateSplashStatus");
-    updateSplashStatus.set(null, (Runnable) SplashStatus::updateSplashStatus);
-    var splashBeanPostProcessor = classLoader.loadClass("org.tybaco.ui.splash.SplashBeanPostProcessor");
-    var incrementStep = splashBeanPostProcessor.getField("incrementStep");
-    incrementStep.set(null, (Runnable) SplashStatus::incrementStep);
-    var processorUpdateSplash = splashBeanPostProcessor.getField("updateSplash");
-    processorUpdateSplash.set(null, (Runnable) () -> Splash.updateSplash(false));
+    Main.updateSplash = Splash::updateSplash;
+    Main.updateSplashStatus = SplashStatus::updateSplashStatus;
+    SplashBeanPostProcessor.updateSplash = () -> Splash.updateSplash(false);
+    SplashBeanPostProcessor.incrementStep = SplashStatus::incrementStep;
   }
 
-  private static void invokeMain(ClassLoader classLoader, String... args) throws Exception {
-    var mainClass = classLoader.loadClass("org.tybaco.ui.Main");
-    var mainMethod = mainClass.getMethod("main", String[].class);
-    mainMethod.invoke(null, (Object) args);
+  private static void invokeMain(String... args) {
+    Main.main(args);
   }
 
   private static void initLogging() {
