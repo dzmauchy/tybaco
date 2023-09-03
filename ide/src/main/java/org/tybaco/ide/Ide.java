@@ -30,12 +30,12 @@ import java.io.File;
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.jar.JarFile;
 import java.util.logging.LogManager;
 
 import static java.lang.System.setProperty;
+import static java.util.logging.Level.INFO;
 import static java.util.logging.LogManager.getLogManager;
 import static org.tybaco.ide.splash.Splash.renderSplash;
 import static org.tybaco.ide.splash.Splash.updateSplash;
@@ -48,7 +48,7 @@ public class Ide {
     var logger = LogManager.getLogManager().getLogger("");
     logger.info("Initializing classpath");
     var urls = libUrls();
-    logger.info("Classpath initialized");
+    logger.log(INFO, "Classpath initialized: {0}", List.of(urls));
     updateSplash();
     var classLoader = new URLClassLoader("ide", urls, Thread.currentThread().getContextClassLoader());
     Thread.currentThread().setContextClassLoader(classLoader);
@@ -80,8 +80,7 @@ public class Ide {
   }
 
   private static URL[] libUrls() throws Exception {
-    var classifier = classifier();
-    var excludedLibs = new HashMap<String, String>(32, 0.5f);
+    var excludedLibs = new TreeMap<String, String>();
     var list = new LinkedList<URL>();
     try (var jarFile = new JarFile(new File(Ide.class.getProtectionDomain().getCodeSource().getLocation().toURI()), false)) {
       var manifest = jarFile.getManifest();
@@ -89,24 +88,25 @@ public class Ide {
       for (var entry : classPath.split(" ")) {
         if (entry.startsWith("lib/") && entry.endsWith(".jar")) {
           excludedLibs.put(entry.substring("lib/".length()), null);
-          var i = entry.indexOf("/javafx-");
-          if (i > 0) {
-            var j = entry.indexOf('-', i + "/javafx-".length());
-            var artifact = entry.substring(i + 1, j);
-            var version = entry.substring(j + 1, entry.length() - ".jar".length());
-            var base = "https://repo.maven.apache.org/maven2/org/openjfx/" + artifact;
-            var fxUrl = base + "/" + version + "/" + artifact + "-" + version + "-" + classifier + ".jar";
-            var url = URL.of(new URI(fxUrl), null);
-            list.addLast(url);
-          }
         }
       }
     }
     var libPath = Path.of(Ide.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent().resolve("lib");
     try (var ds = Files.newDirectoryStream(libPath, "*.jar")) {
+      var classifier = classifier();
       for (var lib : ds) {
-        if (!excludedLibs.containsKey(lib.getFileName().toString())) {
-          list.addLast(lib.toUri().toURL());
+        var fn = lib.getFileName().toString();
+        if (!excludedLibs.containsKey(fn)) {
+          list.addFirst(lib.toUri().toURL());
+        }
+        if (fn.startsWith("javafx-")) {
+          var j = fn.indexOf('-', "javafx-".length() + 1);
+          var artifact = fn.substring(0, j);
+          var version = fn.substring(j + 1, fn.length() - 4);
+          var base = "https://maven-central.storage.googleapis.com/maven2/org/openjfx/" + artifact;
+          var fxUrl = base + "/" + version + "/" + artifact + "-" + version + "-" + classifier + ".jar";
+          var url = new URI(fxUrl).toURL();
+          list.addLast(url);
         }
       }
     }

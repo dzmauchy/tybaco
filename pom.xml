@@ -129,7 +129,6 @@
     <module>library</module>
     <module>ui</module>
     <module>ide</module>
-    <module>uideps</module>
   </modules>
 
   <build>
