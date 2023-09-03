@@ -52,7 +52,13 @@ public class Texts {
   static {
     PREFERENCES.addPreferenceChangeListener(ev -> {
       if ("locale".equals(ev.getKey())) {
-        Platform.runLater(() -> LOCALE.set(Locale.forLanguageTag(ev.getNewValue())));
+        Platform.runLater(() -> {
+          if (ev.getNewValue() == null) {
+            LOCALE.set(Locale.getDefault());
+          } else {
+            LOCALE.set(Locale.forLanguageTag(ev.getNewValue()));
+          }
+        });
       }
     });
     LOCALE.addListener((o, oldValue, newValue) -> {
