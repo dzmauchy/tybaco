@@ -45,10 +45,10 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 
 public class Texts {
 
+  private static final Logger LOGGER = Logger.getLogger("Texts");
   private static final Preferences PREFERENCES = Preferences.userNodeForPackage(Texts.class);
   private static final SimpleObjectProperty<Locale> LOCALE = new SimpleObjectProperty<>(Texts.class, "locale", defaultLocale());
   private static final ConcurrentHashMap<Locale, Locale> NORMALIZED_LOCALES = new ConcurrentHashMap<>(16, 0.5f);
-  private static final Logger LOGGER = Logger.getLogger("Texts");
   private static final ConcurrentHashMap<Locale, Properties> TEXTS_BUNDLES = new ConcurrentHashMap<>(8, 0.5f);
   private static final ConcurrentHashMap<Locale, Properties> MESSAGES_BUNDLES = new ConcurrentHashMap<>(8, 0.5f);
 
