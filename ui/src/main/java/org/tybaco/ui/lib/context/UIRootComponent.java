@@ -1,4 +1,4 @@
-package org.tybaco.ui.main;
+package org.tybaco.ui.lib.context;
 
 /*-
  * #%L
@@ -21,13 +21,18 @@ package org.tybaco.ui.main;
  * #L%
  */
 
-import javafx.scene.layout.BorderPane;
-import org.tybaco.ui.lib.context.UIRootComponent;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.AliasFor;
 
-@UIRootComponent
-public class MainPane extends BorderPane {
+import java.lang.annotation.*;
 
-  public MainPane(MainTabPane tabPane, MainMenuBar menuBar) {
-    super(tabPane, menuBar, null, null, null);
-  }
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Configuration(proxyBeanMethods = false)
+@ComponentScan(lazyInit = true)
+public @interface UIRootComponent {
+
+  @AliasFor(annotation = Configuration.class, attribute = "value")
+  String value() default "";
 }
