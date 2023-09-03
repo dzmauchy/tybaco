@@ -21,7 +21,7 @@
     <javafx.base.lin>libl/${javafx.base}-linux.jar</javafx.base.lin>
     <javafx.base.win>libw/${javafx.base}-win.jar</javafx.base.win>
     <javafx.base.mac>libm/${javafx.base}-mac.jar</javafx.base.mac>
-    <javafx.base.maC>libM/${javafx.base}-mac-aarch64.jar</javafx.base.maC>
+    <javafx.base.maC>mlib/${javafx.base}-mac-aarch64.jar</javafx.base.maC>
     <javafx.media.lin>libl/${javafx.media}-linux.jar</javafx.media.lin>
     <javafx.media.win>libw/${javafx.media}-win.jar</javafx.media.win>
     <javafx.media.mac>libm/${javafx.media}-mac.jar</javafx.media.mac>
