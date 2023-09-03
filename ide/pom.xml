@@ -371,7 +371,6 @@
           <archive>
             <manifest>
               <mainClass>${main.class}</mainClass>
-              <classpathPrefix>libl/</classpathPrefix>
               <addClasspath>true</addClasspath>
               <addDefaultEntries>true</addDefaultEntries>
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
