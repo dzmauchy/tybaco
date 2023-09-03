@@ -25,19 +25,19 @@
     <javafx.media.lin>libl/${javafx.media}-linux.jar</javafx.media.lin>
     <javafx.media.win>libw/${javafx.media}-win.jar</javafx.media.win>
     <javafx.media.mac>libm/${javafx.media}-mac.jar</javafx.media.mac>
-    <javafx.media.maC>libM/${javafx.media}-mac-aarch64.jar</javafx.media.maC>
+    <javafx.media.maC>mlib/${javafx.media}-mac-aarch64.jar</javafx.media.maC>
     <javafx.graphics.lin>libl/${javafx.graphics}-linux.jar</javafx.graphics.lin>
     <javafx.graphics.win>libw/${javafx.graphics}-win.jar</javafx.graphics.win>
     <javafx.graphics.mac>libm/${javafx.graphics}-mac.jar</javafx.graphics.mac>
-    <javafx.graphics.maC>libM/${javafx.graphics}-mac-aarch64.jar</javafx.graphics.maC>
+    <javafx.graphics.maC>mlib/${javafx.graphics}-mac-aarch64.jar</javafx.graphics.maC>
     <javafx.controls.lin>libl/${javafx.controls}-linux.jar</javafx.controls.lin>
     <javafx.controls.win>libw/${javafx.controls}-win.jar</javafx.controls.win>
     <javafx.controls.mac>libm/${javafx.controls}-mac.jar</javafx.controls.mac>
-    <javafx.controls.maC>libM/${javafx.controls}-mac-aarch64.jar</javafx.controls.maC>
+    <javafx.controls.maC>mlib/${javafx.controls}-mac-aarch64.jar</javafx.controls.maC>
     <javafx.web.lin>libl/${javafx.web}-linux.jar</javafx.web.lin>
     <javafx.web.win>libw/${javafx.web}-win.jar</javafx.web.win>
     <javafx.web.mac>libm/${javafx.web}-mac.jar</javafx.web.mac>
-    <javafx.web.maC>libM/${javafx.web}-mac-aarch64.jar</javafx.web.maC>
+    <javafx.web.maC>mlib/${javafx.web}-mac-aarch64.jar</javafx.web.maC>
     <javafx.classpath.lin>${javafx.base.lin} ${javafx.media.lin} ${javafx.graphics.lin} ${javafx.controls.lin} ${javafx.web.lin}</javafx.classpath.lin>
     <javafx.classpath.win>${javafx.base.win} ${javafx.media.win} ${javafx.graphics.win} ${javafx.controls.win} ${javafx.web.win}</javafx.classpath.win>
     <javafx.classpath.mac>${javafx.base.mac} ${javafx.media.mac} ${javafx.graphics.mac} ${javafx.controls.mac} ${javafx.web.mac}</javafx.classpath.mac>
@@ -356,7 +356,7 @@
               <classifier>mac-aarch64</classifier>
               <archive>
                 <manifest>
-                  <classpathPrefix>libM/</classpathPrefix>
+                  <classpathPrefix>mlib/</classpathPrefix>
                 </manifest>
                 <manifestEntries>
                   <Class-Path>ext/ ${javafx.classpath.maC}</Class-Path>
@@ -426,7 +426,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/libM</outputDirectory>
+              <outputDirectory>${project.build.directory}/mlib</outputDirectory>
               <includeScope>compile</includeScope>
               <excludeClassifiers>linux,win,mac</excludeClassifiers>
             </configuration>
