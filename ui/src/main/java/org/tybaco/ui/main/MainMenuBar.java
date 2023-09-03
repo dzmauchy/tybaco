@@ -21,6 +21,7 @@ package org.tybaco.ui.main;
  * #L%
  */
 
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,6 +32,6 @@ import org.tybaco.ui.lib.context.UIComponent;
 public class MainMenuBar extends MenuBar {
 
   public MainMenuBar(@Qualifier("mainMenu") ObjectProvider<Action> actions) {
-    actions.forEach(action -> getMenus().add(action.toSmartMenu()));
+    super(actions.stream().map(Action::toSmartMenu).toArray(Menu[]::new));
   }
 }

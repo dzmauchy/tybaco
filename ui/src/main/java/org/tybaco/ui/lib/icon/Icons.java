@@ -27,34 +27,24 @@ import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.javafx.FontIcon;
-import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static java.util.Map.entry;
-import static java.util.Map.ofEntries;
 
 public final class Icons {
 
   private static final ConcurrentHashMap<IconKey, Image> IMAGES = new ConcurrentHashMap<>(64, 0.5f);
-
-  private static final Map<String, Ikon> ICONS = ofEntries(
-    entry("MD_PROJECT", MaterialDesignP.PACKAGE_VARIANT)
-  );
+  private static final ConcurrentHashMap<Ikon, String> FKEYS = new ConcurrentHashMap<>(1024, 0.5f);
+  private static final ConcurrentHashMap<String, Ikon> RKEYS = new ConcurrentHashMap<>(1024, 0.5f);
 
   private Icons() {
   }
 
   public static Node icon(String key, int size) {
-    if (key == null || key.isEmpty()) {
+    if (key == null) {
       return null;
     }
-    if (Character.isLowerCase(key.charAt(0))) {
-      var image = IMAGES.computeIfAbsent(new IconKey(key, size), k -> new Image(k.key, k.size, k.size, false, true, false));
-      return new ImageView(image);
-    } else {
-      var icon = ICONS.get(key);
+    if (key.startsWith("IK_")) {
+      var icon = RKEYS.get(key);
       if (icon == null) {
         return null;
       }
@@ -62,7 +52,18 @@ public final class Icons {
       fontIcon.setIconSize(size);
       fontIcon.setIconColor(Color.WHITE);
       return fontIcon;
+    } else {
+      var image = IMAGES.computeIfAbsent(new IconKey(key, size), k -> new Image(k.key, k.size, k.size, false, true, false));
+      return new ImageView(image);
     }
+  }
+
+  public static String iconKey(Ikon ikon) {
+    return FKEYS.computeIfAbsent(ikon, i -> {
+      var k = "IK_" + i.getDescription();
+      RKEYS.putIfAbsent(k, ikon);
+      return k;
+    });
   }
 
   private record IconKey(String key, int size) {

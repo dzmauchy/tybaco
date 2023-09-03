@@ -27,6 +27,9 @@ import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 
+import javax.lang.model.element.Element;
+import java.io.IOException;
+import java.io.StringReader;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.function.Supplier;
@@ -36,7 +39,7 @@ import java.util.prefs.Preferences;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
-import static java.util.logging.Level.WARNING;
+import static java.util.logging.Level.*;
 import static java.util.stream.Stream.concat;
 import static javafx.beans.binding.Bindings.createStringBinding;
 
@@ -46,8 +49,8 @@ public class Texts {
   private static final SimpleObjectProperty<Locale> LOCALE = new SimpleObjectProperty<>(Texts.class, "locale", defaultLocale());
   private static final Logger LOGGER = Logger.getLogger("Texts");
 
-  private static ResourceBundle TEXTS = ResourceBundle.getBundle("l10n/texts", LOCALE.get());
-  private static ResourceBundle MESSAGES = ResourceBundle.getBundle("l10n/messages", LOCALE.get());
+  private static ResourceBundle TEXTS = rb("l10n.texts", LOCALE.get());
+  private static ResourceBundle MESSAGES = rb("l10n.messages", LOCALE.get());
 
   static {
     PREFERENCES.addPreferenceChangeListener(ev -> {
@@ -62,9 +65,55 @@ public class Texts {
       }
     });
     LOCALE.addListener((o, oldValue, newValue) -> {
-      TEXTS = ResourceBundle.getBundle("texts", newValue);
-      MESSAGES = ResourceBundle.getBundle("messages", newValue);
+      LOGGER.log(INFO, "Set locale to {0}", newValue);
+      TEXTS = rb("l10n.texts", newValue);
+      MESSAGES = rb("l10n.messages", newValue);
     });
+  }
+
+  private static ResourceBundle rb(String name, Locale locale) {
+    var classLoader = Thread.currentThread().getContextClassLoader();
+    final class Control extends ResourceBundle.Control {
+      @Override
+      public List<String> getFormats(String baseName) {
+        return FORMAT_PROPERTIES;
+      }
+
+      @Override
+      public Locale getFallbackLocale(String baseName, Locale locale) {
+        return null;
+      }
+
+      @Override
+      public boolean needsReload(String baseName, Locale locale, String format, ClassLoader loader, ResourceBundle bundle, long loadTime) {
+        return false;
+      }
+
+      @Override
+      public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader, boolean reload) throws IllegalAccessException, InstantiationException, IOException {
+        var resource = baseName.replace('.', '/') + "_" + locale.getLanguage() + ".properties";
+        try (var is = classLoader.getResourceAsStream(resource)) {
+          if (is != null) {
+            LOGGER.log(INFO, "Loaded from {0}", resource);
+            return new PropertyResourceBundle(is);
+          } else {
+            LOGGER.log(INFO, "Unsupported locale {0} from {1}", new Object[]{locale, resource});
+          }
+        }
+        resource = baseName.replace('.', '/') + "_en.properties";
+        try (var is = classLoader.getResourceAsStream(resource)) {
+          if (is != null) {
+            LOGGER.log(INFO, "Loaded from {0}", resource);
+            return new PropertyResourceBundle(is);
+          } else {
+            LOGGER.log(INFO, "Bad resource {0}", resource);
+          }
+        }
+        LOGGER.log(SEVERE, "No resources found for {0}", locale);
+        return new PropertyResourceBundle(new StringReader(""));
+      }
+    }
+    return ResourceBundle.getBundle(name, locale, classLoader, new Control());
   }
 
   private static Locale defaultLocale() {
@@ -127,6 +176,10 @@ public class Texts {
   }
 
   public static void setLocale(Locale locale) {
+    if (locale == null) {
+      PREFERENCES.remove("locale");
+      return;
+    }
     PREFERENCES.put("locale", locale.toLanguageTag());
   }
 

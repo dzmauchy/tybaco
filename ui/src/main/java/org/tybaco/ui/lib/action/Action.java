@@ -21,6 +21,7 @@ package org.tybaco.ui.lib.action;
  * #L%
  */
 
+import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.*;
 import javafx.beans.binding.ObjectBinding;
@@ -34,6 +35,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCombination;
+import org.kordamp.ikonli.Ikon;
 import org.tybaco.ui.lib.icon.Icons;
 import org.tybaco.ui.lib.text.Texts;
 
@@ -66,9 +68,19 @@ public final class Action {
     this.handler.bind(new SimpleObjectProperty<>(handler));
   }
 
+  public Action(String text, Ikon icon, EventHandler<ActionEvent> handler) {
+    this(text, icon);
+    this.handler.bind(new SimpleObjectProperty<>(handler));
+  }
+
   public Action(String text, String icon) {
     this(text);
     this.icon.bind(new SimpleStringProperty(icon));
+  }
+
+  public Action(String text, Ikon icon) {
+    this(text);
+    this.icon.bind(new SimpleStringProperty(Icons.iconKey(icon)));
   }
 
   public Action(String text, String icon, String description) {
@@ -76,7 +88,17 @@ public final class Action {
     this.description.bind(Texts.text(description));
   }
 
+  public Action(String text, Ikon icon, String description) {
+    this(text, icon);
+    this.description.bind(Texts.text(description));
+  }
+
   public Action(String text, String icon, String description, EventHandler<ActionEvent> handler) {
+    this(text, icon, description);
+    this.handler.bind(new SimpleObjectProperty<>(handler));
+  }
+
+  public Action(String text, Ikon icon, String description, EventHandler<ActionEvent> handler) {
     this(text, icon, description);
     this.handler.bind(new SimpleObjectProperty<>(handler));
   }
@@ -114,6 +136,14 @@ public final class Action {
   public Action icon(ObservableValue<String> icon) {
     this.icon.bind(icon);
     return this;
+  }
+
+  public Action ikon(Ikon ikon) {
+    return icon(new SimpleObjectProperty<>(Icons.iconKey(ikon)));
+  }
+
+  public Action ikon(ObservableValue<Ikon> icon) {
+    return icon(createObjectBinding(() -> Icons.iconKey(icon.getValue()), icon));
   }
 
   public Action handler(ObservableValue<EventHandler<ActionEvent>> handler) {
@@ -426,7 +456,6 @@ public final class Action {
       this.accelerator,
       this.icon,
       this.selected,
-      this.actions,
       this.group
     });
   }

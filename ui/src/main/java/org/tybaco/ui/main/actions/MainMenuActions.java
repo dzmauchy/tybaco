@@ -21,12 +21,15 @@ package org.tybaco.ui.main.actions;
  * #L%
  */
 
+import org.kordamp.ikonli.materialdesign2.*;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.action.Action;
+import org.tybaco.ui.lib.text.Texts;
 
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class MainMenuActions {
@@ -35,5 +38,17 @@ public class MainMenuActions {
   @Bean
   public Action projectMenu(@Qualifier("projectMenu") List<Action> actions) {
     return new Action("Project").actions(actions);
+  }
+
+  @Qualifier("mainMenu")
+  @Bean
+  public Action langsMenu() {
+    return new Action("Languages").actions(
+      new Action("English", "icon/us.png", e -> Texts.setLocale(Locale.ENGLISH)),
+      new Action("Español", "icon/es.png", e -> Texts.setLocale(Locale.forLanguageTag("es"))),
+      new Action("Italiano", "icon/it.png", e -> Texts.setLocale(Locale.ITALIAN)),
+      new Action(),
+      new Action("Set to system default", MaterialDesignE.ERASER, e -> Texts.setLocale(null))
+    );
   }
 }
