@@ -37,7 +37,9 @@ public final class Main {
   public static volatile Runnable updateSplashStatus = () -> {};
 
   public static void main(String... args) {
+    updateSplash.run();
     initLogging();
+    updateSplash.run();
     Application.launch(MainApplication.class, args);
   }
 
@@ -48,7 +50,6 @@ public final class Main {
       rootLogger.addHandler(new FastConsoleHandler());
     }
     rootLogger.addHandler(new UILogHandler());
-    updateSplash.run();
     rootLogger.info("Logging initialized");
   }
 }

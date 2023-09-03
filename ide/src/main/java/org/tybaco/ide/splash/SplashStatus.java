@@ -21,7 +21,6 @@ package org.tybaco.ide.splash;
  * #L%
  */
 
-import java.awt.*;
 import java.util.prefs.Preferences;
 
 import static java.util.prefs.Preferences.userNodeForPackage;
@@ -30,6 +29,7 @@ public class SplashStatus {
 
   private static final Preferences preferences = userNodeForPackage(SplashStatus.class);
   private static int step;
+  static volatile boolean finished;
 
   private SplashStatus() {
   }
@@ -48,9 +48,7 @@ public class SplashStatus {
   }
 
   public static synchronized void updateSplashStatus() {
-    if (SplashScreen.getSplashScreen() == null) {
-      return;
-    }
     preferences.putInt("maxSteps", step);
+    finished = true;
   }
 }

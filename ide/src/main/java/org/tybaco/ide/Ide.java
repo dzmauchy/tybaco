@@ -21,43 +21,24 @@ package org.tybaco.ide;
  * #L%
  */
 
-import org.tybaco.ide.splash.Splash;
+import org.tybaco.ide.splash.SplashPreloader;
 import org.tybaco.ide.splash.SplashStatus;
 import org.tybaco.logging.FastConsoleHandler;
 import org.tybaco.logging.LoggingManager;
 import org.tybaco.ui.Main;
 import org.tybaco.ui.splash.SplashBeanPostProcessor;
 
-import java.util.logging.LogManager;
-
 import static java.lang.System.setProperty;
 import static java.util.logging.LogManager.getLogManager;
-import static org.tybaco.ide.splash.Splash.renderSplash;
-import static org.tybaco.ide.splash.Splash.updateSplash;
 
 public class Ide {
 
   public static void main(String... args) {
-    renderSplash();
     initLogging();
-    var logger = LogManager.getLogManager().getLogger("");
-    updateSplash();
-    logger.info("Preparing UI");
-    bootstrapSplash();
-    logger.info("UI prepared");
-    invokeMain(args);
-    logger.info("UI launched");
-  }
-
-  private static void bootstrapSplash() {
-    updateSplash();
-    Main.updateSplash = Splash::updateSplash;
+    System.setProperty("javafx.preloader", SplashPreloader.class.getName());
+    Main.updateSplash = SplashStatus::incrementStep;
     Main.updateSplashStatus = SplashStatus::updateSplashStatus;
-    SplashBeanPostProcessor.updateSplash = () -> Splash.updateSplash(false);
     SplashBeanPostProcessor.incrementStep = SplashStatus::incrementStep;
-  }
-
-  private static void invokeMain(String... args) {
     Main.main(args);
   }
 

@@ -309,7 +309,6 @@
                 </manifest>
                 <manifestEntries>
                   <Class-Path>ext/ ${javafx.classpath.lin}</Class-Path>
-                  <SplashScreen-Image>images/logo.jpg</SplashScreen-Image>
                 </manifestEntries>
               </archive>
             </configuration>
@@ -327,7 +326,6 @@
                 </manifest>
                 <manifestEntries>
                   <Class-Path>ext/ ${javafx.classpath.win}</Class-Path>
-                  <SplashScreen-Image>images/logo.jpg</SplashScreen-Image>
                 </manifestEntries>
               </archive>
             </configuration>
