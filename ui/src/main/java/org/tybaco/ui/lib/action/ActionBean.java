@@ -1,4 +1,4 @@
-package org.tybaco.ui.main;
+package org.tybaco.ui.lib.action;
 
 /*-
  * #%L
@@ -21,16 +21,18 @@ package org.tybaco.ui.main;
  * #L%
  */
 
-import javafx.scene.control.MenuBar;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.tybaco.ui.lib.action.Action;
-import org.tybaco.ui.lib.context.UIComponent;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.annotation.AliasFor;
 
-@UIComponent
-public class MainMenuBar extends MenuBar {
+import java.lang.annotation.*;
 
-  public MainMenuBar(@Qualifier("mainMenu") ObjectProvider<Action> actions) {
-    actions.forEach(action -> getMenus().add(action.toMenu()));
-  }
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Bean
+public @interface ActionBean {
+
+  @AliasFor(annotation = Bean.class, attribute = "name")
+  String[] name() default {};
+
+  String group() default "";
 }

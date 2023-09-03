@@ -28,6 +28,7 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.tybaco.ui.Main;
+import org.tybaco.ui.lib.action.Actions;
 import org.tybaco.ui.lib.logging.UILogHandler;
 
 import static java.lang.Thread.currentThread;
@@ -60,6 +61,7 @@ public class MainApplication extends Application {
       updateSplash();
       context.getDefaultListableBeanFactory().registerSingleton("primaryStage", stage);
       context.register(MainPane.class);
+      context.registerBean(Actions.class, () -> new Actions(context));
       updateSplash();
       context.refresh();
       updateSplash();

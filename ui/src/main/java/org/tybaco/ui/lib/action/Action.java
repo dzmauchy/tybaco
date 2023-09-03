@@ -21,7 +21,7 @@ package org.tybaco.ui.lib.action;
  * #L%
  */
 
-import javafx.beans.binding.*;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.*;
 import javafx.beans.value.ObservableBooleanValue;
 import javafx.beans.value.ObservableValue;
@@ -50,13 +50,17 @@ public final class Action {
   public Action() {
   }
 
+  public Action(String text) {
+    this.text.bind(Texts.text(text));
+  }
+
   public Action(String text, String icon, EventHandler<ActionEvent> handler) {
     this(text, icon);
     this.handler.bind(new SimpleObjectProperty<>(handler));
   }
 
   public Action(String text, String icon) {
-    this.text.bind(Texts.text(text));
+    this(text);
     this.icon.bind(new SimpleStringProperty(icon));
   }
 

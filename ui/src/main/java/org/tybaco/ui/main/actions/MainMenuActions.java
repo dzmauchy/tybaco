@@ -1,4 +1,4 @@
-package org.tybaco.ui.main;
+package org.tybaco.ui.main.actions;
 
 /*-
  * #%L
@@ -21,16 +21,17 @@ package org.tybaco.ui.main;
  * #L%
  */
 
-import javafx.scene.control.MenuBar;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.action.Action;
-import org.tybaco.ui.lib.context.UIComponent;
 
-@UIComponent
-public class MainMenuBar extends MenuBar {
+@Component
+public class MainMenuActions {
 
-  public MainMenuBar(@Qualifier("mainMenu") ObjectProvider<Action> actions) {
-    actions.forEach(action -> getMenus().add(action.toMenu()));
+  @Qualifier("mainMenu")
+  @Bean
+  public Action projectMenu() {
+    return new Action("Project");
   }
 }

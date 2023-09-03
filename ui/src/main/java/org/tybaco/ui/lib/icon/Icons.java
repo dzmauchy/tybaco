@@ -25,16 +25,23 @@ import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
-import org.kordamp.ikonli.*;
+import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.javafx.FontIcon;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static java.util.Map.entry;
+import static java.util.Map.ofEntries;
 
 public final class Icons {
 
   private static final ConcurrentHashMap<IconKey, Image> IMAGES = new ConcurrentHashMap<>(64, 0.5f);
-  private static final HashMap<String, Ikon> ICONS = new HashMap<>();
+
+  private static final Map<String, Ikon> ICONS = ofEntries(
+    entry("MD_PROJECT", MaterialDesignP.PACKAGE_VARIANT)
+  );
 
   private Icons() {
   }

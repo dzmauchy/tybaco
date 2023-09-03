@@ -49,8 +49,8 @@ public class Texts {
   private static final ConcurrentSkipListMap<String, Boolean> ABSENT_KEYS = new ConcurrentSkipListMap<>();
   private static final Logger LOGGER = Logger.getLogger("Texts");
 
-  private static ResourceBundle TEXTS = ResourceBundle.getBundle("texts", LOCALE.get());
-  private static ResourceBundle MESSAGES = ResourceBundle.getBundle("messages", LOCALE.get());
+  private static ResourceBundle TEXTS = ResourceBundle.getBundle("l10n/texts", LOCALE.get());
+  private static ResourceBundle MESSAGES = ResourceBundle.getBundle("l10n/messages", LOCALE.get());
 
   static {
     PREFERENCES.addPreferenceChangeListener(ev -> {
