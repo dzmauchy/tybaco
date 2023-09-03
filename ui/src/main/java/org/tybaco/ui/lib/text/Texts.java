@@ -29,7 +29,6 @@ import javafx.beans.value.ObservableValue;
 
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Supplier;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -37,7 +36,6 @@ import java.util.prefs.Preferences;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
-import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.WARNING;
 import static java.util.stream.Stream.concat;
 import static javafx.beans.binding.Bindings.createStringBinding;
@@ -46,7 +44,6 @@ public class Texts {
 
   private static final Preferences PREFERENCES = Preferences.userNodeForPackage(Texts.class);
   private static final SimpleObjectProperty<Locale> LOCALE = new SimpleObjectProperty<>(Texts.class, "locale", defaultLocale());
-  private static final ConcurrentSkipListMap<String, Boolean> ABSENT_KEYS = new ConcurrentSkipListMap<>();
   private static final Logger LOGGER = Logger.getLogger("Texts");
 
   private static ResourceBundle TEXTS = ResourceBundle.getBundle("l10n/texts", LOCALE.get());
@@ -82,10 +79,7 @@ public class Texts {
     try {
       return bundle.getString(key);
     } catch (MissingResourceException e) {
-      var old = ABSENT_KEYS.putIfAbsent(key, Boolean.TRUE);
-      if (old == null) {
-        LOGGER.log(FINE, "Key {0} doesn't exist", key);
-      }
+      assert key.equals(e.getKey());
       return key;
     } catch (RuntimeException e) {
       var r = new LogRecord(WARNING, "Unable to get {0}");
@@ -124,10 +118,6 @@ public class Texts {
       LOGGER.log(r);
       return key;
     }
-  }
-
-  public static NavigableSet<String> absentKeys() {
-    return Collections.unmodifiableNavigableSet(ABSENT_KEYS.keySet());
   }
 
   public static void setLocale(Locale locale) {
