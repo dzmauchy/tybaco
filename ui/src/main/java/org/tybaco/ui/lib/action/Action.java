@@ -121,6 +121,11 @@ public final class Action {
     return this;
   }
 
+  public Action handler(EventHandler<ActionEvent> handler) {
+    this.handler.bind(new SimpleObjectProperty<>(handler));
+    return this;
+  }
+
   public Action selected(ObservableBooleanValue selected) {
     this.selected.bind(selected);
     return this;

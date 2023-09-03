@@ -26,7 +26,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.*;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.tybaco.ui.lib.action.Actions;
 import org.tybaco.ui.lib.logging.LogBeanPostProcessor;
 
 import java.util.function.Function;
@@ -50,7 +49,6 @@ public final class ChildContext extends AnnotationConfigApplicationContext {
     requireNonNull(getEnvironment()).merge(parent.getEnvironment());
     setAllowBeanDefinitionOverriding(false);
     setAllowCircularReferences(false);
-    registerBean(Actions.class, () -> new Actions(this));
     parent.addApplicationListener(parentEventListener);
   }
 

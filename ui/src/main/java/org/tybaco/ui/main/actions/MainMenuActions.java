@@ -26,12 +26,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.action.Action;
 
+import java.util.List;
+
 @Component
 public class MainMenuActions {
 
   @Qualifier("mainMenu")
   @Bean
-  public Action projectMenu() {
-    return new Action("Project");
+  public Action projectMenu(@Qualifier("projectMenu") List<Action> actions) {
+    return new Action("Project").actions(actions);
   }
 }

@@ -21,16 +21,36 @@ package org.tybaco.ui.main.actions;
  * #L%
  */
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.action.Action;
-import org.tybaco.ui.lib.action.ActionBean;
 
 @Component
 public class ProjectActions {
 
-  @ActionBean(group = "modifications")
+  @Order(1)
+  @Bean
+  @Qualifier("projectMenu")
   public Action projectNewAction() {
     return new Action("New project", "MD_PROJECT", ev -> {
+
+    });
+  }
+
+  @Order(2)
+  @Bean
+  @Qualifier("projectMenu")
+  public Action projectNewActionSeparator() {
+    return new Action();
+  }
+
+  @Order(3)
+  @Bean
+  @Qualifier("projectMenu")
+  public Action saveAllProjectsAction() {
+    return new Action("Save all projects", "MD_PROJECT", ev -> {
 
     });
   }
