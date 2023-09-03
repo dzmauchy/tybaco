@@ -10,12 +10,12 @@ package org.tybaco.ui.lib.action;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -30,6 +30,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.*;
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCombination;
@@ -356,19 +357,17 @@ public final class Action {
         actions.addListener(new WeakInvalidationListener(data.invalidationListener));
         data.invalidationListener.invalidated(actions);
         return menu;
+      } else if (text.isBound() || icon.isBound()) {
+        return toMenuItem(consumers);
       } else {
-        if (text.isBound() || icon.isBound()) {
-          return toMenuItem(consumers);
-        } else {
-          return new SeparatorMenuItem();
-        }
+        return new SeparatorMenuItem();
       }
     }
   }
 
   @SuppressWarnings("unchecked")
   @SafeVarargs
-  public final ButtonBase toSmartButton(Map<String, ToggleGroup> map, Consumer<? super EventTarget>... consumers) {
+  public final Control toSmartButton(Map<String, ToggleGroup> map, Consumer<? super EventTarget>... consumers) {
     if (selected.isBound()) {
       if (group.isBound()) {
         var button = toRadioButton(consumers);
@@ -401,14 +400,21 @@ public final class Action {
         actions.addListener(new WeakInvalidationListener(data.invalidationListener));
         data.invalidationListener.invalidated(actions);
         return button;
+      } else if (text.isBound() || icon.isBound()) {
+        return toButton(consumers);
       } else {
-        return new Button();
+        var separator = new Separator();
+        separator.orientationProperty().bind(createObjectBinding(() -> {
+          var d = description.get();
+          return "|".equals(d) ? Orientation.VERTICAL : Orientation.HORIZONTAL;
+        }, description));
+        return separator;
       }
     }
   }
 
   public ObservableList<Action> newList(Collection<Action> actions) {
-    return FXCollections.observableList(new ArrayList<>(actions), a -> new Observable[] {
+    return FXCollections.observableList(new ArrayList<>(actions), a -> new Observable[]{
       this.handler,
       this.text,
       this.description,
