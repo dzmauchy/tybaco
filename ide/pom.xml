@@ -17,7 +17,7 @@
     <javafx.media>javafx-media-${javafx.version}</javafx.media>
     <javafx.graphics>javafx-graphics-${javafx.version}</javafx.graphics>
     <javafx.controls>javafx-controls-${javafx.version}</javafx.controls>
-    <javafx.web>javafx-controls-${javafx.version}</javafx.web>
+    <javafx.web>javafx-web-${javafx.version}</javafx.web>
     <javafx.base.lin>libl/${javafx.base}-linux.jar</javafx.base.lin>
     <javafx.base.win>libw/${javafx.base}-win.jar</javafx.base.win>
     <javafx.base.mac>libm/${javafx.base}-mac.jar</javafx.base.mac>
@@ -297,12 +297,11 @@
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
           <execution>
-            <id>make-linux-jar</id>
+            <id>default-jar</id>
             <goals>
               <goal>jar</goal>
             </goals>
             <configuration>
-              <classifier>linux</classifier>
               <archive>
                 <manifest>
                   <classpathPrefix>libl/</classpathPrefix>
