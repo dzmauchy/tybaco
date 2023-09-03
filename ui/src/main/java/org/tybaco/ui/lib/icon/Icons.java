@@ -66,6 +66,10 @@ public final class Icons {
     });
   }
 
+  public static Node icon(Ikon ikon, int size) {
+    return icon(iconKey(ikon), size);
+  }
+
   private record IconKey(String key, int size) {
   }
 }

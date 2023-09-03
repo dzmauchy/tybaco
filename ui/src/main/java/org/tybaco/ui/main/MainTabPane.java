@@ -25,11 +25,13 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.event.ContextClosedEvent;
 import org.tybaco.ui.child.project.ProjectPane;
 import org.tybaco.ui.lib.context.ChildContext;
 import org.tybaco.ui.lib.context.UIComponent;
+import org.tybaco.ui.lib.icon.Icons;
 import org.tybaco.ui.main.services.Projects;
 import org.tybaco.ui.model.Project;
 
@@ -57,6 +59,7 @@ public class MainTabPane extends TabPane {
       .findFirst()
       .orElseGet(() -> {
         var child = new ChildContext(project.id, project.name.get(), context);
+        child.registerBean(ProjectPane.class);
         var nameListener = (ChangeListener<String>) (o, oldValue, newValue) -> child.setDisplayName(project.name.get());
         project.name.addListener(nameListener);
         child.addApplicationListener(event -> {
@@ -67,6 +70,7 @@ public class MainTabPane extends TabPane {
         return child.refreshAndStart(c -> {
           var p = c.getBean(ProjectPane.class);
           var t = new Tab(project.name.get(), p);
+          t.setGraphic(Icons.icon(MaterialDesignP.PACKAGE_VARIANT, 24));
           t.setOnCloseRequest(e -> child.stop());
           t.setOnClosed(e -> child.close());
           p.setId(project.id);

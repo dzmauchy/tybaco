@@ -22,10 +22,8 @@ package org.tybaco.ui.child.project;
  */
 
 import javafx.scene.layout.BorderPane;
-import org.springframework.context.annotation.ComponentScan;
-import org.tybaco.ui.lib.context.UIComponent;
+import org.tybaco.ui.lib.context.UIRootComponent;
 
-@ComponentScan(lazyInit = true)
-@UIComponent
+@UIRootComponent
 public class ProjectPane extends BorderPane {
 }

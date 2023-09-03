@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.action.Action;
+import org.tybaco.ui.main.services.Projects;
 
 @Component
 public class ProjectActions {
@@ -35,10 +36,8 @@ public class ProjectActions {
   @Order(1)
   @Bean
   @Qualifier("projectMenu")
-  public Action projectNewAction() {
-    return new Action("New project", MaterialDesignP.PACKAGE_VARIANT, ev -> {
-
-    });
+  public Action projectNewAction(Projects projects) {
+    return new Action("New project", MaterialDesignP.PACKAGE_VARIANT, ev -> projects.newProject());
   }
 
   @Order(2)

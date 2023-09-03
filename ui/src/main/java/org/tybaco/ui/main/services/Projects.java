@@ -29,4 +29,17 @@ import org.tybaco.ui.model.Project;
 public class Projects {
 
   public final ObservableList<Project> projects = Project.newList();
+
+  public void newProject() {
+    var prefix = "Project ";
+    var nextNum = projects.stream()
+      .map(p -> p.name.get())
+      .filter(name -> name.startsWith(prefix))
+      .map(name -> name.substring(prefix.length()))
+      .filter(s -> s.chars().allMatch(Character::isDigit))
+      .mapToInt(Integer::parseInt)
+      .max()
+      .orElse(1);
+    projects.add(new Project(prefix + nextNum));
+  }
 }
