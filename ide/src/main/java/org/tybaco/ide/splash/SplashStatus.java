@@ -21,6 +21,7 @@ package org.tybaco.ide.splash;
  * #L%
  */
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.prefs.Preferences;
 
 import static java.util.prefs.Preferences.userNodeForPackage;
@@ -28,27 +29,20 @@ import static java.util.prefs.Preferences.userNodeForPackage;
 public class SplashStatus {
 
   private static final Preferences preferences = userNodeForPackage(SplashStatus.class);
-  private static int step;
+  static final AtomicInteger step = new AtomicInteger();
   static volatile boolean finished;
 
-  private SplashStatus() {
-  }
-
-  static synchronized int maxStep() {
+  static int maxStep() {
     var max = preferences.getInt("maxSteps", 100);
-    return Math.max(step, max);
+    return Math.max(step.get(), max);
   }
 
-  public static synchronized int incrementStep() {
-    return ++step;
+  public static void incrementStep() {
+    step.incrementAndGet();
   }
 
-  static synchronized int step() {
-    return step;
-  }
-
-  public static synchronized void updateSplashStatus() {
-    preferences.putInt("maxSteps", step);
+  public static void updateSplashStatus() {
+    preferences.putInt("maxSteps", step.get());
     finished = true;
   }
 }
