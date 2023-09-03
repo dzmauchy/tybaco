@@ -28,9 +28,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -38,7 +39,7 @@ import java.util.prefs.Preferences;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
-import static java.util.logging.Level.*;
+import static java.util.logging.Level.WARNING;
 import static java.util.stream.Stream.concat;
 import static javafx.beans.binding.Bindings.createStringBinding;
 
@@ -46,65 +47,18 @@ public class Texts {
 
   private static final Preferences PREFERENCES = Preferences.userNodeForPackage(Texts.class);
   private static final SimpleObjectProperty<Locale> LOCALE = new SimpleObjectProperty<>(Texts.class, "locale", defaultLocale());
+  private static final ConcurrentHashMap<Locale, Locale> NORMALIZED_LOCALES = new ConcurrentHashMap<>(16, 0.5f);
   private static final Logger LOGGER = Logger.getLogger("Texts");
-
-  private volatile static ResourceBundle TEXTS = rb("l10n.texts", LOCALE.get());
-  private volatile static ResourceBundle MESSAGES = rb("l10n.messages", LOCALE.get());
+  private static final ConcurrentHashMap<Locale, Properties> TEXTS_BUNDLES = new ConcurrentHashMap<>(8, 0.5f);
+  private static final ConcurrentHashMap<Locale, Properties> MESSAGES_BUNDLES = new ConcurrentHashMap<>(8, 0.5f);
 
   static {
     PREFERENCES.addPreferenceChangeListener(ev -> {
       if ("locale".equals(ev.getKey())) {
         var newLocale = ev.getNewValue() == null ? Locale.getDefault() : Locale.forLanguageTag(ev.getNewValue());
-        TEXTS = rb("l10n.texts", newLocale);
-        MESSAGES = rb("l10n.messages", newLocale);
         Platform.runLater(() -> LOCALE.set(newLocale));
       }
     });
-  }
-
-  private static ResourceBundle rb(String name, Locale locale) {
-    var classLoader = Thread.currentThread().getContextClassLoader();
-    final class Control extends ResourceBundle.Control {
-      @Override
-      public List<String> getFormats(String baseName) {
-        return FORMAT_PROPERTIES;
-      }
-
-      @Override
-      public Locale getFallbackLocale(String baseName, Locale locale) {
-        return Locale.ENGLISH;
-      }
-
-      @Override
-      public boolean needsReload(String baseName, Locale locale, String format, ClassLoader loader, ResourceBundle bundle, long loadTime) {
-        return false;
-      }
-
-      @Override
-      public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader, boolean reload) throws IllegalAccessException, InstantiationException, IOException {
-        var resource = baseName.replace('.', '/') + "_" + locale.getLanguage() + ".properties";
-        try (var is = classLoader.getResourceAsStream(resource)) {
-          if (is != null) {
-            LOGGER.log(INFO, "Loaded from {0}", resource);
-            return new PropertyResourceBundle(is);
-          } else {
-            LOGGER.log(INFO, "Unsupported locale {0} from {1}", new Object[]{locale, resource});
-          }
-        }
-        resource = baseName.replace('.', '/') + "_en.properties";
-        try (var is = classLoader.getResourceAsStream(resource)) {
-          if (is != null) {
-            LOGGER.log(INFO, "Loaded from {0}", resource);
-            return new PropertyResourceBundle(is);
-          } else {
-            LOGGER.log(INFO, "Bad resource {0}", resource);
-          }
-        }
-        LOGGER.log(SEVERE, "No resources found for {0}", locale);
-        return new PropertyResourceBundle(new StringReader(""));
-      }
-    }
-    return ResourceBundle.getBundle(name, locale, classLoader, new Control());
   }
 
   private static Locale defaultLocale() {
@@ -118,15 +72,28 @@ public class Texts {
   private Texts() {
   }
 
-  private static String key(String key, ResourceBundle bundle) {
+  private static String key(String key, ConcurrentHashMap<Locale, Properties> bundles) {
     if (key == null) {
       return null;
     }
     try {
-      return bundle.getString(key);
-    } catch (MissingResourceException e) {
-      assert key.equals(e.getKey());
-      return key;
+      var normalizedLocale = NORMALIZED_LOCALES.computeIfAbsent(LOCALE.get(), l -> Locale.of(l.getLanguage()));
+      var ps = bundles.computeIfAbsent(normalizedLocale, l -> {
+        var classLoader = Thread.currentThread().getContextClassLoader();
+        var resource = bundles == TEXTS_BUNDLES ? "l10n/texts" : "l10n/messages";
+        try (var is = classLoader.getResourceAsStream(resource + "_" + l.getLanguage() + ".properties")) {
+          var props = new Properties();
+          if (is == null) {
+            return props;
+          } else {
+            props.load(is);
+          }
+          return props;
+        } catch (IOException e) {
+          throw new UncheckedIOException(e);
+        }
+      });
+      return ps.getProperty(key, key);
     } catch (RuntimeException e) {
       var r = new LogRecord(WARNING, "Unable to get {0}");
       r.setThrown(e);
@@ -141,7 +108,7 @@ public class Texts {
       return null;
     }
     try {
-      return key(key, TEXTS).formatted(args.get());
+      return key(key, TEXTS_BUNDLES).formatted(args.get());
     } catch (RuntimeException e) {
       var r = new LogRecord(WARNING, "Unable to format {0}");
       r.setThrown(e);
@@ -156,7 +123,7 @@ public class Texts {
       return null;
     }
     try {
-      return MessageFormat.format(key(key, MESSAGES), args.get());
+      return MessageFormat.format(key(key, MESSAGES_BUNDLES), args.get());
     } catch (RuntimeException e) {
       var r = new LogRecord(WARNING, "Unable to format a message {0}");
       r.setThrown(e);
@@ -179,7 +146,7 @@ public class Texts {
   }
 
   public static StringBinding text(String text) {
-    return createStringBinding(() -> key(text, TEXTS), LOCALE);
+    return createStringBinding(() -> key(text, TEXTS_BUNDLES), LOCALE);
   }
 
   public static StringBinding text(String format, Object... args) {
@@ -187,7 +154,7 @@ public class Texts {
   }
 
   public static StringBinding msg(String msg) {
-    return createStringBinding(() -> key(msg, MESSAGES), LOCALE);
+    return createStringBinding(() -> key(msg, MESSAGES_BUNDLES), LOCALE);
   }
 
   public static StringBinding msg(String msg, Object... args) {
