@@ -31,6 +31,6 @@ import org.tybaco.ui.lib.context.UIComponent;
 public class MainMenuBar extends MenuBar {
 
   public MainMenuBar(@Qualifier("mainMenu") ObjectProvider<Action> actions) {
-    actions.forEach(action -> getMenus().add(action.toMenu()));
+    actions.forEach(action -> getMenus().add(action.toSmartMenu()));
   }
 }
