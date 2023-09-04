@@ -33,15 +33,21 @@ import java.net.*;
 import java.util.Optional;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.logging.*;
 
 import static com.sun.net.httpserver.HttpServer.create;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.InetAddress.getLoopbackAddress;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.WARNING;
 
 @EagerComponent
 public class ProjectServer {
+
+  private static final Logger LOG = Logger.getLogger(ProjectServer.class.getName());
 
   private final ThreadGroup threadGroup = new ThreadGroup("http");
   private final Projects projects;
@@ -56,6 +62,7 @@ public class ProjectServer {
 
   private void on(HttpExchange exchange) throws IOException {
     var url = exchange.getRequestURI().toString();
+    LOG.log(INFO, "Request {0}", url);
     if (url.startsWith("/js/") || url.startsWith("/page/")) {
       serveResource(exchange, url);
     } else if (url.startsWith("/project/")) {
@@ -64,14 +71,24 @@ public class ProjectServer {
   }
 
   private void serveResource(HttpExchange exchange, String res) throws IOException {
-    var resource = requireNonNull(getClass().getClassLoader().getResource("webapp" + res));
+    var resource = getClass().getClassLoader().getResource("webapp" + res);
+    if (resource == null) {
+      LOG.log(WARNING, "Not found {0}", res);
+      exchange.sendResponseHeaders(HTTP_NOT_FOUND, -1L);
+      return;
+    }
     var conn = resource.openConnection();
+    conn.setUseCaches(true);
     conn.connect();
-    contentType(res).ifPresent(c -> exchange.getResponseHeaders().add("Content-Type", c));
-    exchange.sendResponseHeaders(HTTP_OK, conn instanceof JarURLConnection c ? c.getJarEntry().getSize() : conn.getContentLength());
+    var headers = exchange.getResponseHeaders();
+    contentType(res).ifPresent(c -> headers.add("Content-Type", c));
+    var contentSize = conn instanceof JarURLConnection c ? c.getJarEntry().getSize() : conn.getContentLength();
+    LOG.log(INFO, "Preparing to write {0} bytes of {1}", new Object[] {contentSize, res});
+    exchange.sendResponseHeaders(HTTP_OK, contentSize);
     try (exchange; var is = conn.getInputStream(); var os = exchange.getResponseBody()) {
       is.transferTo(os);
     }
+    LOG.log(INFO, "Written {0} bytes of {1}", new Object[]{contentSize, res});
   }
 
   private Optional<String> contentType(String url) {
