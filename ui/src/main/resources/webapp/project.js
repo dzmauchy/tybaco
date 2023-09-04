@@ -1,5 +1,3 @@
-package org.tybaco.ui.main.services;
-
 /*-
  * #%L
  * ui
@@ -20,26 +18,3 @@ package org.tybaco.ui.main.services;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
-import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-@Component
-public final class Directories {
-
-  public final Path userHome;
-  public final Path userDir;
-  public final Path appRoot;
-  public final Path webRoot;
-
-  public Directories() throws IOException {
-    userHome = Path.of(System.getProperty("user.home"));
-    userDir = Path.of(System.getProperty("user.dir"));
-    appRoot = userHome.resolve(".tybaco");
-    webRoot = appRoot.resolve("web");
-    Files.createDirectories(webRoot);
-  }
-}

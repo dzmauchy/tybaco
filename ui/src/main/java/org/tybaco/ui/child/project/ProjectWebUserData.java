@@ -21,24 +21,27 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
-import javafx.scene.paint.Color;
-import javafx.scene.web.WebView;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.main.services.ProjectServer;
+import org.springframework.util.FileSystemUtils;
+import org.tybaco.ui.main.services.Directories;
 import org.tybaco.ui.model.Project;
 
-@Component
-public class ProjectDiagram {
+import java.io.Closeable;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-  @Bean
-  public WebView projectWebView(Project project, ProjectServer server, ProjectWebUserData data) {
-    var view = new WebView();
-    view.setContextMenuEnabled(true);
-    view.setPageFill(Color.BLACK);
-    view.getEngine().load(server.projectUrl(project));
-    view.getEngine().setUserDataDirectory(data.directory.toFile());
-    view.getEngine().setJavaScriptEnabled(true);
-    return view;
+@Component
+public class ProjectWebUserData implements Closeable {
+
+  public final Path directory;
+
+  public ProjectWebUserData(Directories directories, Project project) throws IOException {
+    directory = Files.createTempDirectory(directories.webRoot, project.id + "_");
+  }
+
+  @Override
+  public void close() throws IOException {
+    FileSystemUtils.deleteRecursively(directory);
   }
 }
