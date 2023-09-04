@@ -29,13 +29,15 @@ import org.tybaco.ui.lib.context.EagerComponent;
 import org.tybaco.ui.model.Project;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
+import java.net.*;
+import java.util.Optional;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.sun.net.httpserver.HttpServer.create;
+import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.InetAddress.getLoopbackAddress;
+import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @EagerComponent
@@ -53,22 +55,37 @@ public class ProjectServer {
   }
 
   private void on(HttpExchange exchange) throws IOException {
-    // language=html
-    var response = """
-      <html>
-        <body bgcolor='black'>
-        </body>
-      </html>
-      """;
-    var raw = response.getBytes(StandardCharsets.UTF_8);
-    exchange.sendResponseHeaders(200, raw.length);
-    try (exchange; var os = exchange.getResponseBody()) {
-      os.write(raw);
+    var url = exchange.getRequestURI().toString();
+    if (url.startsWith("/js/") || url.startsWith("/page/")) {
+      serveResource(exchange, url);
+    } else if (url.startsWith("/project/")) {
+      serveResource(exchange, "/project/project.html");
+    }
+  }
+
+  private void serveResource(HttpExchange exchange, String res) throws IOException {
+    var resource = requireNonNull(getClass().getClassLoader().getResource("webapp" + res));
+    var conn = resource.openConnection();
+    conn.connect();
+    contentType(res).ifPresent(c -> exchange.getResponseHeaders().add("Content-Type", c));
+    exchange.sendResponseHeaders(HTTP_OK, conn instanceof JarURLConnection c ? c.getJarEntry().getSize() : conn.getContentLength());
+    try (exchange; var is = conn.getInputStream(); var os = exchange.getResponseBody()) {
+      is.transferTo(os);
+    }
+  }
+
+  private Optional<String> contentType(String url) {
+    if (url.endsWith(".js")) {
+      return Optional.of("application/javascript");
+    } else if (url.endsWith(".html")) {
+      return Optional.of("text/html");
+    } else {
+      return Optional.empty();
     }
   }
 
   public String projectUrl(Project project) {
-    return "http://127.0.0.1:" + server.getAddress().getPort() + "/page/" + project.id;
+    return "http://127.0.0.1:" + server.getAddress().getPort() + "/project/" + project.id;
   }
 
   @EventListener
