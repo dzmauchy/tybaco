@@ -47,7 +47,13 @@ public class MainApplication extends Application {
     Application.setUserAgentStylesheet(STYLESHEET_MODENA);
     updateSplash();
     Platform.runLater(MainApplication::initLaf);
-    Platform.runLater(MainApplication::initWebView);
+  }
+
+  @Override
+  public void stop() {
+    try (context) {
+      context.stop();
+    }
   }
 
   @Override
@@ -70,6 +76,7 @@ public class MainApplication extends Application {
       stage.setMaximized(true);
       stage.show();
       updateSplash();
+      updateSplash();
       context.start();
       updateSplash();
       updateSplashStatus();
@@ -86,9 +93,5 @@ public class MainApplication extends Application {
   private static void initLaf() {
     com.sun.javafx.css.StyleManager.getInstance().addUserAgentStylesheet("theme/ui.css");
     updateSplash();
-  }
-
-  private static void initWebView() {
-
   }
 }

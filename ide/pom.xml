@@ -317,7 +317,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <classifier>windows</classifier>
+              <classifier>win</classifier>
               <archive>
                 <manifest>
                   <classpathPrefix>libw/</classpathPrefix>

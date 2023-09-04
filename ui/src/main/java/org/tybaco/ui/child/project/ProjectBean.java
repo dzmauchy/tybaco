@@ -21,22 +21,22 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
-import javafx.scene.paint.Color;
-import javafx.scene.web.WebView;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.main.services.ProjectServer;
 import org.tybaco.ui.model.Project;
 
 @Component
-public class ProjectDiagram {
+public class ProjectBean {
+
+  private final Project project;
+
+  public ProjectBean(@Autowired(required = false) Project project) {
+    this.project = project;
+  }
 
   @Bean
-  public WebView projectWebView(Project project, ProjectServer server) {
-    var view = new WebView();
-    view.setContextMenuEnabled(true);
-    view.setPageFill(Color.BLACK);
-    view.getEngine().load(server.projectUrl(project));
-    return view;
+  public Project project() {
+    return project;
   }
 }

@@ -21,16 +21,24 @@ package org.tybaco.ui.main.services;
  * #L%
  */
 
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.model.Project;
 
 import java.math.BigInteger;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class Projects {
 
   public final ObservableList<Project> projects = Project.newList();
+  private final ConcurrentHashMap<String, Project> map = new ConcurrentHashMap<>();
+
+  public Projects() {
+    projects.addListener(this::onChange);
+  }
 
   public void newProject() {
     var prefix = "Project ";
@@ -44,5 +52,24 @@ public class Projects {
       .orElse(BigInteger.ZERO)
       .add(BigInteger.ONE);
     projects.add(new Project(prefix + nextNum));
+  }
+
+  public Project getById(String id) {
+    return map.get(id);
+  }
+
+  public Optional<Project> byId(String id) {
+    return Optional.ofNullable(getById(id));
+  }
+
+  private void onChange(ListChangeListener.Change<? extends Project> c) {
+    while (c.next()) {
+      if (c.wasRemoved()) {
+        c.getRemoved().forEach(p -> map.remove(p.id));
+      }
+      if (c.wasAdded()) {
+        c.getAddedSubList().forEach(p -> map.put(p.id, p));
+      }
+    }
   }
 }
