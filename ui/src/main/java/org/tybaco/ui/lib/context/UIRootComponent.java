@@ -35,4 +35,7 @@ public @interface UIRootComponent {
 
   @AliasFor(annotation = Configuration.class, attribute = "value")
   String value() default "";
+
+  @AliasFor(annotation = ComponentScan.class, attribute = "lazyInit")
+  boolean lazyInit() default true;
 }

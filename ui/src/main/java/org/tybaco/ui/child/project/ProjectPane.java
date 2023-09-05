@@ -22,13 +22,14 @@ package org.tybaco.ui.child.project;
  */
 
 import javafx.scene.layout.BorderPane;
-import javafx.scene.web.WebView;
-import org.tybaco.ui.lib.context.UIRootComponent;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 
-@UIRootComponent
+@Configuration(proxyBeanMethods = false)
+@ComponentScan(lazyInit = true)
 public class ProjectPane extends BorderPane {
 
-  public ProjectPane(ProjectToolbar toolbar, WebView webView) {
-    super(webView, null, null, null, toolbar);
+  public ProjectPane(ProjectToolbar toolbar, ProjectDiagram diagram) {
+    super(diagram, null, null, null, toolbar);
   }
 }

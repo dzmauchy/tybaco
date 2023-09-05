@@ -1,86 +1,65 @@
 package org.tybaco.ui.child.project;
 
-/*-
- * #%L
- * ui
- * %%
- * Copyright (C) 2023 Montoni
- * %%
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * #L%
- */
-
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Worker;
-import javafx.concurrent.Worker.State;
+import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
+import javafx.scene.Group;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.web.WebView;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
-import org.tybaco.ui.main.services.ProjectServer;
-import org.tybaco.ui.model.Project;
+import javafx.scene.shape.Box;
+import javafx.scene.shape.Rectangle;
+import org.tybaco.ui.lib.context.UIComponent;
 
-import java.util.logging.Logger;
+import java.util.Random;
 
-import static java.util.logging.Level.*;
+import static javafx.scene.input.ScrollEvent.SCROLL;
 
-@Component
-public class ProjectDiagram {
+@UIComponent
+public class ProjectDiagram extends ScrollPane {
 
-  private static final Logger LOG = Logger.getLogger(ProjectDiagram.class.getName());
+  private final Group content = new Group();
+  private final Group zoomGroup = new Group(content);
+  private final VBox contentGroup = new VBox(zoomGroup);
 
-  private final WebView view = new WebView();
+  private double scale = 1.0;
 
-  public ProjectDiagram(ProjectWebUserData data) {
-    view.setContextMenuEnabled(true);
-    view.setPageFill(Color.BLACK);
-    var engine = view.getEngine();
-    engine.setUserDataDirectory(data.directory.toFile());
-    engine.setJavaScriptEnabled(true);
-    var loadWorker = engine.getLoadWorker();
-    loadWorker.stateProperty().addListener(new WebViewStateListener());
-  }
-
-  @Autowired
-  private void load(Project project, ProjectServer server) {
-    view.getEngine().load(server.projectUrl(project));
-  }
-
-  @Bean
-  public WebView view() {
-    return view;
-  }
-
-  private final class WebViewStateListener implements ChangeListener<State> {
-
-    private final Worker<Void> loadWorker = view.getEngine().getLoadWorker();
-
-    @Override
-    public void changed(ObservableValue<? extends State> observable, State oldValue, State newValue) {
-      switch (newValue) {
-        case SUCCEEDED -> {
-          LOG.log(INFO, "Document loaded");
-        }
-        case FAILED -> {
-          LOG.log(SEVERE, "Document load failed", loadWorker.getException());
-        }
-        case CANCELLED -> {
-          LOG.log(WARNING, "Document load cancelled");
-        }
-      }
+  public ProjectDiagram() {
+    contentGroup.setAlignment(Pos.CENTER);
+    setContent(contentGroup);
+    setFitToHeight(true);
+    setFitToWidth(true);
+    setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    setPannable(true);
+    contentGroup.addEventHandler(SCROLL, e -> {
+      onScroll(e.getDeltaY(), new Point2D(e.getX(), e.getY()));
+    });
+    var r = new Random(0L);
+    for (int i = 0; i < 100; i++) {
+      var box = new Rectangle(r.nextDouble() * 1000d, r.nextDouble() * 1000d, r.nextDouble() * 100d, r.nextDouble() * 100d);
+      box.setFill(Color.BLACK);
+      content.getChildren().add(box);
     }
+  }
+
+  private void onScroll(double delta, Point2D p) {
+    System.out.println(delta);
+    var zoomFactor = Math.exp(delta * 0.02);
+    var innerBounds = zoomGroup.getLayoutBounds();
+    var viewportBounds = getViewportBounds();
+    var x = getHvalue() * (innerBounds.getWidth() - viewportBounds.getWidth());
+    var y = getVvalue() * (innerBounds.getHeight() - viewportBounds.getHeight());
+    scale = scale * zoomFactor;
+    System.out.println(zoomFactor);
+    content.setScaleX(scale);
+    content.setScaleY(scale);
+    layout();
+    var pos = content.parentToLocal(zoomGroup.parentToLocal(p));
+    var scrollPos = content.getLocalToParentTransform().deltaTransform(pos.multiply(zoomFactor - 1d));
+    var newInnerBounds = zoomGroup.getBoundsInLocal();
+    setHvalue((x + scrollPos.getX()) / (newInnerBounds.getWidth() - viewportBounds.getWidth()));
+    setVvalue((y + scrollPos.getY()) / (newInnerBounds.getHeight() - viewportBounds.getHeight()));
   }
 }
