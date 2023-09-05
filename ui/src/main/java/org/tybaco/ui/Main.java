@@ -37,6 +37,7 @@ public final class Main {
   public static volatile Runnable updateSplashStatus = () -> {};
 
   public static void main(String... args) {
+    System.setProperty("com.sun.javafx.gestures.zoom", "true");
     updateSplash.run();
     initLogging();
     updateSplash.run();
