@@ -23,9 +23,11 @@ package org.tybaco.ui.child.project;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Worker;
 import javafx.concurrent.Worker.State;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.main.services.ProjectServer;
@@ -40,38 +42,45 @@ public class ProjectDiagram {
 
   private static final Logger LOG = Logger.getLogger(ProjectDiagram.class.getName());
 
-  @Bean
-  public WebView projectWebView(Project project, ProjectServer server, ProjectWebUserData data) {
-    var view = new WebView();
+  private final WebView view = new WebView();
+
+  public ProjectDiagram(ProjectWebUserData data) {
     view.setContextMenuEnabled(true);
     view.setPageFill(Color.BLACK);
     var engine = view.getEngine();
+    engine.setUserDataDirectory(data.directory.toFile());
+    engine.setJavaScriptEnabled(true);
     var loadWorker = engine.getLoadWorker();
-    final class Listener implements ChangeListener<State> {
-      @Override
-      public void changed(ObservableValue<? extends State> observable, State oldValue, State newValue) {
-        switch (newValue) {
-          case SUCCEEDED -> {
-            LOG.log(INFO, "Document loaded");
-            view.setUserData(engine.executeScript("window"));
-            LOG.log(INFO, "Window initialized {0}", view.getUserData());
-            loadWorker.stateProperty().removeListener(this);
-          }
-          case FAILED -> {
-            LOG.log(SEVERE, "Document load failed", loadWorker.getException());
-            loadWorker.stateProperty().removeListener(this);
-          }
-          case CANCELLED -> {
-            LOG.log(WARNING, "Document load cancelled");
-            loadWorker.stateProperty().removeListener(this);
-          }
+    loadWorker.stateProperty().addListener(new WebViewStateListener());
+  }
+
+  @Autowired
+  private void load(Project project, ProjectServer server) {
+    view.getEngine().load(server.projectUrl(project));
+  }
+
+  @Bean
+  public WebView view() {
+    return view;
+  }
+
+  private final class WebViewStateListener implements ChangeListener<State> {
+
+    private final Worker<Void> loadWorker = view.getEngine().getLoadWorker();
+
+    @Override
+    public void changed(ObservableValue<? extends State> observable, State oldValue, State newValue) {
+      switch (newValue) {
+        case SUCCEEDED -> {
+          LOG.log(INFO, "Document loaded");
+        }
+        case FAILED -> {
+          LOG.log(SEVERE, "Document load failed", loadWorker.getException());
+        }
+        case CANCELLED -> {
+          LOG.log(WARNING, "Document load cancelled");
         }
       }
     }
-    loadWorker.stateProperty().addListener(new Listener());
-    engine.load(server.projectUrl(project));
-    engine.setUserDataDirectory(data.directory.toFile());
-    engine.setJavaScriptEnabled(true);
-    return view;
   }
 }
