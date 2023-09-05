@@ -18,7 +18,9 @@ import static javafx.scene.input.ScrollEvent.SCROLL;
 public class ProjectDiagram extends ScrollPane {
 
   private final Group content = new Group();
-  private final Group zoomGroup = new Group(content);
+  private final Group connectors = new Group();
+  private final StackPane stackPane = new StackPane(connectors, content);
+  private final Group zoomGroup = new Group(stackPane);
   private final StackPane contentGroup = new StackPane(zoomGroup);
 
   public ProjectDiagram() {
