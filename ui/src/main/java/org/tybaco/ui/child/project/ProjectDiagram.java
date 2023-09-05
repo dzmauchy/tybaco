@@ -4,6 +4,7 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -18,10 +19,9 @@ public class ProjectDiagram extends ScrollPane {
 
   private final Group content = new Group();
   private final Group zoomGroup = new Group(content);
-  private final VBox contentGroup = new VBox(zoomGroup);
+  private final StackPane contentGroup = new StackPane(zoomGroup);
 
   public ProjectDiagram() {
-    contentGroup.setAlignment(Pos.CENTER);
     setContent(contentGroup);
     setFitToHeight(true);
     setFitToWidth(true);
