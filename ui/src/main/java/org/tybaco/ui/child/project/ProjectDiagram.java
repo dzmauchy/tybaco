@@ -4,11 +4,8 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Box;
 import javafx.scene.shape.Rectangle;
 import org.tybaco.ui.lib.context.UIComponent;
 
@@ -22,8 +19,6 @@ public class ProjectDiagram extends ScrollPane {
   private final Group content = new Group();
   private final Group zoomGroup = new Group(content);
   private final VBox contentGroup = new VBox(zoomGroup);
-
-  private double scale = 1.0;
 
   public ProjectDiagram() {
     contentGroup.setAlignment(Pos.CENTER);
@@ -39,22 +34,19 @@ public class ProjectDiagram extends ScrollPane {
     var r = new Random(0L);
     for (int i = 0; i < 100; i++) {
       var box = new Rectangle(r.nextDouble() * 1000d, r.nextDouble() * 1000d, r.nextDouble() * 100d, r.nextDouble() * 100d);
-      box.setFill(Color.BLACK);
+      box.setFill(new Color(r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble()));
       content.getChildren().add(box);
     }
   }
 
   private void onScroll(double delta, Point2D p) {
-    System.out.println(delta);
-    var zoomFactor = Math.exp(delta * 0.02);
+    var zoomFactor = Math.exp(delta * 0.01);
     var innerBounds = zoomGroup.getLayoutBounds();
     var viewportBounds = getViewportBounds();
     var x = getHvalue() * (innerBounds.getWidth() - viewportBounds.getWidth());
     var y = getVvalue() * (innerBounds.getHeight() - viewportBounds.getHeight());
-    scale = scale * zoomFactor;
-    System.out.println(zoomFactor);
-    content.setScaleX(scale);
-    content.setScaleY(scale);
+    content.setScaleX(content.getScaleX() * zoomFactor);
+    content.setScaleY(content.getScaleY() * zoomFactor);
     layout();
     var pos = content.parentToLocal(zoomGroup.parentToLocal(p));
     var scrollPos = content.getLocalToParentTransform().deltaTransform(pos.multiply(zoomFactor - 1d));
