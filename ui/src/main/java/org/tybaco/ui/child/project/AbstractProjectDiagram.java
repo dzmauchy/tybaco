@@ -13,7 +13,6 @@ import javafx.scene.transform.Affine;
 import java.util.Random;
 
 import static java.lang.Math.abs;
-import static java.lang.Math.max;
 import static javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 
