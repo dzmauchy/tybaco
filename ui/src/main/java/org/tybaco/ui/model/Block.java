@@ -22,14 +22,17 @@ package org.tybaco.ui.model;
  */
 
 import javafx.beans.Observable;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.tybaco.ui.lib.id.Ids;
+import javafx.geometry.Point2D;
 import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Collection;
+
+import static java.lang.Float.parseFloat;
 
 public final class Block {
 
@@ -37,13 +40,15 @@ public final class Block {
   public final SimpleStringProperty name;
   public final SimpleStringProperty factory;
   public final SimpleStringProperty value;
+  public final SimpleObjectProperty<Point2D> pos;
   private final Observable[] observables;
 
-  Block(int id, String name, String factory, String value) {
+  Block(int id, String name, String factory, String value, Point2D pos) {
     this.id = id;
     this.name = new SimpleStringProperty(this, "name", name);
     this.factory = new SimpleStringProperty(this, "factory", factory);
     this.value = new SimpleStringProperty(this, "value", value);
+    this.pos = new SimpleObjectProperty<>(this, "pos", pos);
     this.observables = new Observable[] {this.name, this.factory, this.value};
   }
 
@@ -52,7 +57,8 @@ public final class Block {
       Integer.parseInt(element.getAttribute("id")),
       element.getAttribute("name"),
       element.getAttribute("factory"),
-      element.getAttribute("value")
+      element.getAttribute("value"),
+      new Point2D(parseFloat(element.getAttribute("x")), parseFloat(element.getAttribute("y")))
     );
   }
 
@@ -61,6 +67,8 @@ public final class Block {
     element.setAttribute("name", name.get());
     element.setAttribute("factory", factory.get());
     element.setAttribute("value", value.get());
+    element.setAttribute("x", Float.toString((float) pos.get().getX()));
+    element.setAttribute("y", Float.toString((float) pos.get().getY()));
   }
 
   private Observable[] observables() {

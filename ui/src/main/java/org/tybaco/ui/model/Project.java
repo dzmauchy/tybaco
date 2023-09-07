@@ -25,6 +25,7 @@ import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Point2D;
 import org.tybaco.ui.lib.id.Ids;
 import org.w3c.dom.Element;
 
@@ -110,9 +111,9 @@ public final class Project {
     return links.stream().filter(l -> l.in().blockId() == block.id);
   }
 
-  public Block newBlock(String name, String factory, String value) {
+  public Block newBlock(String name, String factory, String value, Point2D pos) {
     var state = blocks.stream().collect(BitSet::new, (s, b) -> s.set(b.id), BitSet::or);
-    var block = new Block(state.nextClearBit(0), name, factory, value);
+    var block = new Block(state.nextClearBit(0), name, factory, value, pos);
     blocks.add(block);
     return block;
   }

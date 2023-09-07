@@ -26,12 +26,25 @@
 .diagram-block {
     -fx-border-color: white;
     -fx-border-width: 2;
-    -fx-background-radius: 2;
+    -fx-border-radius: 5;
     -fx-border-style: solid;
 }
 
-.diagram-block .title {
+.diagram-block > .ty-title {
     -fx-border-width: 0 0 2 0;
     -fx-background-color: linear-gradient(to top, black, transparent);
     -fx-alignment: center;
+    -fx-padding: 5;
+    -fx-font-weight: bold;
+}
+
+.diagram-block > .ty-content {
+    -fx-padding: 5;
+    -fx-background-color: #444;
+}
+
+.diagram-block > .ty-content > * {
+    -fx-padding: 5;
+    -fx-alignment: center;
+    -fx-background-color: transparent;
 }

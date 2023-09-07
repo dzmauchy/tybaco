@@ -21,9 +21,39 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import org.tybaco.ui.lib.context.UIComponent;
+import javafx.collections.ListChangeListener.Change;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.tybaco.ui.model.Block;
+import org.tybaco.ui.model.Project;
 
-@UIComponent
+@Component
 public class ProjectDiagram extends AbstractProjectDiagram {
 
+  @Autowired
+  public void initBlocks(Project project) {
+    project.blocks.addListener((Change<? extends Block> c) -> {
+      while (c.next()) {
+        if (c.wasRemoved()) {
+          for (var removed : c.getRemoved()) {
+            for (var i = blocks.getChildren().iterator(); i.hasNext(); ) {
+              var e = i.next();
+              if (e instanceof DiagramBlock db && db.block == removed) {
+                i.remove();
+                break;
+              }
+            }
+          }
+        } else if (c.wasAdded()) {
+          for (var added : c.getAddedSubList()) {
+            var pos = added.pos.get();
+            var diagramBlock = new DiagramBlock(added);
+            diagramBlock.setLayoutX(pos.getX());
+            diagramBlock.setLayoutY(pos.getY());
+            blocks.getChildren().add(diagramBlock);
+          }
+        }
+      }
+    });
+  }
 }
