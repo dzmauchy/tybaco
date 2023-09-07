@@ -12,7 +12,7 @@ import javafx.scene.transform.Affine;
 
 import java.util.Random;
 
-import static java.lang.Math.abs;
+import static java.lang.Math.*;
 import static javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 
@@ -51,14 +51,14 @@ abstract class AbstractProjectDiagram extends ScrollPane {
 
   protected void onScroll(ScrollEvent event) {
     event.consume();
-    zoom(delta(event), event.getX(), event.getY());
-  }
-
-  private double delta(ScrollEvent event) {
-    return abs(event.getDeltaX()) > abs(event.getDeltaY()) ? -event.getDeltaX() : event.getDeltaY();
+    var delta = abs(event.getDeltaX()) > abs(event.getDeltaY()) ? -event.getDeltaX() : event.getDeltaY();
+    zoom(delta, event.getX(), event.getY());
   }
 
   protected void onMouseMove(MouseEvent event) {
+    if (event.isControlDown()) {
+      zoom(my - event.getY(), mx, my);
+    }
     mx = event.getX();
     my = event.getY();
   }
