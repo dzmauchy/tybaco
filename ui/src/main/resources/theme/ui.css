@@ -22,3 +22,16 @@
 .root {
     -fx-base: #111111;
 }
+
+.diagram-block {
+    -fx-border-color: white;
+    -fx-border-width: 2;
+    -fx-background-radius: 2;
+    -fx-border-style: solid;
+}
+
+.diagram-block .title {
+    -fx-border-width: 0 0 2 0;
+    -fx-background-color: linear-gradient(to top, black, transparent);
+    -fx-alignment: center;
+}

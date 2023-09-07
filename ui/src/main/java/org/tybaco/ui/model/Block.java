@@ -25,6 +25,7 @@ import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.tybaco.ui.lib.id.Ids;
 import org.w3c.dom.Element;
 
 import java.util.ArrayList;

@@ -109,4 +109,11 @@ public final class Project {
   public Stream<Link> linksTo(Block block) {
     return links.stream().filter(l -> l.in().blockId() == block.id);
   }
+
+  public Block newBlock(String name, String factory, String value) {
+    var state = blocks.stream().collect(BitSet::new, (s, b) -> s.set(b.id), BitSet::or);
+    var block = new Block(state.nextClearBit(0), name, factory, value);
+    blocks.add(block);
+    return block;
+  }
 }

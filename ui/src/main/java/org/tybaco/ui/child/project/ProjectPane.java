@@ -24,6 +24,7 @@ package org.tybaco.ui.child.project;
 import javafx.scene.layout.BorderPane;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.tybaco.ui.child.project.diagram.ProjectDiagram;
 
 @Configuration(proxyBeanMethods = false)
 @ComponentScan(lazyInit = true)

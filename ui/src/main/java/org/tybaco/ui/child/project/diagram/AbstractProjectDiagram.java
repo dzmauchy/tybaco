@@ -1,4 +1,4 @@
-package org.tybaco.ui.child.project;
+package org.tybaco.ui.child.project.diagram;
 
 import jakarta.annotation.PostConstruct;
 import javafx.scene.Group;
@@ -6,17 +6,19 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Affine;
 
-import java.util.Random;
-
-import static java.lang.Math.*;
+import static java.lang.Math.exp;
 import static javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER;
+import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
+import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
+import static javafx.scene.input.ZoomEvent.ZOOM;
 
 abstract class AbstractProjectDiagram extends ScrollPane {
+
+  private static final double ZOOM_PRECISION = 0.01;
+  private static final double ROTATE_PRECISION = 0.1;
 
   protected final Group blocks = new Group();
   protected final Group connectors = new Group();
@@ -34,30 +36,33 @@ abstract class AbstractProjectDiagram extends ScrollPane {
     setHbarPolicy(NEVER);
     setVbarPolicy(NEVER);
     layers.getTransforms().add(transform);
-    var r = new Random(0L);
-    for (int i = 0; i < 100; i++) {
-      var box = new Rectangle(r.nextDouble() * 1000d, r.nextDouble() * 1000d, r.nextDouble() * 100d, r.nextDouble() * 100d);
-      box.setFill(new Color(r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble()));
-      blocks.getChildren().add(box);
-    }
   }
 
   @PostConstruct
-  private void init() {
+  protected void init() {
     content.addEventHandler(SCROLL, this::onScroll);
-    content.addEventHandler(MouseEvent.MOUSE_DRAGGED, this::onMouseDrag);
-    content.addEventHandler(MouseEvent.MOUSE_MOVED, this::onMouseMove);
+    content.addEventHandler(MOUSE_DRAGGED, this::onMouseDrag);
+    content.addEventHandler(MOUSE_MOVED, this::onMouseMove);
+    content.addEventHandler(ZOOM, e -> zoom(e.getZoomFactor(), e.getX(), e.getY()));
   }
 
   protected void onScroll(ScrollEvent event) {
-    event.consume();
-    var delta = abs(event.getDeltaX()) > abs(event.getDeltaY()) ? -event.getDeltaX() : event.getDeltaY();
-    zoom(delta, event.getX(), event.getY());
+    if (event.isControlDown()) {
+      zoom(exp(event.getDeltaY() * ZOOM_PRECISION), event.getX(), event.getY());
+    } else if (event.isAltDown()) {
+      rotate(event.getDeltaX(), event.getX(), event.getY());
+    } else {
+      transform.appendTranslation(event.getDeltaX(), event.getDeltaY());
+    }
   }
 
   protected void onMouseMove(MouseEvent event) {
     if (event.isControlDown()) {
-      zoom(my - event.getY(), mx, my);
+      zoom(exp((my - event.getY()) * ZOOM_PRECISION), mx, my);
+    } else if (event.isShiftDown()) {
+      pan(mx, my, event.getX(), event.getY());
+    } else if (event.isAltDown()) {
+      rotate(event.getX() - mx, event.getX(), event.getY());
     }
     mx = event.getX();
     my = event.getY();
@@ -75,10 +80,13 @@ abstract class AbstractProjectDiagram extends ScrollPane {
     transform.appendTranslation(p.getX() - o.getX(), p.getY() - o.getY());
   }
 
-  private void zoom(double delta, double px, double py) {
-    var zoomFactor = Math.exp(delta * 0.01);
+  private void zoom(double zoomFactor, double px, double py) {
     var local = layers.parentToLocal(px, py);
     transform.appendScale(zoomFactor, zoomFactor, local);
+  }
+
+  private void rotate(double dx, double x, double y) {
+    transform.appendRotation(dx * ROTATE_PRECISION, x, y);
   }
 
   public void resetTransform() {
