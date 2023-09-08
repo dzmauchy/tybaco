@@ -28,6 +28,15 @@ final class Types {
 
   private static final Type[] EMPTY_TYPES = new Type[0];
 
+  public static Type expand(Type type) {
+    if (type instanceof Class<?> c) {
+      var types = c.getTypeParameters();
+      return types.length == 0 ? type : new P(null, c, types);
+    } else {
+      return type;
+    }
+  }
+
   public static Type ground(Type type) {
     return ground(type, List.of());
   }
