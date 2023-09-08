@@ -37,6 +37,36 @@ final class Types {
     }
   }
 
+  public static HashMap<TypeVariable<?>, Boolean> vars(Type type) {
+    var set = new HashMap<TypeVariable<?>, Boolean>(2, 0.5f);
+    vars(type, set);
+    return set;
+  }
+
+  private static void vars(Type type, HashMap<TypeVariable<?>, Boolean> vars) {
+    if (type instanceof TypeVariable<?> v) {
+      if (vars.putIfAbsent(v, Boolean.TRUE) == null) {
+        for (var b : v.getBounds()) {
+          vars(b, vars);
+        }
+      }
+    } else if (type instanceof GenericArrayType a) {
+      vars(a.getGenericComponentType(), vars);
+    } else if (type instanceof ParameterizedType p) {
+      vars(p.getOwnerType(), vars);
+      for (var a : p.getActualTypeArguments()) {
+        vars(a, vars);
+      }
+    } else if (type instanceof WildcardType w) {
+      for (var b : w.getLowerBounds()) {
+        vars(b, vars);
+      }
+      for (var b : w.getUpperBounds()) {
+        vars(b, vars);
+      }
+    }
+  }
+
   public static Type ground(Type type) {
     return ground(type, List.of());
   }
@@ -289,5 +319,31 @@ final class Types {
     public String toString() {
       return getTypeName();
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  static <T> T cast(Object v) {
+    return (T) v;
+  }
+
+  static GenericArrayType a(Type type) {
+    return new A(type);
+  }
+
+  static ParameterizedType p(Class<?> raw, Type... params) {
+    return new P(null, raw, params);
+  }
+
+  static WildcardType wu(Type... uppers) {
+    return uppers.length == 0 ? W.ANY : new W(EMPTY_TYPES, uppers);
+  }
+
+  static WildcardType wl(Type... lowers) {
+    return lowers.length == 0 ? W.ANY : new W(lowers, EMPTY_TYPES);
+  }
+
+  @SuppressWarnings("unchecked")
+  static <D extends GenericDeclaration> TypeVariable<D> v(D type, int index) {
+    return (TypeVariable<D>) type.getTypeParameters()[index];
   }
 }
