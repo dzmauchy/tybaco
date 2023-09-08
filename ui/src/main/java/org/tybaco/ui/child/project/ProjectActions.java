@@ -21,7 +21,6 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
-import javafx.geometry.Point2D;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignB;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -38,7 +37,9 @@ public class ProjectActions {
   @Order(1)
   public Action newBlockAction(Project project) {
     return new Action(null, MaterialDesignB.BABY_BOTTLE, "New block", ev -> {
-      project.newBlock("Block 1", "com.example.Factory", "method", Point2D.ZERO);
+      var factory = "com.example.factory";
+      var method = "method";
+      project.newBlock(project.guessBlockName(), factory, method, 0d, 0d);
     });
   }
 }

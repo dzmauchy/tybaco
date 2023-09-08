@@ -25,10 +25,10 @@ import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Point2D;
 import org.tybaco.ui.lib.id.Ids;
 import org.w3c.dom.Element;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -111,10 +111,22 @@ public final class Project {
     return links.stream().filter(l -> l.in().blockId() == block.id);
   }
 
-  public Block newBlock(String name, String factory, String value, Point2D pos) {
+  public Block newBlock(String name, String factory, String value, double x, double y) {
     var state = blocks.stream().collect(BitSet::new, (s, b) -> s.set(b.id), BitSet::or);
-    var block = new Block(state.nextClearBit(0), name, factory, value, pos);
+    var block = new Block(state.nextClearBit(0), name, factory, value, x, y);
     blocks.add(block);
     return block;
+  }
+
+  public String guessBlockName() {
+    return "Block " + blocks.stream()
+      .map(b -> b.name.get())
+      .filter(s -> s.startsWith("Block "))
+      .map(s -> s.substring("Block ".length()))
+      .filter(s -> s.chars().allMatch(Character::isDigit))
+      .map(BigInteger::new)
+      .max(BigInteger::compareTo)
+      .orElse(BigInteger.ZERO)
+      .add(BigInteger.ONE);
   }
 }

@@ -22,17 +22,14 @@ package org.tybaco.ui.model;
  */
 
 import javafx.beans.Observable;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Point2D;
 import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
-import static java.lang.Float.parseFloat;
 
 public final class Block {
 
@@ -40,15 +37,17 @@ public final class Block {
   public final SimpleStringProperty name;
   public final SimpleStringProperty factory;
   public final SimpleStringProperty value;
-  public final SimpleObjectProperty<Point2D> pos;
+  public final SimpleDoubleProperty x;
+  public final SimpleDoubleProperty y;
   private final Observable[] observables;
 
-  Block(int id, String name, String factory, String value, Point2D pos) {
+  Block(int id, String name, String factory, String value, double x, double y) {
     this.id = id;
     this.name = new SimpleStringProperty(this, "name", name);
     this.factory = new SimpleStringProperty(this, "factory", factory);
     this.value = new SimpleStringProperty(this, "value", value);
-    this.pos = new SimpleObjectProperty<>(this, "pos", pos);
+    this.x = new SimpleDoubleProperty(this, "x", x);
+    this.y = new SimpleDoubleProperty(this, "y", y);
     this.observables = new Observable[] {this.name, this.factory, this.value};
   }
 
@@ -58,7 +57,8 @@ public final class Block {
       element.getAttribute("name"),
       element.getAttribute("factory"),
       element.getAttribute("value"),
-      new Point2D(parseFloat(element.getAttribute("x")), parseFloat(element.getAttribute("y")))
+      Double.parseDouble(element.getAttribute("x")),
+      Double.parseDouble(element.getAttribute("y"))
     );
   }
 
@@ -67,8 +67,8 @@ public final class Block {
     element.setAttribute("name", name.get());
     element.setAttribute("factory", factory.get());
     element.setAttribute("value", value.get());
-    element.setAttribute("x", Float.toString((float) pos.get().getX()));
-    element.setAttribute("y", Float.toString((float) pos.get().getY()));
+    element.setAttribute("x", Double.toString(x.get()));
+    element.setAttribute("y", Double.toString(y.get()));
   }
 
   private Observable[] observables() {
