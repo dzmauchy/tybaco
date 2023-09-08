@@ -4,7 +4,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
+import java.nio.Buffer;
+import java.nio.CharBuffer;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -32,7 +35,15 @@ class TypeCalculatorTest {
       arguments(p(List.class, v(List.class, 0)), p(List.class, Object.class), true),
       arguments(v(C1.class.getDeclaredMethod("m", CharSequence.class), 0), String.class, true),
       arguments(v(C1.class.getDeclaredMethod("m", CharSequence.class), 0), CharSequence.class, true),
-      arguments(v(C1.class.getDeclaredMethod("m", CharSequence.class), 0), Integer.class, false)
+      arguments(v(C1.class.getDeclaredMethod("m", CharSequence.class), 0), Integer.class, false),
+      arguments(p(List.class, wu(CharSequence.class, Serializable.class)), p(List.class, String.class), true),
+      arguments(p(List.class, wu(CharSequence.class, Serializable.class)), p(List.class, CharBuffer.class), false),
+      arguments(p(List.class, wl(CharSequence.class, Serializable.class)), p(List.class, String.class), false),
+      arguments(p(List.class, wl(CharSequence.class, Serializable.class)), p(List.class, Object.class), true),
+      arguments(p(List.class, wl(CharBuffer.class)), p(List.class, CharSequence.class), true),
+      arguments(p(List.class, wl(CharBuffer.class)), p(List.class, Buffer.class), true),
+      arguments(p(List.class, wl(wu(CharBuffer.class))), p(List.class, CharSequence.class), true),
+      arguments(p(List.class, wl(wu(CharSequence.class, Serializable.class))), p(List.class, Object.class), true)
     );
   }
 

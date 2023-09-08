@@ -27,6 +27,7 @@ import com.google.common.reflect.TypeToken;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -37,7 +38,7 @@ import static org.tybaco.types.calc.Types.cast;
 public final class TypeCalculator {
 
   private final Method method;
-  private final HashMap<TypeVariable<?>, HashMap<Type, Boolean>> resolved = new HashMap<>(8, 0.5f);
+  private final HashMap<TypeVariable<?>, LinkedHashMap<Type, Boolean>> resolved = new HashMap<>(8, 0.5f);
   private final HashMap<String, Boolean> compatible;
 
   public TypeCalculator(Method method, Map<String, Type> args) {
@@ -48,7 +49,7 @@ public final class TypeCalculator {
       if (type != null) {
         var formal = param.getParameterizedType();
         var r = isCompatible(formal, type, (v, t) -> {
-          var map = resolved.computeIfAbsent(v, k -> new HashMap<>(2, 0.5f));
+          var map = resolved.computeIfAbsent(v, k -> new LinkedHashMap<>(2, 0.5f));
           map.put(t, TRUE);
         });
         compatible.put(param.getName(), r);
@@ -173,12 +174,12 @@ public final class TypeCalculator {
         return false;
       }
     } else if (from instanceof WildcardType f) {
-      for (var b : f.getLowerBounds()) {
+      for (var b : flatten(f.getLowerBounds())) {
         if (!visit(b, to, visited, FALSE, consumer)) {
           return false;
         }
       }
-      for (var b : f.getUpperBounds()) {
+      for (var b : flatten(f.getUpperBounds())) {
         if (!visit(b, to, visited, TRUE, consumer)) {
           return false;
         }
@@ -199,5 +200,18 @@ public final class TypeCalculator {
     } else {
       return false;
     }
+  }
+
+  private static Stream<Type> flatten(Type type) {
+    return type instanceof WildcardType w
+      ? Arrays.stream(w.getUpperBounds()).flatMap(TypeCalculator::flatten)
+      : Stream.of(type);
+  }
+
+  private static Type[] flatten(Type[] types) {
+    return Arrays.stream(types)
+      .flatMap(TypeCalculator::flatten)
+      .distinct()
+      .toArray(Type[]::new);
   }
 }
