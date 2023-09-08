@@ -45,6 +45,13 @@
 
 .diagram-block > .ty-content > * {
     -fx-padding: 5;
-    -fx-alignment: center;
     -fx-background-color: transparent;
+}
+
+.diagram-block > .ty-content > .ty-block-factory {
+    -fx-alignment: center;
+}
+
+.diagram-block > .ty-content > .ty-block-value {
+    -fx-alignment: center;
 }

@@ -46,10 +46,7 @@ public class ProjectDiagram extends AbstractProjectDiagram {
           }
         } else if (c.wasAdded()) {
           for (var added : c.getAddedSubList()) {
-            var pos = added.pos.get();
             var diagramBlock = new DiagramBlock(added);
-            diagramBlock.setLayoutX(pos.getX());
-            diagramBlock.setLayoutY(pos.getY());
             blocks.getChildren().add(diagramBlock);
           }
         }
