@@ -17,8 +17,8 @@ public class DiagramBlock extends BorderPane {
   private final HBox inputs = new HBox();
   private final BorderPane content = new BorderPane(value, factory, outputs, inputs, args);
 
-  private Point2D lastMousePoint;
-  private Point2D lastLocation;
+  private double bx;
+  private double by;
 
   public DiagramBlock(Block block) {
     this.block = block;
@@ -47,15 +47,14 @@ public class DiagramBlock extends BorderPane {
   }
 
   private void onMouseMoved(MouseEvent event) {
-    lastLocation = new Point2D(getLayoutX(), getLayoutY());
-    lastMousePoint = getParent().sceneToLocal(event.getSceneX(), event.getSceneY());
+    bx = -event.getX();
+    by = -event.getY();
   }
 
   private void onMouseDragged(MouseEvent event) {
     event.consume();
-    var curMousePoint = getParent().sceneToLocal(event.getSceneX(), event.getSceneY());
-    setLayoutX(lastLocation.getX() + (curMousePoint.getX() - lastMousePoint.getX()));
-    setLayoutY(lastLocation.getY() + (curMousePoint.getY() - lastMousePoint.getY()));
+    setLayoutX(bx + getLayoutX() + event.getX());
+    setLayoutY(by + getLayoutY() + event.getY());
     block.pos.set(new Point2D(getLayoutX(), getLayoutY()));
   }
 }
