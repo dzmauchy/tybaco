@@ -131,6 +131,37 @@ class TypeCalculatorTest {
     );
   }
 
+  @ParameterizedTest
+  @MethodSource
+  void resolveOutputType(Method method, Map<String, Type> args, String out, Type expected) {
+    var calc = new TypeCalculator(method, args);
+    var outputType = calc.outputType(out).orElse(null);
+    assertEquals(expected, outputType);
+  }
+
+  static Stream<Arguments> resolveOutputType() throws ReflectiveOperationException {
+    return Stream.of(
+      arguments(
+        C1.class.getMethod("m2", Object.class),
+        Map.of("x", Void.class),
+        "x",
+        p(List.class, wu(Void.class))
+      ),
+      arguments(
+        C2.class.getMethod("h", Object.class),
+        Map.of("x", Integer.class),
+        "x",
+        Integer.class
+      ),
+      arguments(
+        C2.class.getMethod("h", Object.class),
+        Map.of("x", Integer.class),
+        "u",
+        null
+      )
+    );
+  }
+
   public static class C1<X> {
 
     public static <E extends CharSequence> E m(E arg) {

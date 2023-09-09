@@ -38,11 +38,12 @@ import static org.tybaco.types.calc.Types.*;
 @SuppressWarnings("DuplicatedCode")
 public final class TypeCalculator {
 
-  private final HashMap<TypeVariable<?>, LinkedHashMap<Type, Boolean>> resolved = new HashMap<>(8, 0.5f);
+  private final HashMap<TypeVariable<?>, LinkedHashMap<Type, Boolean>> resolved;
   private final Method method;
   private final HashMap<String, Boolean> compatible;
 
   public TypeCalculator(Method method, Map<String, Type> args) {
+    this.resolved = new HashMap<>(8, 0.5f);
     this.method = method;
     this.compatible = new HashMap<>(args.size(), 0.1f);
     for (var param : method.getParameters()) {
@@ -113,7 +114,10 @@ public final class TypeCalculator {
       .isPresent();
   }
 
-  public Type outputType(String output) {
+  public Optional<Type> outputType(String output) {
+    if ("*".equals(output)) {
+      return Optional.of(outputType());
+    }
     return outputs()
       .filter(m -> m.getName().equals(output))
       .findFirst()
@@ -123,14 +127,17 @@ public final class TypeCalculator {
         var rt = i.getReturnType();
         var t = resolver.resolveType(rt.getType());
         return ground(t);
-      })
-      .orElse(void.class);
+      });
   }
 
   public Type outputType() {
     var resolver = prepareResolver();
     var t = resolver.resolveType(method.getGenericReturnType());
     return ground(t);
+  }
+
+  public Stream<String> outputNames() {
+    return Stream.concat(Stream.of("*"), outputs().map(Method::getName));
   }
 
   public boolean isCompatible(String arg) {
