@@ -177,7 +177,7 @@ public final class TypeCalculator {
     return true;
   }
 
-  private static boolean v(Class<?> f, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+  private static boolean v(Class<?> f, Type to, Boolean covariant) {
     if (f.isPrimitive()) {
       if (to == Primitives.wrap(f)) {
         return true;
@@ -300,7 +300,7 @@ public final class TypeCalculator {
     }
   }
 
-  private static boolean v(WildcardType f, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+  private static boolean v(WildcardType f, Type to, List<TypeVariable<?>> visited, BiConsumer<TypeVariable<?>, Type> consumer) {
     var lbs = flatten(f.getLowerBounds());
     for (var b : lbs) {
       if (!visit(b, to, visited, FALSE, consumer)) {
@@ -317,7 +317,7 @@ public final class TypeCalculator {
     return true;
   }
 
-  private static boolean v(TypeVariable<?> f, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+  private static boolean v(TypeVariable<?> f, Type to, List<TypeVariable<?>> visited, BiConsumer<TypeVariable<?>, Type> consumer) {
     if (visited.contains(f)) {
       return true;
     }
@@ -339,15 +339,15 @@ public final class TypeCalculator {
     } else if (to instanceof UnionType t) {
       return v(from, t, visited, covariant, consumer);
     } else if (from instanceof Class<?> f) {
-      return v(f, to, visited, covariant, consumer);
+      return v(f, to, covariant);
     } else if (from instanceof GenericArrayType f) {
       return v(f, to, visited, covariant, consumer);
     } else if (from instanceof ParameterizedType f) {
       return v(f, to, visited, covariant, consumer);
     } else if (from instanceof WildcardType f) {
-      return v(f, to, visited, covariant, consumer);
+      return v(f, to, visited, consumer);
     } else if (from instanceof TypeVariable<?> f) {
-      return v(f, to, visited, covariant, consumer);
+      return v(f, to, visited, consumer);
     } else {
       return false;
     }
