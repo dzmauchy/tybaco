@@ -31,7 +31,8 @@ import java.util.stream.Stream;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static org.tybaco.types.calc.Types.*;
+import static org.tybaco.types.calc.Types.add;
+import static org.tybaco.types.calc.Types.cast;
 
 @SuppressWarnings("DuplicatedCode")
 public final class TypeCalculator {
@@ -54,10 +55,15 @@ public final class TypeCalculator {
         compatible.put(param.getName(), r);
       }
     }
+    args.forEach((k, v) -> compatible.putIfAbsent(k, FALSE));
   }
 
   public boolean isCompatible(String arg) {
     return compatible.getOrDefault(arg, FALSE);
+  }
+
+  public void checkCompatibility(BiConsumer<String, Boolean> consumer) {
+    compatible.forEach(consumer);
   }
 
   public static boolean isCompatible(Type formal, Type actual) {
@@ -200,12 +206,10 @@ public final class TypeCalculator {
               }
             }
             return true;
-          } else {
-            return false;
           }
-        } else {
           return false;
         }
+        return false;
       } else {
         return c.isAssignableFrom(fc);
       }
