@@ -68,52 +68,64 @@ public final class TypeCalculator {
     return visit(formal, actual, List.of(), TRUE, consumer);
   }
 
+  private static boolean v(Type from, WildcardType t, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+    for (var b : t.getUpperBounds()) {
+      if (visit(from, b, visited, covariant, consumer)) {
+        return true;
+      }
+    }
+    for (var b : t.getLowerBounds()) {
+      visit(from, b, visited, covariant, consumer);
+    }
+    return false;
+  }
+
+  private static boolean v(Type from, UnionType t, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+    for (var b : t.types()) {
+      if (!visit(from, b, visited, covariant, consumer)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean v(Class<?> f, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+    if (to == f) {
+      return true;
+    } else if (f.isPrimitive()) {
+      if (to == Primitives.wrap(f)) {
+        return true;
+      } else if (f == int.class) {
+        return to == char.class || to == short.class || to == byte.class;
+      } else if (f == long.class) {
+        return to == int.class || to == char.class || to == short.class || to == byte.class;
+      } else if (f == double.class) {
+        return to == float.class || to == long.class || to == int.class || to == char.class || to == short.class || to == byte.class;
+      } else if (f == float.class) {
+        return to == long.class || to == int.class || to == char.class || to == short.class || to == byte.class;
+      } else if (f == short.class) {
+        return to == byte.class;
+      } else {
+        return false;
+      }
+    } else if (Primitives.isWrapperType(f)) {
+      return to instanceof Class<?> t && t.isPrimitive() && Primitives.wrap(t) == f;
+    } else {
+      if (to instanceof Class<?> t && covariant != null) {
+        return covariant ? f.isAssignableFrom(t) : t.isAssignableFrom(f);
+      } else {
+        return false;
+      }
+    }
+  }
+
   private static boolean visit(Type from, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
     if (to instanceof WildcardType t) {
-      for (var b : t.getUpperBounds()) {
-        if (visit(from, b, visited, covariant, consumer)) {
-          return true;
-        }
-      }
-      for (var b : t.getLowerBounds()) {
-        visit(from, b, visited, covariant, consumer);
-      }
-      return false;
+      return v(from, t, visited, covariant, consumer);
     } else if (to instanceof UnionType t) {
-      for (var b : t.types()) {
-        if (!visit(from, b, visited, covariant, consumer)) {
-          return false;
-        }
-      }
-      return true;
+      return v(from, t, visited, covariant, consumer);
     } else if (from instanceof Class<?> f) {
-      if (to == from) {
-        return true;
-      } else if (f.isPrimitive()) {
-        if (to == Primitives.wrap(f)) {
-          return true;
-        } else if (f == int.class) {
-          return to == char.class || to == short.class || to == byte.class;
-        } else if (f == long.class) {
-          return to == int.class || to == char.class || to == short.class || to == byte.class;
-        } else if (f == double.class) {
-          return to == float.class || to == long.class || to == int.class || to == char.class || to == short.class || to == byte.class;
-        } else if (f == float.class) {
-          return to == long.class || to == int.class || to == char.class || to == short.class || to == byte.class;
-        } else if (f == short.class) {
-          return to == byte.class;
-        } else {
-          return false;
-        }
-      } else if (Primitives.isWrapperType(f)) {
-        return to instanceof Class<?> t && t.isPrimitive() && Primitives.wrap(t) == f;
-      } else {
-        if (to instanceof Class<?> t && covariant != null) {
-          return covariant ? f.isAssignableFrom(t) : t.isAssignableFrom(f);
-        } else {
-          return false;
-        }
-      }
+      return v(f, to, visited, covariant, consumer);
     } else if (from instanceof GenericArrayType f) {
       if (to instanceof GenericArrayType t) {
         return visit(f.getGenericComponentType(), t.getGenericComponentType(), visited, covariant, consumer);
