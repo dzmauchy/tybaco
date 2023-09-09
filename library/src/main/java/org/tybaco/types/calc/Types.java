@@ -23,6 +23,7 @@ package org.tybaco.types.calc;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 final class Types {
 
@@ -321,6 +322,34 @@ final class Types {
     }
   }
 
+  private record U(Set<Type> types) implements UnionType {
+
+    @Override
+    public int hashCode() {
+      return types.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return obj instanceof UnionType u && types.equals(u.types());
+    }
+
+    @Override
+    public Type[] getTypes() {
+      return types.toArray(Type[]::new);
+    }
+
+    @Override
+    public String getTypeName() {
+      return types.stream().map(Type::getTypeName).collect(Collectors.joining(" | "));
+    }
+
+    @Override
+    public String toString() {
+      return getTypeName();
+    }
+  }
+
   @SuppressWarnings("unchecked")
   static <T> T cast(Object v) {
     return (T) v;
@@ -340,6 +369,10 @@ final class Types {
 
   static WildcardType wl(Type... lowers) {
     return lowers.length == 0 ? W.ANY : new W(lowers, EMPTY_TYPES);
+  }
+
+  static UnionType u(Type... types) {
+    return new U(Set.copyOf(List.of(types)));
   }
 
   @SuppressWarnings("unchecked")

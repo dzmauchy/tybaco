@@ -31,14 +31,13 @@ import java.util.stream.Stream;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static org.tybaco.types.calc.Types.add;
-import static org.tybaco.types.calc.Types.cast;
+import static org.tybaco.types.calc.Types.*;
 
 @SuppressWarnings("DuplicatedCode")
 public final class TypeCalculator {
 
-  private final Method method;
   private final HashMap<TypeVariable<?>, LinkedHashMap<Type, Boolean>> resolved = new HashMap<>(8, 0.5f);
+  private final Method method;
   private final HashMap<String, Boolean> compatible;
 
   public TypeCalculator(Method method, Map<String, Type> args) {
@@ -80,6 +79,13 @@ public final class TypeCalculator {
         visit(from, b, visited, covariant, consumer);
       }
       return false;
+    } else if (to instanceof UnionType t) {
+      for (var b : t.types()) {
+        if (!visit(from, b, visited, covariant, consumer)) {
+          return false;
+        }
+      }
+      return true;
     } else if (from instanceof Class<?> f) {
       if (to == from) {
         return true;
@@ -130,35 +136,37 @@ public final class TypeCalculator {
           }
           var fc = (Class<?>) f.getRawType();
           var tc = (Class<?>) t.getRawType();
+          final TypeToken<?> token;
           if (covariant) {
-            if (!fc.isAssignableFrom(tc)) {
+            if (fc.isAssignableFrom(tc)) {
+              token = TypeToken.of(to).getSupertype(cast(fc));
+            } else {
               return false;
             }
           } else {
-            if (fc.isAssignableFrom(tc)) {
+            if (tc.isAssignableFrom(fc)) {
+              token = TypeToken.of(to).getSubtype(cast(fc));
+            } else {
               return false;
             }
           }
-        }
-        var ta = t.getActualTypeArguments();
-        if (fa.length != ta.length) {
-          return false;
-        }
-        for (int i = 0; i < fa.length; i++) {
-          if (!visit(fa[i], ta[i], visited, null, consumer)) {
+          if (token.getType() instanceof ParameterizedType p) {
+            var ta = p.getActualTypeArguments();
+            if (ta.length != fa.length) {
+              return false;
+            }
+            for (int i = 0; i < fa.length; i++) {
+              if (!visit(fa[i], ta[i], visited, null, consumer)) {
+                return false;
+              }
+            }
+            return true;
+          } else {
             return false;
           }
-        }
-        return true;
-      } else if (to instanceof Class<?> c) {
-        var fc = (Class<?>) f.getRawType();
-        if (fc == c || covariant == null || !covariant || !fc.isAssignableFrom(c)) {
-          return false;
-        }
-        var token = TypeToken.of(c).getSupertype(cast(fc));
-        if (token.getType() instanceof ParameterizedType t) {
+        } else {
           var ta = t.getActualTypeArguments();
-          if (fa.length != ta.length) {
+          if (ta.length != fa.length) {
             return false;
           }
           for (int i = 0; i < fa.length; i++) {
@@ -167,21 +175,50 @@ public final class TypeCalculator {
             }
           }
           return true;
-        } else {
+        }
+      } else if (to instanceof Class<?> c) {
+        var fc = (Class<?>) f.getRawType();
+        if (fc == c || covariant == null) {
           return false;
+        }
+        if (covariant) {
+          if (fc.isAssignableFrom(c)) {
+            var token = TypeToken.of(c).getSupertype(cast(fc));
+            if (token.getType() instanceof ParameterizedType t) {
+              var ta = t.getActualTypeArguments();
+              if (fa.length != ta.length) {
+                return false;
+              }
+              for (int i = 0; i < fa.length; i++) {
+                if (!visit(fa[i], ta[i], visited, null, consumer)) {
+                  return false;
+                }
+              }
+              return true;
+            } else {
+              return false;
+            }
+          } else {
+            return false;
+          }
+        } else {
+          return c.isAssignableFrom(fc);
         }
       } else {
         return false;
       }
     } else if (from instanceof WildcardType f) {
-      for (var b : flatten(f.getLowerBounds())) {
+      var lbs = flatten(f.getLowerBounds());
+      for (var b : lbs) {
         if (!visit(b, to, visited, FALSE, consumer)) {
           return false;
         }
       }
       for (var b : flatten(f.getUpperBounds())) {
         if (!visit(b, to, visited, TRUE, consumer)) {
-          return false;
+          if (lbs.length == 0) {
+            return false;
+          }
         }
       }
       return true;
