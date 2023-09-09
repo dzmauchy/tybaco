@@ -29,9 +29,10 @@ import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.transfer.TransferEvent;
 import org.eclipse.aether.util.filter.ScopeDependencyFilter;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -43,7 +44,9 @@ import static org.apache.maven.artifact.Artifact.SCOPE_RUNTIME;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.io.CleanupMode.ALWAYS;
 
+@Tag("slow")
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Execution(ExecutionMode.CONCURRENT)
 class RepositorySystemTest {
 
   @TempDir(cleanup = ALWAYS)
