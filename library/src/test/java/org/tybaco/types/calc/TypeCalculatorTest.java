@@ -26,6 +26,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.nio.Buffer;
 import java.nio.CharBuffer;
@@ -34,6 +35,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.tybaco.types.calc.TypeCalculator.isCompatible;
 import static org.tybaco.types.calc.Types.*;
 
 class TypeCalculatorTest {
@@ -41,7 +43,7 @@ class TypeCalculatorTest {
   @ParameterizedTest
   @MethodSource
   void compatibility(Type formal, Type actual, boolean expected) {
-    assertEquals(expected, TypeCalculator.isCompatible(formal, actual));
+    assertEquals(expected, isCompatible(formal, actual));
   }
 
   static Stream<Arguments> compatibility() throws ReflectiveOperationException {
@@ -54,9 +56,9 @@ class TypeCalculatorTest {
       arguments(p(List.class, wl(CharSequence.class)), p(List.class, String.class), false),
       arguments(p(List.class, wl(CharSequence.class)), p(List.class, Object.class), true),
       arguments(p(List.class, v(List.class, 0)), p(List.class, Object.class), true),
-      arguments(v(C1.class.getDeclaredMethod("m", CharSequence.class), 0), String.class, true),
-      arguments(v(C1.class.getDeclaredMethod("m", CharSequence.class), 0), CharSequence.class, true),
-      arguments(v(C1.class.getDeclaredMethod("m", CharSequence.class), 0), Integer.class, false),
+      arguments(v(C1.class.getMethod("m", CharSequence.class), 0), String.class, true),
+      arguments(v(C1.class.getMethod("m", CharSequence.class), 0), CharSequence.class, true),
+      arguments(v(C1.class.getMethod("m", CharSequence.class), 0), Integer.class, false),
       arguments(p(List.class, wu(CharSequence.class, Serializable.class)), p(List.class, String.class), true),
       arguments(p(List.class, wu(CharSequence.class, Serializable.class)), p(List.class, CharBuffer.class), false),
       arguments(p(List.class, wl(CharSequence.class, Serializable.class)), p(List.class, String.class), false),
@@ -76,9 +78,82 @@ class TypeCalculatorTest {
     );
   }
 
-  private static class C1<X> {
+  @ParameterizedTest
+  @MethodSource
+  void resolveReturnType(Method method, Map<String, Type> args, Type expectedReturnType, Map<String, Boolean> compatibility) {
+    var calc = new TypeCalculator(method, args);
+    var returnType = calc.outputType();
+    assertEquals(expectedReturnType, returnType);
+    compatibility.forEach((name, expected) -> {
+      var actual = calc.isCompatible(name);
+      assertEquals(expected, actual);
+    });
+  }
 
-    private static <E extends CharSequence> E m(E arg) {
+  static Stream<Arguments> resolveReturnType() throws ReflectiveOperationException {
+    return Stream.of(
+      arguments(
+        C1.class.getMethod("m", CharSequence.class),
+        Map.of("arg", String.class),
+        String.class,
+        Map.of("arg", true)
+      ),
+      arguments(
+        C1.class.getMethod("m", CharSequence.class),
+        Map.of("arg", Object.class),
+        wu(CharSequence.class),
+        Map.of("arg", false)
+      ),
+      arguments(
+        C1.class.getMethod("m", CharSequence.class),
+        Map.of("arg", u(String.class, CharBuffer.class)),
+        u(String.class, CharBuffer.class),
+        Map.of("arg", true)
+      ),
+      arguments(
+        C1.class.getMethod("m2", Object.class),
+        Map.of("x", Integer.class),
+        po(TypeCalculatorTest.class, C1.class, p(List.class, wu(Integer.class))),
+        Map.of("x", true)
+      ),
+      arguments(
+        C1.class.getMethod("m3", CharSequence[].class),
+        Map.of("args", String.class),
+        po(TypeCalculatorTest.class, C1.class, p(List.class, String.class)),
+        Map.of("args", true)
+      ),
+      arguments(
+        C1.class.getMethod("m3", CharSequence[].class),
+        Map.of("args", va(String.class, CharBuffer.class)),
+        po(TypeCalculatorTest.class, C1.class, p(List.class, u(String.class, CharBuffer.class))),
+        Map.of("args", true)
+      )
+    );
+  }
+
+  public static class C1<X> {
+
+    public static <E extends CharSequence> E m(E arg) {
+      return null;
+    }
+
+    public static <V> C1<List<? extends V>> m2(V x) {
+      return null;
+    }
+
+    @SafeVarargs
+    public static <E extends CharSequence> C1<List<E>> m3(E... args) {
+      return null;
+    }
+
+    public X x() {
+      return null;
+    }
+  }
+
+  public static class C2<Y> extends C1<Y> {
+
+    public static <C> C2<C> h(C x) {
       return null;
     }
   }

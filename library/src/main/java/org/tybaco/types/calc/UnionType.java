@@ -26,5 +26,5 @@ import java.util.Set;
 
 public interface UnionType extends Type {
   Type[] getTypes();
-  Set<Type> types();
+  Set<? extends Type> types();
 }

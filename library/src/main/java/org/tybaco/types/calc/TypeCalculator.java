@@ -22,6 +22,7 @@ package org.tybaco.types.calc;
  */
 
 import com.google.common.primitives.Primitives;
+import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
 
 import java.lang.reflect.*;
@@ -31,8 +32,8 @@ import java.util.stream.Stream;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static org.tybaco.types.calc.Types.add;
-import static org.tybaco.types.calc.Types.cast;
+import static java.util.Arrays.stream;
+import static org.tybaco.types.calc.Types.*;
 
 @SuppressWarnings("DuplicatedCode")
 public final class TypeCalculator {
@@ -48,14 +49,88 @@ public final class TypeCalculator {
       var type = args.get(param.getName());
       if (type != null) {
         var formal = param.getParameterizedType();
-        var r = isCompatible(formal, type, (v, t) -> {
-          var map = resolved.computeIfAbsent(v, k -> new LinkedHashMap<>(2, 0.5f));
-          map.put(t, TRUE);
-        });
-        compatible.put(param.getName(), r);
+        if (param.isVarArgs()) {
+          var ct = param.getParameterizedType() instanceof GenericArrayType a
+            ? a.getGenericComponentType()
+            : param.getType().getComponentType();
+          if (type instanceof VarArgs va) {
+            var r = va.types().stream().allMatch(a -> isCompatible(ct, a, this::onMatch));
+            compatible.put(param.getName(), r);
+          } else {
+            compatible.put(param.getName(), isCompatible(ct, type, this::onMatch));
+          }
+        } else {
+          compatible.put(param.getName(), isCompatible(formal, type, this::onMatch));
+        }
       }
     }
     args.forEach((k, v) -> compatible.putIfAbsent(k, FALSE));
+  }
+
+  private void onMatch(TypeVariable<?> v, Type t) {
+    var map = resolved.computeIfAbsent(v, k -> new LinkedHashMap<>(2, 0.5f));
+    map.put(t, TRUE);
+  }
+
+  public Stream<Method> methods() {
+    return stream(method.getReturnType().getMethods()).filter(m -> !Modifier.isStatic(m.getModifiers()));
+  }
+
+  public Stream<Method> inputs() {
+    return methods().filter(m -> m.getParameterCount() == 1 && m.getReturnType() == void.class);
+  }
+
+  public Stream<Method> outputs() {
+    return methods().filter(m -> m.getParameterCount() == 0 && m.getReturnType() != void.class);
+  }
+
+  private TypeResolver prepareResolver() {
+    var resolver = new TypeResolver();
+    for (var e : resolved.entrySet()) {
+      var var = e.getKey();
+      var map = e.getValue();
+      var t = switch (map.size()) {
+        case 0 -> void.class;
+        case 1 -> map.keySet().iterator().next();
+        default -> u(map.keySet());
+      };
+      resolver = resolver.where(var, t);
+    }
+    return resolver;
+  }
+
+  public boolean isInputCompatible(String input, Type type) {
+    return inputs()
+      .filter(m -> m.getName().equals(input))
+      .findFirst()
+      .map(m -> TypeToken.of(method.getGenericReturnType()).method(m))
+      .filter(i -> {
+        var resolver = prepareResolver();
+        var pt = i.getParameters().get(0).getType();
+        var t = resolver.resolveType(pt.getType());
+        return isCompatible(t, type);
+      })
+      .isPresent();
+  }
+
+  public Type outputType(String output) {
+    return outputs()
+      .filter(m -> m.getName().equals(output))
+      .findFirst()
+      .map(m -> TypeToken.of(method.getGenericReturnType()).method(m))
+      .map(i -> {
+        var resolver = prepareResolver();
+        var rt = i.getReturnType();
+        var t = resolver.resolveType(rt.getType());
+        return ground(t);
+      })
+      .orElse(void.class);
+  }
+
+  public Type outputType() {
+    var resolver = prepareResolver();
+    var t = resolver.resolveType(method.getGenericReturnType());
+    return ground(t);
   }
 
   public boolean isCompatible(String arg) {
@@ -273,12 +348,12 @@ public final class TypeCalculator {
 
   private static Stream<Type> flatten(Type type) {
     return type instanceof WildcardType w
-      ? Arrays.stream(w.getUpperBounds()).flatMap(TypeCalculator::flatten)
+      ? stream(w.getUpperBounds()).flatMap(TypeCalculator::flatten)
       : Stream.of(type);
   }
 
   private static Type[] flatten(Type[] types) {
-    return Arrays.stream(types)
+    return stream(types)
       .flatMap(TypeCalculator::flatten)
       .distinct()
       .toArray(Type[]::new);

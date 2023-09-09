@@ -21,11 +21,13 @@ package org.tybaco.types.calc;
  * #L%
  */
 
+import org.checkerframework.checker.units.qual.C;
+
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-final class Types {
+public final class Types {
 
   private static final Type[] EMPTY_TYPES = new Type[0];
 
@@ -322,7 +324,7 @@ final class Types {
     }
   }
 
-  private record U(Set<Type> types) implements UnionType {
+  private record U(Set<? extends Type> types) implements UnionType {
 
     @Override
     public int hashCode() {
@@ -350,29 +352,49 @@ final class Types {
     }
   }
 
+  public record VarArgs(Set<? extends Type> types) implements Type {
+
+  }
+
   @SuppressWarnings("unchecked")
   static <T> T cast(Object v) {
     return (T) v;
   }
 
-  static GenericArrayType a(Type type) {
+  public static GenericArrayType a(Type type) {
     return new A(type);
   }
 
-  static ParameterizedType p(Class<?> raw, Type... params) {
+  public static ParameterizedType p(Class<?> raw, Type... params) {
     return new P(null, raw, params);
   }
 
-  static WildcardType wu(Type... uppers) {
+  public static ParameterizedType po(Type owner, Class<?> raw, Type... params) {
+    return new P(owner, raw, params);
+  }
+
+  public static WildcardType wu(Type... uppers) {
     return uppers.length == 0 ? W.ANY : new W(EMPTY_TYPES, uppers);
   }
 
-  static WildcardType wl(Type... lowers) {
+  public static WildcardType wl(Type... lowers) {
     return lowers.length == 0 ? W.ANY : new W(lowers, EMPTY_TYPES);
   }
 
-  static UnionType u(Type... types) {
-    return new U(Set.copyOf(List.of(types)));
+  public static UnionType u(Type... types) {
+    return new U(Set.copyOf(Arrays.asList(types)));
+  }
+
+  public static UnionType u(Collection<? extends Type> types) {
+    return new U(Set.copyOf(types));
+  }
+
+  public static VarArgs va(Type... types) {
+    return new VarArgs(Set.copyOf(Arrays.asList(types)));
+  }
+
+  public static VarArgs va(Collection<? extends Type> types) {
+    return new VarArgs(Set.copyOf(types));
   }
 
   @SuppressWarnings("unchecked")
