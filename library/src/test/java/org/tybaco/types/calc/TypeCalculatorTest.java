@@ -21,6 +21,7 @@ package org.tybaco.types.calc;
  * #L%
  */
 
+import com.google.common.collect.Iterables;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -31,6 +32,7 @@ import java.lang.reflect.Type;
 import java.nio.Buffer;
 import java.nio.CharBuffer;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -127,6 +129,30 @@ class TypeCalculatorTest {
         Map.of("args", va(String.class, CharBuffer.class)),
         po(TypeCalculatorTest.class, C1.class, p(List.class, u(String.class, CharBuffer.class))),
         Map.of("args", true)
+      ),
+      arguments(
+        C2.class.getMethod("cons", Consumer.class),
+        Map.of("consumer", p(Consumer.class, Integer.class)),
+        Integer.class,
+        Map.of("consumer", true)
+      ),
+      arguments(
+        C2.class.getMethod("cons2", Consumer.class),
+        Map.of("v", p(Consumer.class, p(List.class, Object.class))),
+        Object.class,
+        Map.of("v", true)
+      ),
+      arguments(
+        C2.class.getMethod("cons2", Consumer.class),
+        Map.of("v", p(Consumer.class, p(Collection.class, Object.class))),
+        Object.class,
+        Map.of("v", true)
+      ),
+      arguments(
+        C2.class.getMethod("cons2", Consumer.class),
+        Map.of("v", p(Consumer.class, p(ArrayList.class, Object.class))),
+        wu(),
+        Map.of("v", false)
       )
     );
   }
@@ -185,6 +211,14 @@ class TypeCalculatorTest {
   public static class C2<Y> extends C1<Y> {
 
     public static <C> C2<C> h(C x) {
+      return null;
+    }
+
+    public static <X> X cons(Consumer<? super X> consumer) {
+      return null;
+    }
+
+    public static <X> X cons2(Consumer<? super List<? extends X>> v) {
       return null;
     }
   }
