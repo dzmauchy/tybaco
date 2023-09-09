@@ -90,9 +90,7 @@ public final class TypeCalculator {
   }
 
   private static boolean v(Class<?> f, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
-    if (to == f) {
-      return true;
-    } else if (f.isPrimitive()) {
+    if (f.isPrimitive()) {
       if (to == Primitives.wrap(f)) {
         return true;
       } else if (f == int.class) {
@@ -119,52 +117,81 @@ public final class TypeCalculator {
     }
   }
 
-  private static boolean visit(Type from, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
-    if (to instanceof WildcardType t) {
-      return v(from, t, visited, covariant, consumer);
-    } else if (to instanceof UnionType t) {
-      return v(from, t, visited, covariant, consumer);
-    } else if (from instanceof Class<?> f) {
-      return v(f, to, visited, covariant, consumer);
-    } else if (from instanceof GenericArrayType f) {
-      if (to instanceof GenericArrayType t) {
-        return visit(f.getGenericComponentType(), t.getGenericComponentType(), visited, covariant, consumer);
-      } else if (to instanceof Class<?> c) {
-        var ct = c.getComponentType();
-        if (ct != null && !ct.isPrimitive()) {
-          return visit(f.getGenericComponentType(), ct.getComponentType(), visited, covariant, consumer);
+  private static boolean v(GenericArrayType f, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+    if (to instanceof GenericArrayType t) {
+      return visit(f.getGenericComponentType(), t.getGenericComponentType(), visited, covariant, consumer);
+    } else if (to instanceof Class<?> c) {
+      var ct = c.getComponentType();
+      if (ct != null && !ct.isPrimitive()) {
+        return visit(f.getGenericComponentType(), ct.getComponentType(), visited, covariant, consumer);
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  private static boolean v(ParameterizedType f, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+    var fa = f.getActualTypeArguments();
+    if (to instanceof ParameterizedType t) {
+      if (f.getRawType() != t.getRawType()) {
+        if (covariant == null) {
+          return false;
+        }
+        var fc = (Class<?>) f.getRawType();
+        var tc = (Class<?>) t.getRawType();
+        final TypeToken<?> token;
+        if (covariant) {
+          if (fc.isAssignableFrom(tc)) {
+            token = TypeToken.of(to).getSupertype(cast(fc));
+          } else {
+            return false;
+          }
+        } else {
+          if (tc.isAssignableFrom(fc)) {
+            token = TypeToken.of(to).getSubtype(cast(fc));
+          } else {
+            return false;
+          }
+        }
+        if (token.getType() instanceof ParameterizedType p) {
+          var ta = p.getActualTypeArguments();
+          if (ta.length != fa.length) {
+            return false;
+          }
+          for (int i = 0; i < fa.length; i++) {
+            if (!visit(fa[i], ta[i], visited, null, consumer)) {
+              return false;
+            }
+          }
+          return true;
         } else {
           return false;
         }
       } else {
-        return false;
-      }
-    } else if (from instanceof ParameterizedType f) {
-      var fa = f.getActualTypeArguments();
-      if (to instanceof ParameterizedType t) {
-        if (f.getRawType() != t.getRawType()) {
-          if (covariant == null) {
+        var ta = t.getActualTypeArguments();
+        if (ta.length != fa.length) {
+          return false;
+        }
+        for (int i = 0; i < fa.length; i++) {
+          if (!visit(fa[i], ta[i], visited, null, consumer)) {
             return false;
           }
-          var fc = (Class<?>) f.getRawType();
-          var tc = (Class<?>) t.getRawType();
-          final TypeToken<?> token;
-          if (covariant) {
-            if (fc.isAssignableFrom(tc)) {
-              token = TypeToken.of(to).getSupertype(cast(fc));
-            } else {
-              return false;
-            }
-          } else {
-            if (tc.isAssignableFrom(fc)) {
-              token = TypeToken.of(to).getSubtype(cast(fc));
-            } else {
-              return false;
-            }
-          }
-          if (token.getType() instanceof ParameterizedType p) {
-            var ta = p.getActualTypeArguments();
-            if (ta.length != fa.length) {
+        }
+        return true;
+      }
+    } else if (to instanceof Class<?> c) {
+      var fc = (Class<?>) f.getRawType();
+      if (fc == c || covariant == null) {
+        return false;
+      }
+      if (covariant) {
+        if (fc.isAssignableFrom(c)) {
+          var token = TypeToken.of(c).getSupertype(cast(fc));
+          if (token.getType() instanceof ParameterizedType t) {
+            var ta = t.getActualTypeArguments();
+            if (fa.length != ta.length) {
               return false;
             }
             for (int i = 0; i < fa.length; i++) {
@@ -177,75 +204,64 @@ public final class TypeCalculator {
             return false;
           }
         } else {
-          var ta = t.getActualTypeArguments();
-          if (ta.length != fa.length) {
-            return false;
-          }
-          for (int i = 0; i < fa.length; i++) {
-            if (!visit(fa[i], ta[i], visited, null, consumer)) {
-              return false;
-            }
-          }
-          return true;
-        }
-      } else if (to instanceof Class<?> c) {
-        var fc = (Class<?>) f.getRawType();
-        if (fc == c || covariant == null) {
           return false;
-        }
-        if (covariant) {
-          if (fc.isAssignableFrom(c)) {
-            var token = TypeToken.of(c).getSupertype(cast(fc));
-            if (token.getType() instanceof ParameterizedType t) {
-              var ta = t.getActualTypeArguments();
-              if (fa.length != ta.length) {
-                return false;
-              }
-              for (int i = 0; i < fa.length; i++) {
-                if (!visit(fa[i], ta[i], visited, null, consumer)) {
-                  return false;
-                }
-              }
-              return true;
-            } else {
-              return false;
-            }
-          } else {
-            return false;
-          }
-        } else {
-          return c.isAssignableFrom(fc);
         }
       } else {
+        return c.isAssignableFrom(fc);
+      }
+    } else {
+      return false;
+    }
+  }
+
+  private static boolean v(WildcardType f, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+    var lbs = flatten(f.getLowerBounds());
+    for (var b : lbs) {
+      if (!visit(b, to, visited, FALSE, consumer)) {
         return false;
       }
+    }
+    for (var b : flatten(f.getUpperBounds())) {
+      if (!visit(b, to, visited, TRUE, consumer)) {
+        if (lbs.length == 0) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  private static boolean v(TypeVariable<?> f, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+    if (visited.contains(f)) {
+      return true;
+    }
+    var newVisited = add(visited, f);
+    for (var b : f.getBounds()) {
+      if (!visit(b, to, newVisited, TRUE, consumer)) {
+        return false;
+      }
+    }
+    consumer.accept(f, to);
+    return true;
+  }
+
+  private static boolean visit(Type from, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+    if (from.equals(to)) {
+      return true;
+    } else if (to instanceof WildcardType t) {
+      return v(from, t, visited, covariant, consumer);
+    } else if (to instanceof UnionType t) {
+      return v(from, t, visited, covariant, consumer);
+    } else if (from instanceof Class<?> f) {
+      return v(f, to, visited, covariant, consumer);
+    } else if (from instanceof GenericArrayType f) {
+      return v(f, to, visited, covariant, consumer);
+    } else if (from instanceof ParameterizedType f) {
+      return v(f, to, visited, covariant, consumer);
     } else if (from instanceof WildcardType f) {
-      var lbs = flatten(f.getLowerBounds());
-      for (var b : lbs) {
-        if (!visit(b, to, visited, FALSE, consumer)) {
-          return false;
-        }
-      }
-      for (var b : flatten(f.getUpperBounds())) {
-        if (!visit(b, to, visited, TRUE, consumer)) {
-          if (lbs.length == 0) {
-            return false;
-          }
-        }
-      }
-      return true;
+      return v(f, to, visited, covariant, consumer);
     } else if (from instanceof TypeVariable<?> f) {
-      if (visited.contains(f)) {
-        return true;
-      }
-      var newVisited = add(visited, f);
-      for (var b : f.getBounds()) {
-        if (!visit(b, to, newVisited, TRUE, consumer)) {
-          return false;
-        }
-      }
-      consumer.accept(f, to);
-      return true;
+      return v(f, to, visited, covariant, consumer);
     } else {
       return false;
     }
