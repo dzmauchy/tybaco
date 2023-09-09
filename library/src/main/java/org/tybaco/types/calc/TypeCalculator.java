@@ -101,17 +101,19 @@ public final class TypeCalculator {
   }
 
   public boolean isInputCompatible(String input, Type type) {
+    return inputType(input).filter(t -> isCompatible(t, type)).isPresent();
+  }
+
+  public Optional<Type> inputType(String input) {
     return inputs()
       .filter(m -> m.getName().equals(input))
       .findFirst()
       .map(m -> TypeToken.of(method.getGenericReturnType()).method(m))
-      .filter(i -> {
+      .map(i -> {
         var resolver = prepareResolver();
         var pt = i.getParameters().get(0).getType();
-        var t = resolver.resolveType(pt.getType());
-        return isCompatible(t, type);
-      })
-      .isPresent();
+        return resolver.resolveType(pt.getType());
+      });
   }
 
   public Optional<Type> outputType(String output) {
@@ -153,6 +155,12 @@ public final class TypeCalculator {
   }
 
   public static boolean isCompatible(Type formal, Type actual, BiConsumer<TypeVariable<?>, Type> consumer) {
+    if (formal instanceof WildcardType w) {
+      var lb = w.getLowerBounds();
+      if (lb.length != 0) {
+        formal = wu(lb);
+      }
+    }
     return visit(formal, actual, List.of(), TRUE, consumer);
   }
 
@@ -197,10 +205,26 @@ public final class TypeCalculator {
     } else if (Primitives.isWrapperType(f)) {
       return to instanceof Class<?> t && t.isPrimitive() && Primitives.wrap(t) == f;
     } else {
-      if (to instanceof Class<?> t && covariant != null) {
-        return covariant ? f.isAssignableFrom(t) : t.isAssignableFrom(f);
+      if (to instanceof Class<?> t) {
+        return covariant != null && (covariant ? f.isAssignableFrom(t) : t.isAssignableFrom(f));
       } else {
-        return false;
+        var vars = f.getTypeParameters();
+        if (vars.length == 0) {
+          if (to instanceof GenericArrayType t) {
+            if (f.isArray()) {
+              return v(f.getComponentType(), t.getGenericComponentType(), covariant);
+            } else {
+              return v(f, Object[].class, covariant);
+            }
+          } else if (to instanceof ParameterizedType t) {
+            var tc = (Class<?>) t.getRawType();
+            return covariant != null && (covariant ? f.isAssignableFrom(tc) : tc.isAssignableFrom(f));
+          } else {
+            return false;
+          }
+        } else {
+          return false;
+        }
       }
     }
   }

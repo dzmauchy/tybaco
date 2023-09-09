@@ -10,12 +10,12 @@ package org.tybaco.types.calc;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -188,6 +188,54 @@ class TypeCalculatorTest {
     );
   }
 
+  @ParameterizedTest
+  @MethodSource
+  void inputTypeCompatibility(Method method, Map<String, Type> args, String input, Type type, boolean expected) {
+    var calc = new TypeCalculator(method, args);
+    var actual = calc.isInputCompatible(input, type);
+    assertEquals(expected, actual);
+  }
+
+  static Stream<Arguments> inputTypeCompatibility() throws ReflectiveOperationException {
+    return Stream.of(
+      arguments(
+        C2.class.getMethod("cons3", Object.class),
+        Map.of("value", String.class),
+        "accept",
+        String.class,
+        true
+      ),
+      arguments(
+        C2.class.getMethod("cons3", Object.class),
+        Map.of("value", String.class),
+        "accept",
+        CharSequence.class,
+        false
+      ),
+      arguments(
+        C2.class.getMethod("cons3", Object.class),
+        Map.of("value", CharSequence.class),
+        "accept",
+        String.class,
+        true
+      ),
+      arguments(
+        C2.class.getMethod("cons3", Object.class),
+        Map.of("value", CharSequence.class),
+        "accept",
+        CharSequence.class,
+        true
+      ),
+      arguments(
+        C2.class.getMethod("cons3", Object.class),
+        Map.of("value", p(List.class, String.class)),
+        "accept",
+        p(ArrayList.class, String.class),
+        true
+      )
+    );
+  }
+
   public static class C1<X> {
 
     public static <E extends CharSequence> E m(E arg) {
@@ -219,6 +267,10 @@ class TypeCalculatorTest {
     }
 
     public static <X> X cons2(Consumer<? super List<? extends X>> v) {
+      return null;
+    }
+
+    public static <Y> Consumer<? super Y> cons3(Y value) {
       return null;
     }
   }
