@@ -74,6 +74,9 @@ public class ApplicationRunner implements Runnable {
           tasks.add(new Ref<>(r, block.id()));
         }
       }
+      for (var block : app.blocks()) {
+        resolver.invokeInputs(block);
+      }
       return runtime;
     } catch (Throwable e) {
       try {
@@ -109,7 +112,6 @@ public class ApplicationRunner implements Runnable {
     private final IdentityHashMap<Block, ResolvedMethod> methods;
     private final IdentityHashMap<Block, Object> beans;
     private final HashMap<Conn, Conn> inputs;
-    private final HashMap<Conn, Conn> outputs;
     private final HashMap<Conn, Object> outValues;
     private final Map<Integer, Block> blockMap;
     private final LinkedList<Ref<AutoCloseable>> closeables = new LinkedList<>();
@@ -118,7 +120,6 @@ public class ApplicationRunner implements Runnable {
       this.methods = new IdentityHashMap<>(application.blocks().size());
       this.beans = new IdentityHashMap<>(application.blocks().size());
       this.inputs = new HashMap<>(application.links().size());
-      this.outputs = new HashMap<>(application.links().size());
       this.outValues = new HashMap<>(application.links().size());
       this.blockMap = application.blocks().stream().collect(toUnmodifiableMap(Block::id, identity()));
 
@@ -126,7 +127,6 @@ public class ApplicationRunner implements Runnable {
         var outBlock = requireNonNull(blockMap.get(l.out().block()), () -> "Block %d doesn't exist".formatted(l.out().block()));
         var inBlock = requireNonNull(blockMap.get(l.in().block()), () -> "Block %d doesn't exist".formatted(l.in().block()));
         inputs.put(new Conn(inBlock, l.in().spot()), new Conn(outBlock, l.out().spot()));
-        outputs.put(new Conn(outBlock, l.out().spot()), new Conn(inBlock, l.in().spot()));
       });
     }
 
@@ -173,6 +173,28 @@ public class ApplicationRunner implements Runnable {
         return bean;
       } catch (Throwable e) {
         throw new IllegalStateException("Unable to resolve %d".formatted(b.id()), e);
+      }
+    }
+
+    private void invokeInputs(Block b) {
+      var bean = beans.get(b);
+      for (var method : bean.getClass().getMethods()) {
+        if (method.getParameterCount() != 1) continue;
+        if (Modifier.isStatic(method.getModifiers())) continue;
+        if (method.getReturnType() != void.class) continue;
+        if (!method.canAccess(this)) continue;
+        var spot = method.getName();
+        var conn = new Conn(b, spot);
+        var out = inputs.get(conn);
+        if (out != null) {
+          var outBean = resolveBlock(b, new BitSet());
+          var v = resolveOut(out, outBean);
+          try {
+            method.invoke(bean, v);
+          } catch (Throwable e) {
+            throw new IllegalStateException("Unable to set %s on %d".formatted(spot, b.id()), e);
+          }
+        }
       }
     }
 
