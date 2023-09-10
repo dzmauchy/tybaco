@@ -52,6 +52,7 @@ public class ApplicationRunner implements Runnable {
     watchdog.setDaemon(true);
     watchdog.start();
     try {
+      //noinspection resource
       var runtimeApp = runtimeApp(activeApplication());
       getRuntime().addShutdownHook(new Thread(runtimeApp::close));
       runtimeApp.run();
@@ -60,7 +61,7 @@ public class ApplicationRunner implements Runnable {
     }
   }
 
-  private RuntimeApp runtimeApp(Application app) {
+  RuntimeApp runtimeApp(Application app) {
     var resolver = new ApplicationResolver(app);
     var closeables = resolver.closeables;
     var tasks = new LinkedList<Ref<Runnable>>();
@@ -317,9 +318,9 @@ public class ApplicationRunner implements Runnable {
     }
   }
 
-  private record RuntimeApp(LinkedList<Ref<Runnable>> tasks, LinkedList<Ref<AutoCloseable>> closeables) {
+  record RuntimeApp(LinkedList<Ref<Runnable>> tasks, LinkedList<Ref<AutoCloseable>> closeables) implements AutoCloseable {
 
-    private void run() {
+    void run() {
       for (var it = tasks.listIterator(0); it.hasNext(); ) {
         var task = it.next();
         try {
@@ -332,7 +333,8 @@ public class ApplicationRunner implements Runnable {
       }
     }
 
-    private void close() {
+    @Override
+    public void close() {
       var exception = new IllegalStateException("Close runtime exception");
       for (var it = closeables.listIterator(closeables.size()); it.hasPrevious(); ) {
         var closeable = it.previous();

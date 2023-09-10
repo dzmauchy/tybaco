@@ -10,33 +10,42 @@ package org.tybaco.runtime.application;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
 
-import java.lang.reflect.Method;
+import org.junit.jupiter.api.Test;
+import org.tybaco.runtime.application.beans.SampleBeanA;
 
-public record Block(int id, String name, String factory, String value) {
+import java.util.List;
 
-  public boolean isDependent() {
-    return Character.isDigit(factory.charAt(0));
-  }
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-  public int parentBlockId() {
-    return Integer.parseInt(factory);
-  }
+class ApplicationRunnerTest {
 
-  public static Block fromMethod(int id, Method method) {
-    var factory = method.getDeclaringClass().getName();
-    var value = method.getName();
-    var name = factory + "." + value;
-    return new Block(id, name, factory, value);
+  @Test
+  void simpleStartAndClose() throws Exception {
+    // given
+    var app = new Application("app", "App",
+      List.of(
+        Block.fromMethod(0, SampleBeanA.class.getMethod("sampleBeanA"))
+      ),
+      List.of()
+    );
+    var runner = new ApplicationRunner();
+    // when
+    try (var runtime = runner.runtimeApp(app)) {
+      runtime.run();
+    }
+    // then
+    assertTrue(SampleBeanA.closed);
+    assertTrue(SampleBeanA.started);
   }
 }

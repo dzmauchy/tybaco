@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application;
+package org.tybaco.runtime.application.beans;
 
 /*-
  * #%L
@@ -21,22 +21,27 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
-import java.lang.reflect.Method;
+public class SampleBeanA implements Runnable, AutoCloseable {
 
-public record Block(int id, String name, String factory, String value) {
+  public static boolean started;
+  public static boolean closed;
 
-  public boolean isDependent() {
-    return Character.isDigit(factory.charAt(0));
+  private SampleBeanA() {
+    started = false;
+    closed = false;
   }
 
-  public int parentBlockId() {
-    return Integer.parseInt(factory);
+  @Override
+  public void close() {
+    closed = true;
   }
 
-  public static Block fromMethod(int id, Method method) {
-    var factory = method.getDeclaringClass().getName();
-    var value = method.getName();
-    var name = factory + "." + value;
-    return new Block(id, name, factory, value);
+  @Override
+  public void run() {
+    started = true;
+  }
+
+  public static SampleBeanA sampleBeanA() {
+    return new SampleBeanA();
   }
 }
