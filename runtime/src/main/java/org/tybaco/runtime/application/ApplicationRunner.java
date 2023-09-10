@@ -111,7 +111,7 @@ public class ApplicationRunner implements Runnable {
     private final IdentityHashMap<Block, ResolvedMethod> methods;
     private final IdentityHashMap<Block, Object> beans;
     private final HashMap<Conn, TreeMap<Integer, Conn>> inputs;
-    private final HashMap<Ref<Conn>, Object> outValues;
+    private final HashMap<Conn, Object> outValues;
     private final Map<Integer, Block> blockMap;
     private final LinkedList<Ref<AutoCloseable>> closeables = new LinkedList<>();
 
@@ -165,18 +165,18 @@ public class ApplicationRunner implements Runnable {
           var in = new Conn(b, param.getName());
           var out = inputs.get(in);
           if (out == null) {
-            resolvedParams[i] = defaultValue(param.getType());
+            resolvedParams[i] = defaultValue(param.getType(), param.isVarArgs());
           } else if (param.isVarArgs()) {
             var array = Array.newInstance(param.getType().getComponentType(), out.lastKey() + 1);
             out.forEach((index, o) -> {
               var bean = resolveBlock(o.block, passed);
-              Array.set(array, index, resolveOut(o, index, bean));
+              Array.set(array, index, resolveOut(o, bean));
             });
             resolvedParams[i] = array;
           } else {
             var conn = out.firstEntry().getValue();
             var bean = resolveBlock(conn.block(), passed);
-            resolvedParams[i] = resolveOut(conn, -1, bean);
+            resolvedParams[i] = resolveOut(conn, bean);
           }
         }
         var bean = resolvedMethod.method.invoke(resolvedMethod.bean, resolvedParams);
@@ -198,7 +198,6 @@ public class ApplicationRunner implements Runnable {
         if (method.getParameterCount() != 1) continue;
         if (Modifier.isStatic(method.getModifiers())) continue;
         if (method.getReturnType() != void.class) continue;
-        if (!method.canAccess(this)) continue;
         var spot = method.getName();
         var conn = new Conn(b, spot);
         var out = inputs.get(conn);
@@ -207,9 +206,14 @@ public class ApplicationRunner implements Runnable {
           final Object arg;
           if (parameter.isVarArgs()) {
             arg = Array.newInstance(parameter.getType().getComponentType(), out.lastKey() + 1);
-            out.forEach((i, o) -> Array.set(arg, i, resolveOut(o, i, bean)));
+            out.forEach((i, o) -> {
+              var outBean = beans.get(o.block);
+              Array.set(arg, i, resolveOut(o, outBean));
+            });
           } else {
-            arg = resolveOut(out.firstEntry().getValue(), -1, bean);
+            var outConn = out.firstEntry().getValue();
+            var outBean = beans.get(outConn.block);
+            arg = resolveOut(outConn, outBean);
           }
           try {
             method.invoke(bean, arg);
@@ -301,7 +305,7 @@ public class ApplicationRunner implements Runnable {
 
     private record ResolvedMethod(Method method, Object bean) {}
 
-    private Object defaultValue(Class<?> type) {
+    private Object defaultValue(Class<?> type, boolean varargs) {
       if (type.isPrimitive()) {
         if (type == int.class) return 0;
         else if (type == long.class) return 0L;
@@ -311,17 +315,20 @@ public class ApplicationRunner implements Runnable {
         else if (type == float.class) return 0f;
         else if (type == double.class) return 0d;
         else if (type == boolean.class) return Boolean.FALSE;
+        else return null;
+      } else if (varargs) {
+        return Array.newInstance(type.getComponentType(), 0);
+      } else {
+        return null;
       }
-      return null;
     }
 
-    private Object resolveOut(Conn out, int index, Object bean) {
+    private Object resolveOut(Conn out, Object bean) {
       if ("*".equals(out.spot)) {
         return bean;
       } else {
-        var key = new Ref<>(out, index);
         {
-          var v = outValues.get(key);
+          var v = outValues.get(out);
           if (v != null) {
             return v;
           }
@@ -329,7 +336,7 @@ public class ApplicationRunner implements Runnable {
         try {
           var method = out.getClass().getMethod(out.spot);
           var value = method.invoke(bean);
-          outValues.put(key, value);
+          outValues.put(out, value);
           return value;
         } catch (Throwable e) {
           throw new IllegalStateException("Block %d: error on resolving output %s".formatted(out.block.id(), out.spot), e);

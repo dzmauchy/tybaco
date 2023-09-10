@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application;
+package org.tybaco.runtime.application.beans;
 
 /*-
  * #%L
@@ -21,13 +21,21 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
-public record Connector(int block, String spot, int index) {
+public final class SampleBeanB {
 
-  public Connector(int block, String spot) {
-    this(block, spot, -1);
+  public static Object[] values;
+  public static Object[] constructorValues;
+
+  private SampleBeanB() {
+    values = null;
   }
 
-  public static Connector out(int block) {
-    return new Connector(block, "*");
+  public static SampleBeanB sampleBeanB(Object... values) {
+    constructorValues = values;
+    return new SampleBeanB();
+  }
+
+  public void v(Object... vs) {
+    values = vs;
   }
 }

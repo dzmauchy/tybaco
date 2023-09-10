@@ -33,10 +33,9 @@ public record Block(int id, String name, String factory, String value) {
     return Integer.parseInt(factory);
   }
 
-  public static Block fromMethod(int id, Method method) {
+  public static Block fromMethod(int id, String name, Method method) {
     var factory = method.getDeclaringClass().getName();
     var value = method.getName();
-    var name = factory + "." + value;
     return new Block(id, name, factory, value);
   }
 }
