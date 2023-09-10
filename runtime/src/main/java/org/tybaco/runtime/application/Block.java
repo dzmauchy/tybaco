@@ -22,4 +22,12 @@ package org.tybaco.runtime.application;
  */
 
 public record Block(int id, String name, String factory, String value) {
+
+  public boolean isDependent() {
+    return Character.isDigit(factory.charAt(0));
+  }
+
+  public int parentBlockId() {
+    return Integer.parseInt(factory);
+  }
 }

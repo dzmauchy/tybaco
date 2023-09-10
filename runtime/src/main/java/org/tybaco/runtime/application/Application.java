@@ -25,4 +25,9 @@ import java.util.List;
 
 public record Application(String id, String name, List<Block> blocks, List<Link> links) {
 
+  static final InheritableThreadLocal<Application> CURRENT_APPLICATION = new InheritableThreadLocal<>();
+
+  public static Application activeApplication() {
+    return CURRENT_APPLICATION.get();
+  }
 }
