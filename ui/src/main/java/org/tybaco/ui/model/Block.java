@@ -35,7 +35,7 @@ public final class Block {
 
   public final int id;
   public final SimpleStringProperty name;
-  public final SimpleStringProperty factory;
+  public final String factory;
   public final SimpleStringProperty value;
   public final SimpleDoubleProperty x;
   public final SimpleDoubleProperty y;
@@ -44,11 +44,11 @@ public final class Block {
   Block(int id, String name, String factory, String value, double x, double y) {
     this.id = id;
     this.name = new SimpleStringProperty(this, "name", name);
-    this.factory = new SimpleStringProperty(this, "factory", factory);
+    this.factory = factory;
     this.value = new SimpleStringProperty(this, "value", value);
     this.x = new SimpleDoubleProperty(this, "x", x);
     this.y = new SimpleDoubleProperty(this, "y", y);
-    this.observables = new Observable[] {this.name, this.factory, this.value};
+    this.observables = new Observable[] {this.name, this.value};
   }
 
   public Block(Element element) {
@@ -65,7 +65,7 @@ public final class Block {
   public void saveTo(Element element) {
     element.setAttribute("id", Integer.toString(id));
     element.setAttribute("name", name.get());
-    element.setAttribute("factory", factory.get());
+    element.setAttribute("factory", factory);
     element.setAttribute("value", value.get());
     element.setAttribute("x", Double.toString(x.get()));
     element.setAttribute("y", Double.toString(y.get()));

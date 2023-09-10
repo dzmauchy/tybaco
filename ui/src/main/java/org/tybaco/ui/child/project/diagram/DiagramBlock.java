@@ -43,7 +43,7 @@ public class DiagramBlock extends BorderPane {
   public DiagramBlock(Block block) {
     this.block = block;
     title.textProperty().bind(block.name);
-    factory.textProperty().bind(block.factory);
+    factory.setText(block.factory);
     value.textProperty().bind(block.value);
     layoutXProperty().bind(block.x);
     layoutYProperty().bind(block.y);

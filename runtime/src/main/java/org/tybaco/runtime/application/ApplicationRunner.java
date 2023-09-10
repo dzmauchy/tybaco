@@ -198,8 +198,7 @@ public class ApplicationRunner implements Runnable {
         if (method.getParameterCount() != 1) continue;
         if (Modifier.isStatic(method.getModifiers())) continue;
         if (method.getReturnType() != void.class) continue;
-        var spot = method.getName();
-        var conn = new Conn(b, spot);
+        var conn = new Conn(b, "+" + method.getName());
         var out = inputs.get(conn);
         if (out != null) {
           var parameter = method.getParameters()[0];
@@ -218,7 +217,7 @@ public class ApplicationRunner implements Runnable {
           try {
             method.invoke(bean, arg);
           } catch (Throwable e) {
-            throw new IllegalStateException("Unable to set %s on %d".formatted(spot, b.id()), e);
+            throw new IllegalStateException("Unable to set %s on %d".formatted(method.getName(), b.id()), e);
           }
         }
       }

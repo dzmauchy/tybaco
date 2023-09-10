@@ -58,9 +58,9 @@ class ApplicationRunnerTest {
       Block.fromMethod(100, "b1", SampleBeanB.class.getMethod("sampleBeanB", Object[].class))
     );
     var links = List.of(
-      new Link(out(0), new Connector(100, "v", 1)),
-      new Link(out(1), new Connector(100, "v", 3)),
-      new Link(out(2), new Connector(100, "v", 4)),
+      new Link(out(0), new Connector(100, "+v", 1)),
+      new Link(out(1), new Connector(100, "+v", 3)),
+      new Link(out(2), new Connector(100, "+v", 4)),
       new Link(out(3), new Connector(100, "values", 2))
     );
     var app = new Application("app", "App", blocks, links);
