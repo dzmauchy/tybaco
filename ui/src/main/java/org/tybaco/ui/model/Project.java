@@ -33,36 +33,46 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
-import static org.tybaco.xml.Xml.elementsByTags;
-import static org.tybaco.xml.Xml.withChildren;
+import static org.tybaco.xml.Xml.*;
 
 public final class Project {
 
   public final String id;
   public final SimpleStringProperty name;
   public final ObservableList<Block> blocks;
+  public final ObservableList<Constant> constants;
   public final ObservableList<Link> links;
   public final ObservableList<Lib> libs;
   private final Observable[] observables;
 
-  Project(String id, String name, Collection<Block> blocks, Collection<Link> links, Collection<Lib> libs) {
+  Project(String id, String name, Collection<Block> blocks, Collection<Constant> constants, Collection<Link> links, Collection<Lib> libs) {
     this.id = id;
     this.name = new SimpleStringProperty(this, "name", name);
     this.blocks = Block.newList(blocks);
+    this.constants = Constant.newList(constants);
     this.links = Link.newList(links);
     this.libs = Lib.libs(libs);
     this.observables = new Observable[] {this.name, this.blocks, this.libs};
   }
 
   public Project(String name) {
-    this(Ids.newId(), name, emptyList(), emptyList(), emptyList());
+    this(Ids.newId(), name, emptyList(), emptyList(), emptyList(), emptyList());
   }
 
   public Project(Element element) {
     this(
       element.getAttribute("id"),
       element.getAttribute("name"),
-      elementsByTags(element, "blocks", "block").map(Block::new).toList(),
+      elementsByTag(element, "blocks")
+        .filter(e -> "block".equals(e.getAttribute("type")))
+        .flatMap(e -> elementsByTag(e, "block"))
+        .map(Block::new)
+        .toList(),
+      elementsByTag(element, "blocks")
+        .filter(e -> "constant".equals(e.getAttribute("type")))
+        .flatMap(e -> elementsByTag(e, "block"))
+        .map(Constant::new)
+        .toList(),
       elementsByTags(element, "links", "link").map(Link::new).toList(),
       elementsByTags(element, "libs", "lib").map(Lib::new).toList()
     );
@@ -71,7 +81,14 @@ public final class Project {
   public void saveTo(Element element) {
     element.setAttribute("id", id);
     element.setAttribute("name", name.get());
-    withChildren(element, "blocks", "block", blocks, Block::saveTo);
+    withChild(element, "blocks", blocksElem -> {
+      blocksElem.setAttribute("type", "block");
+      blocks.forEach(b -> withChild(blocksElem, "block", b::saveTo));
+    });
+    withChild(element, "blocks", blocksElem -> {
+      blocksElem.setAttribute("type", "constant");
+      constants.forEach(c -> withChild(blocksElem, "block", c::saveTo));
+    });
     withChildren(element, "links", "link", links, Link::saveTo);
     withChildren(element, "libs", "lib", libs, Lib::saveTo);
   }

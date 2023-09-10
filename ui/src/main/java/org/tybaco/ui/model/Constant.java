@@ -22,7 +22,6 @@ package org.tybaco.ui.model;
  */
 
 import javafx.beans.Observable;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -31,34 +30,28 @@ import org.w3c.dom.Element;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public final class Block {
+public final class Constant {
 
   public final int id;
   public final SimpleStringProperty name;
   public final String factory;
-  public final String value;
-  public final SimpleDoubleProperty x;
-  public final SimpleDoubleProperty y;
+  public final SimpleStringProperty value;
   private final Observable[] observables;
 
-  Block(int id, String name, String factory, String value, double x, double y) {
+  Constant(int id, String name, String factory, String value) {
     this.id = id;
     this.name = new SimpleStringProperty(this, "name", name);
     this.factory = factory;
-    this.value = value;
-    this.x = new SimpleDoubleProperty(this, "x", x);
-    this.y = new SimpleDoubleProperty(this, "y", y);
-    this.observables = new Observable[] {this.name};
+    this.value = new SimpleStringProperty(this, "value", value);
+    this.observables = new Observable[] {this.name, this.value};
   }
 
-  public Block(Element element) {
+  public Constant(Element element) {
     this(
       Integer.parseInt(element.getAttribute("id")),
       element.getAttribute("name"),
       element.getAttribute("factory"),
-      element.getAttribute("value"),
-      Double.parseDouble(element.getAttribute("x")),
-      Double.parseDouble(element.getAttribute("y"))
+      element.getAttribute("value")
     );
   }
 
@@ -66,16 +59,14 @@ public final class Block {
     element.setAttribute("id", Integer.toString(id));
     element.setAttribute("name", name.get());
     element.setAttribute("factory", factory);
-    element.setAttribute("value", value);
-    element.setAttribute("x", Double.toString(x.get()));
-    element.setAttribute("y", Double.toString(y.get()));
+    element.setAttribute("value", value.get());
   }
 
   private Observable[] observables() {
     return observables;
   }
 
-  public static ObservableList<Block> newList(Collection<Block> blocks) {
-    return FXCollections.observableList(new ArrayList<>(blocks), Block::observables);
+  public static ObservableList<Constant> newList(Collection<Constant> constants) {
+    return FXCollections.observableList(new ArrayList<>(constants), Constant::observables);
   }
 }
