@@ -203,6 +203,13 @@ public class ApplicationLoader implements Runnable {
       element.getAttribute("spot"),
       () -> "Block [%d][%d].%s spot is null".formatted(i, j, name)
     );
-    return new Connector(blockId, spot);
+    final int index;
+    try {
+      var indexStr = element.getAttribute("index");
+      index = indexStr.isEmpty() ? 0 : Integer.parseInt(indexStr);
+    } catch (RuntimeException e) {
+      throw new IllegalArgumentException("Block [%d][%d].%s index format error".formatted(i, j, name));
+    }
+    return new Connector(blockId, spot, index);
   }
 }

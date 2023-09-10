@@ -21,8 +21,7 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.net.URI;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -111,8 +110,8 @@ public class ApplicationRunner implements Runnable {
     private final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     private final IdentityHashMap<Block, ResolvedMethod> methods;
     private final IdentityHashMap<Block, Object> beans;
-    private final HashMap<Conn, Conn> inputs;
-    private final HashMap<Conn, Object> outValues;
+    private final HashMap<Conn, TreeMap<Integer, Conn>> inputs;
+    private final HashMap<Ref<Conn>, Object> outValues;
     private final Map<Integer, Block> blockMap;
     private final LinkedList<Ref<AutoCloseable>> closeables = new LinkedList<>();
 
@@ -126,7 +125,7 @@ public class ApplicationRunner implements Runnable {
       application.links().forEach(l -> {
         var outBlock = requireNonNull(blockMap.get(l.out().block()), () -> "Block %d doesn't exist".formatted(l.out().block()));
         var inBlock = requireNonNull(blockMap.get(l.in().block()), () -> "Block %d doesn't exist".formatted(l.in().block()));
-        inputs.put(new Conn(inBlock, l.in().spot()), new Conn(outBlock, l.out().spot()));
+        inputs.computeIfAbsent(new Conn(inBlock, l.in().spot()), k -> new TreeMap<>()).put(l.in().index(), new Conn(outBlock, l.out().spot()));
       });
     }
 
@@ -167,9 +166,17 @@ public class ApplicationRunner implements Runnable {
           var out = inputs.get(in);
           if (out == null) {
             resolvedParams[i] = defaultValue(param.getType());
+          } else if (param.isVarArgs()) {
+            var array = Array.newInstance(param.getType().getComponentType(), out.lastKey() + 1);
+            out.forEach((index, o) -> {
+              var bean = resolveBlock(o.block, passed);
+              Array.set(array, index, resolveOut(o, index, bean));
+            });
+            resolvedParams[i] = array;
           } else {
-            var bean = resolveBlock(out.block, passed);
-            resolvedParams[i] = resolveOut(out, bean);
+            var conn = out.firstEntry().getValue();
+            var bean = resolveBlock(conn.block(), passed);
+            resolvedParams[i] = resolveOut(conn, -1, bean);
           }
         }
         var bean = resolvedMethod.method.invoke(resolvedMethod.bean, resolvedParams);
@@ -196,10 +203,16 @@ public class ApplicationRunner implements Runnable {
         var conn = new Conn(b, spot);
         var out = inputs.get(conn);
         if (out != null) {
-          var outBean = resolveBlock(b, new BitSet());
-          var v = resolveOut(out, outBean);
+          var parameter = method.getParameters()[0];
+          final Object arg;
+          if (parameter.isVarArgs()) {
+            arg = Array.newInstance(parameter.getType().getComponentType(), out.lastKey() + 1);
+            out.forEach((i, o) -> Array.set(arg, i, resolveOut(o, i, bean)));
+          } else {
+            arg = resolveOut(out.firstEntry().getValue(), -1, bean);
+          }
           try {
-            method.invoke(bean, v);
+            method.invoke(bean, arg);
           } catch (Throwable e) {
             throw new IllegalStateException("Unable to set %s on %d".formatted(spot, b.id()), e);
           }
@@ -302,12 +315,13 @@ public class ApplicationRunner implements Runnable {
       return null;
     }
 
-    private Object resolveOut(Conn out, Object bean) {
+    private Object resolveOut(Conn out, int index, Object bean) {
       if ("*".equals(out.spot)) {
         return bean;
       } else {
+        var key = new Ref<>(out, index);
         {
-          var v = outValues.get(out);
+          var v = outValues.get(key);
           if (v != null) {
             return v;
           }
@@ -315,7 +329,7 @@ public class ApplicationRunner implements Runnable {
         try {
           var method = out.getClass().getMethod(out.spot);
           var value = method.invoke(bean);
-          outValues.put(out, value);
+          outValues.put(key, value);
           return value;
         } catch (Throwable e) {
           throw new IllegalStateException("Block %d: error on resolving output %s".formatted(out.block.id(), out.spot), e);
@@ -344,7 +358,7 @@ public class ApplicationRunner implements Runnable {
         try {
           task.ref.run();
         } catch (Throwable e) {
-          throw new IllegalStateException("Unable to run %d".formatted(task.blockId), e);
+          throw new IllegalStateException("Unable to run %d".formatted(task.id), e);
         } finally {
           it.remove();
         }
@@ -353,13 +367,13 @@ public class ApplicationRunner implements Runnable {
 
     @Override
     public void close() {
-      var exception = new IllegalStateException("Close runtime exception");
+      var exception = new IllegalStateException("Close application runtime error");
       for (var it = closeables.listIterator(closeables.size()); it.hasPrevious(); ) {
         var closeable = it.previous();
         try {
           closeable.ref.close();
         } catch (Throwable e) {
-          exception.addSuppressed(new IllegalStateException("Unable to close %d".formatted(closeable.blockId), e));
+          exception.addSuppressed(new IllegalStateException("Unable to close %d".formatted(closeable.id), e));
         } finally {
           it.remove();
         }
@@ -389,5 +403,5 @@ public class ApplicationRunner implements Runnable {
     throw new NoSuchElementException("No value methods found on " + type);
   }
 
-  private record Ref<T>(T ref, int blockId) {}
+  private record Ref<T>(T ref, int id) {}
 }

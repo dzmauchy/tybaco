@@ -21,5 +21,5 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
-public record Connector(int block, String spot) {
+public record Connector(int block, String spot, int index) {
 }
