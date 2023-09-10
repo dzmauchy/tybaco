@@ -23,11 +23,13 @@ package org.tybaco.runtime.application;
 
 import java.util.List;
 
+import static java.util.Objects.requireNonNull;
+
 public record Application(String id, String name, List<Block> blocks, List<Link> links) {
 
-  static final InheritableThreadLocal<Application> CURRENT_APPLICATION = new InheritableThreadLocal<>();
+  static final ThreadLocal<Application> CURRENT_APPLICATION = new ThreadLocal<>();
 
   public static Application activeApplication() {
-    return CURRENT_APPLICATION.get();
+    return requireNonNull(CURRENT_APPLICATION.get(), "No active application found");
   }
 }

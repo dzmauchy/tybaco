@@ -47,13 +47,12 @@ public class ApplicationRunner implements Runnable {
 
   @Override
   public void run() {
-    var application = requireNonNull(activeApplication(), "No active applications found");
     var latch = new CountDownLatch(1);
     var watchdog = new Thread(() -> watch(latch), "application-watchdog");
     watchdog.setDaemon(true);
     watchdog.start();
     try {
-      var runtimeApp = runtimeApp(application);
+      var runtimeApp = runtimeApp(activeApplication());
       getRuntime().addShutdownHook(new Thread(runtimeApp::close));
       runtimeApp.run();
     } finally {
@@ -83,10 +82,12 @@ public class ApplicationRunner implements Runnable {
         e.addSuppressed(x);
       }
       throw e;
+    } finally {
+      Application.CURRENT_APPLICATION.remove();
     }
   }
 
-  private void watch(CountDownLatch latch) {
+  private static void watch(CountDownLatch latch) {
     try {
       latch.await();
       var exitEnabled = "true".equals(getProperty("tybaco.app.exit.enabled")) || "true".equals(getenv("TYBACO_APP_EXIT_ENABLED"));
@@ -297,11 +298,14 @@ public class ApplicationRunner implements Runnable {
   private record RuntimeApp(LinkedList<Ref<Runnable>> tasks, LinkedList<Ref<AutoCloseable>> closeables) {
 
     private void run() {
-      for (var task : tasks) {
+      for (var it = tasks.listIterator(0); it.hasNext(); ) {
+        var task = it.next();
         try {
           task.ref.run();
         } catch (Throwable e) {
           throw new IllegalStateException("Unable to run %d".formatted(task.blockId), e);
+        } finally {
+          it.remove();
         }
       }
     }
