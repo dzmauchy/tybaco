@@ -23,11 +23,10 @@ package org.tybaco.runtime.application;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.net.InetAddress;
 import java.net.URI;
-import java.nio.charset.Charset;
+import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Pattern;
@@ -151,6 +150,15 @@ public class ApplicationRunner implements Runnable {
           }
         }
         var resolvedMethod = method(b, passed);
+        if (resolvedMethod.method == null) {
+          if (resolvedMethod.bean instanceof Class<?> c) {
+            var constValue = constValue(c, b.value());
+            beans.put(b, constValue);
+            return constValue;
+          } else {
+            throw new IllegalStateException("Unresolved method %s".formatted(b.value()));
+          }
+        }
         var params = resolvedMethod.method.getParameters();
         var resolvedParams = new Object[params.length];
         for (int i = 0; i < params.length; i++) {
@@ -215,11 +223,12 @@ public class ApplicationRunner implements Runnable {
         methods.put(b, result);
         return result;
       }
-      var method = stream(Class.forName(b.factory(), true, classLoader).getMethods())
+      var type = Class.forName(b.factory(), true, classLoader);
+      var method = stream(type.getMethods())
         .filter(m -> m.getName().equals(b.value()))
         .findFirst()
-        .orElseThrow(() -> new NoSuchElementException("Block %d factory method is not found".formatted(b.id())));
-      var result = new ResolvedMethod(method, null);
+        .orElse(null);
+      var result = new ResolvedMethod(method, type);
       methods.put(b, result);
       return result;
     }
@@ -234,18 +243,27 @@ public class ApplicationRunner implements Runnable {
         case "short" -> Short.parseShort(v);
         case "byte" -> Byte.parseByte(v);
         case "char" -> v.charAt(0);
+        case "codePoint" -> v.chars().findFirst().orElseThrow();
         case "boolean" -> Boolean.parseBoolean(v);
         case "float" -> Float.parseFloat(v);
         case "double" -> Double.parseDouble(v);
         case "double[]" -> commaPattern.splitAsStream(v).map(String::trim).mapToDouble(Double::parseDouble).toArray();
         case "URL" -> new URI(v).toURL();
         case "URI" -> new URI(v);
-        case "Charset" -> Charset.forName(v);
-        case "Currency" -> Currency.getInstance(v);
         case "Locale" -> Locale.forLanguageTag(v);
-        case "InetAddress" -> InetAddress.getByName(v);
-        case "BigInteger" -> new BigInteger(v);
-        case "BigDecimal" -> new BigDecimal(v);
+        case "String" -> v;
+        case "Random" -> new Random(v.isEmpty() ? 0L : parseLong(v));
+        case "Pattern" -> Pattern.compile(v);
+        case "stringBytes" -> v.getBytes(StandardCharsets.UTF_8);
+        case "stringChars" -> v.toCharArray();
+        case "stringCodePoints" -> v.chars().toArray();
+        case "DateTimeFormatter" -> DateTimeFormatter.ofPattern(v, Locale.getDefault());
+        case "TimeZone" -> TimeZone.getTimeZone(v);
+        case "ByteOrder" -> switch (v) {
+          case "BE" -> ByteOrder.BIG_ENDIAN;
+          case "LE" -> ByteOrder.LITTLE_ENDIAN;
+          default -> ByteOrder.nativeOrder();
+        };
         default -> null;
       };
     }
@@ -350,6 +368,25 @@ public class ApplicationRunner implements Runnable {
         throw exception;
       }
     }
+  }
+
+  private static Object constValue(Class<?> type, String value) throws Exception {
+    for (var method : type.getMethods()) {
+      if (!Modifier.isStatic(method.getModifiers())) continue;
+      if (method.getParameterCount() != 1) continue;
+      if (method.getParameterTypes()[0] != String.class) continue;
+      switch (method.getName()) {
+        case "valueOf", "parse", "of", "getInstance", "instance", "instanceOf", "getByName", "byName", "forName" -> {
+          return method.invoke(type, value);
+        }
+      }
+    }
+    for (var constructor : type.getConstructors()) {
+      if (constructor.getParameterCount() != 1) continue;
+      if (constructor.getParameterTypes()[0] != String.class) continue;
+      return constructor.newInstance(value);
+    }
+    throw new NoSuchElementException("No value methods found on " + type);
   }
 
   private record Ref<T>(T ref, int blockId) {}
