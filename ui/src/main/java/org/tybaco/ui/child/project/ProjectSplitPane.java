@@ -21,6 +21,8 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
+import javafx.collections.ListChangeListener;
+import javafx.collections.ListChangeListener.Change;
 import javafx.scene.control.SplitPane;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.child.project.diagram.ProjectDiagram;
@@ -28,8 +30,29 @@ import org.tybaco.ui.child.project.diagram.ProjectDiagram;
 @Component
 public class ProjectSplitPane extends SplitPane {
 
+  private double lastDividerPosition = 0.7;
+
   public ProjectSplitPane(ProjectDiagram diagram, ProjectAccordion accordion) {
     super(diagram, accordion);
-    setDividerPositions(0.7);
+    setDividerPositions(lastDividerPosition);
+    getDividers().addListener((Change<? extends Divider> c) -> {
+      while (c.next()) {
+        if (c.wasAdded()) {
+          c.getAddedSubList().forEach(d -> {
+            d.setPosition(lastDividerPosition);
+            d.positionProperty().addListener((o, ov, nv) -> lastDividerPosition = nv.doubleValue());
+          });
+        }
+      }
+    });
+    accordion.visibleProperty().addListener((o, ov, nv) -> {
+      if (nv) {
+        if (!getItems().contains(accordion)) {
+          getItems().add(accordion);
+        }
+      } else {
+        getItems().remove(accordion);
+      }
+    });
   }
 }
