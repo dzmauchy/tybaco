@@ -22,14 +22,13 @@ package org.tybaco.ui.child.project;
  */
 
 import javafx.scene.layout.BorderPane;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+import org.tybaco.ui.model.Project;
 
-@Configuration(proxyBeanMethods = false)
-@ComponentScan(lazyInit = true)
-public class ProjectPane extends BorderPane {
+@Component
+public class ProjectConstantsPane extends BorderPane {
 
-  public ProjectPane(ProjectToolbar toolbar, ProjectSplitPane splitPane) {
-    super(splitPane, null, null, null, toolbar);
+  public ProjectConstantsPane(Project project) {
+
   }
 }

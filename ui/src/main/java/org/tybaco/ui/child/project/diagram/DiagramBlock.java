@@ -21,7 +21,6 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.scene.input.MouseEvent;
 import org.tybaco.ui.model.Block;
 
 public class DiagramBlock extends AbstractDiagramBlock {
@@ -33,12 +32,7 @@ public class DiagramBlock extends AbstractDiagramBlock {
     factory.setText(block.factory);
     value.setText(block.value);
     title.textProperty().bind(block.name);
-  }
-
-  @Override
-  protected void onMouseDragged(MouseEvent event) {
-    super.onMouseDragged(event);
-    block.x.set(getLayoutX());
-    block.y.set(getLayoutY());
+    block.x.bindBidirectional(layoutXProperty());
+    block.y.bindBidirectional(layoutYProperty());
   }
 }

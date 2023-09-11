@@ -21,12 +21,10 @@ package org.tybaco.ui.lib.action;
  * #L%
  */
 
-import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.*;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.*;
-import javafx.beans.value.ObservableBooleanValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -55,6 +53,8 @@ public final class Action {
   private final SimpleBooleanProperty selected = new SimpleBooleanProperty(this, "selected");
   private final SimpleListProperty<Action> actions = new SimpleListProperty<>(this, "actions");
   private final SimpleStringProperty group = new SimpleStringProperty(this, "group");
+
+  private boolean selectionEnabled;
 
   public Action() {
   }
@@ -164,8 +164,10 @@ public final class Action {
     return this;
   }
 
-  public Action selected(ObservableBooleanValue selected) {
-    this.selected.bind(selected);
+  public Action selectionBoundTo(Property<Boolean> selection, boolean initial) {
+    selected.set(initial);
+    selection.bind(selected);
+    selectionEnabled = true;
     return this;
   }
 
@@ -195,6 +197,11 @@ public final class Action {
     return group(new SimpleStringProperty(group));
   }
 
+  public Action selected(boolean selected) {
+    this.selected.set(selected);
+    return this;
+  }
+
   public boolean isActionsBound() {
     return actions.isBound();
   }
@@ -215,12 +222,16 @@ public final class Action {
     return icon.isBound();
   }
 
-  public boolean isSelectedBound() {
-    return selected.isBound();
-  }
-
   public boolean isGroupBound() {
     return group.isBound();
+  }
+
+  public boolean isSelectionEnabled() {
+    return selectionEnabled;
+  }
+
+  public void setSelectionEnabled(boolean selectionEnabled) {
+    this.selectionEnabled = selectionEnabled;
   }
 
   public ObjectBinding<Node> graphic(int size) {
@@ -269,7 +280,7 @@ public final class Action {
     menuItem.graphicProperty().bind(graphic(20));
     menuItem.acceleratorProperty().bind(accelerator);
     menuItem.onActionProperty().bind(handler);
-    menuItem.selectedProperty().bind(selected);
+    menuItem.selectedProperty().bindBidirectional(selected);
     menuItem.setUserData(new ActionUserData(this));
     for (var consumer : consumers) {
       consumer.accept(menuItem);
@@ -284,7 +295,7 @@ public final class Action {
     menuItem.graphicProperty().bind(graphic(20));
     menuItem.acceleratorProperty().bind(accelerator);
     menuItem.onActionProperty().bind(handler);
-    menuItem.selectedProperty().bind(selected);
+    menuItem.selectedProperty().bindBidirectional(selected);
     menuItem.setUserData(new ActionUserData(this));
     for (var consumer : consumers) {
       consumer.accept(menuItem);
@@ -309,7 +320,7 @@ public final class Action {
   @SafeVarargs
   public final ToggleButton toToggleButton(Consumer<? super ToggleButton>... consumers) {
     var button = new ToggleButton();
-    button.selectedProperty().bind(selected);
+    button.selectedProperty().bindBidirectional(selected);
     button.textProperty().bind(text);
     button.graphicProperty().bind(graphic(24));
     button.onActionProperty().bind(handler);
@@ -324,7 +335,7 @@ public final class Action {
   @SafeVarargs
   public final RadioButton toRadioButton(Consumer<? super RadioButton>... consumers) {
     var button = new RadioButton();
-    button.selectedProperty().bind(selected);
+    button.selectedProperty().bindBidirectional(selected);
     button.textProperty().bind(text);
     button.graphicProperty().bind(graphic(24));
     button.onActionProperty().bind(handler);
@@ -372,7 +383,7 @@ public final class Action {
   @SuppressWarnings("unchecked")
   @SafeVarargs
   public final MenuItem toSmartMenuItem(Consumer<? super MenuItem>... consumers) {
-    if (selected.isBound()) {
+    if (selectionEnabled) {
       if (group.isBound()) {
         return toRadioMenuItem(consumers);
       } else {
@@ -411,7 +422,7 @@ public final class Action {
   @SuppressWarnings("unchecked")
   @SafeVarargs
   public final Control toSmartButton(Map<String, ToggleGroup> map, Consumer<? super EventTarget>... consumers) {
-    if (selected.isBound()) {
+    if (selectionEnabled) {
       if (group.isBound()) {
         var button = toRadioButton(consumers);
         button.toggleGroupProperty().bind(

@@ -42,4 +42,19 @@ public class ProjectActions {
       project.newBlock(project.guessBlockName(), factory, method, 0d, 0d);
     });
   }
+
+  @Bean
+  @Qualifier("projectAction")
+  @Order(10)
+  public Action diagramActionsSeparator() {
+    return new Action();
+  }
+
+  @Bean
+  @Qualifier("projectAction")
+  @Order(11)
+  public Action accordionVisibleAction(ProjectAccordion accordion) {
+    return new Action(null, MaterialDesignB.BALLOON, "Accordion visibility")
+      .selectionBoundTo(accordion.visibleProperty(), true);
+  }
 }

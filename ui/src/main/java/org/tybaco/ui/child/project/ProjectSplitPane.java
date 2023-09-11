@@ -21,15 +21,15 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
-import javafx.scene.layout.BorderPane;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import javafx.scene.control.SplitPane;
+import org.springframework.stereotype.Component;
+import org.tybaco.ui.child.project.diagram.ProjectDiagram;
 
-@Configuration(proxyBeanMethods = false)
-@ComponentScan(lazyInit = true)
-public class ProjectPane extends BorderPane {
+@Component
+public class ProjectSplitPane extends SplitPane {
 
-  public ProjectPane(ProjectToolbar toolbar, ProjectSplitPane splitPane) {
-    super(splitPane, null, null, null, toolbar);
+  public ProjectSplitPane(ProjectDiagram diagram, ProjectAccordion accordion) {
+    super(diagram, accordion);
+    setDividerPositions(0.7);
   }
 }

@@ -26,7 +26,7 @@ import java.lang.reflect.Method;
 public record Block(int id, String name, String factory, String value) {
 
   public boolean isDependent() {
-    return Character.isDigit(factory.charAt(0));
+    return factory.chars().allMatch(Character::isDigit);
   }
 
   public int parentBlockId() {

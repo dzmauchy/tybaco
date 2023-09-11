@@ -21,15 +21,23 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
-import javafx.scene.layout.BorderPane;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import javafx.scene.control.Accordion;
+import javafx.scene.control.TitledPane;
+import org.springframework.stereotype.Component;
+import org.tybaco.ui.lib.text.Texts;
 
-@Configuration(proxyBeanMethods = false)
-@ComponentScan(lazyInit = true)
-public class ProjectPane extends BorderPane {
+@Component
+public class ProjectAccordion extends Accordion {
 
-  public ProjectPane(ProjectToolbar toolbar, ProjectSplitPane splitPane) {
-    super(splitPane, null, null, null, toolbar);
+  private final TitledPane constantsPane;
+  private final TitledPane librariesPane;
+
+  public ProjectAccordion(ProjectConstantsPane constants, ProjectLibrariesPane libraries) {
+    constantsPane = new TitledPane(null, constants);
+    constantsPane.textProperty().bind(Texts.text("Constants"));
+    librariesPane = new TitledPane(null, libraries);
+    librariesPane.textProperty().bind(Texts.text("Libraries"));
+    getPanes().addAll(constantsPane, librariesPane);
+    setExpandedPane(constantsPane);
   }
 }
