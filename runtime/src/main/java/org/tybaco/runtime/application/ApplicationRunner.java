@@ -104,7 +104,7 @@ public class ApplicationRunner implements Runnable {
 
     private final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     private final IdentityHashMap<ResolvableObject, Object> beans;
-    private final HashMap<Conn, TreeMap<Integer, Conn>> inputs;
+    private final HashMap<Conn, Conns> inputs;
     private final HashMap<Conn, Object> outValues;
     private final IntMap<ResolvableObject> objectMap;
     private final LinkedList<Ref<AutoCloseable>> closeables = new LinkedList<>();
@@ -121,7 +121,7 @@ public class ApplicationRunner implements Runnable {
       app.links().forEach(l -> {
         var outBlock = requireNonNull(objectMap.get(l.out().block()), () -> "Object %d doesn't exist".formatted(l.out().block()));
         var inBlock = requireNonNull(objectMap.get(l.in().block()), () -> "Object %d doesn't exist".formatted(l.in().block()));
-        inputs.computeIfAbsent(new Conn(inBlock, l.in().spot()), k -> new TreeMap<>()).put(l.in().index(), new Conn(outBlock, l.out().spot()));
+        inputs.computeIfAbsent(new Conn(inBlock, l.in().spot()), k -> new Conns()).add(l.in().index(), new Conn(outBlock, l.out().spot()));
       });
     }
 
@@ -162,16 +162,16 @@ public class ApplicationRunner implements Runnable {
           var in = new Conn(b, param.getName());
           var out = inputs.get(in);
           if (out == null) {
-            resolvedParams[i] = defaultValue(param.getType(), param.isVarArgs());
+            resolvedParams[i] = defaultValue(param);
           } else if (param.isVarArgs()) {
-            var array = Array.newInstance(param.getType().getComponentType(), out.lastKey() + 1);
-            out.forEach((index, o) -> {
-              var bean = beans.containsKey(o.block) ? beans.get(o.block) : resolveBlock((ApplicationBlock) o.block, passed);
-              Array.set(array, index, resolveOut(o, bean));
+            var array = Array.newInstance(param.getType().getComponentType(), out.conns.length);
+            out.forEach((index, conn) -> {
+              var bean = beans.containsKey(conn.block) ? beans.get(conn.block) : resolveBlock((ApplicationBlock) conn.block, passed);
+              Array.set(array, index, resolveOut(conn, bean));
             });
             resolvedParams[i] = array;
           } else {
-            var conn = out.firstEntry().getValue();
+            var conn = out.conns[0];
             var bean = beans.containsKey(conn.block) ? beans.get(conn.block) : resolveBlock((ApplicationBlock) conn.block(), passed);
             resolvedParams[i] = resolveOut(conn, bean);
           }
@@ -204,13 +204,13 @@ public class ApplicationRunner implements Runnable {
           var parameter = method.getParameters()[0];
           final Object arg;
           if (parameter.isVarArgs()) {
-            arg = Array.newInstance(parameter.getType().getComponentType(), out.lastKey() + 1);
-            out.forEach((i, o) -> {
-              var outBean = beans.get(o.block);
-              Array.set(arg, i, resolveOut(o, outBean));
+            arg = Array.newInstance(parameter.getType().getComponentType(), out.conns.length);
+            out.forEach((i, c) -> {
+              var outBean = beans.get(c.block);
+              Array.set(arg, i, resolveOut(c, outBean));
             });
           } else {
-            var outConn = out.firstEntry().getValue();
+            var outConn = out.conns[0];
             var outBean = beans.get(outConn.block);
             arg = resolveOut(outConn, outBean);
           }
@@ -254,21 +254,42 @@ public class ApplicationRunner implements Runnable {
       }
     }
 
+    private static final class Conns {
+
+      private Conn[] conns = new Conn[0];
+
+      private void add(int index, Conn conn) {
+        if (index < 0) {
+          conns = new Conn[] {conn};
+        } else {
+          if (index >= conns.length) conns = Arrays.copyOf(conns, index + 1, Conn[].class);
+          conns[index] = conn;
+        }
+      }
+
+      private void forEach(Consumer consumer) {
+        var conns = this.conns;
+        var len = conns.length;
+        for (int i = 0; i < len; i++) {
+          var conn = conns[i];
+          if (conn != null) {
+            consumer.consume(i, conn);
+          }
+        }
+      }
+
+      private interface Consumer {
+        void consume(int index, Conn conn);
+      }
+    }
+
     private record ResolvedMethod(Method method, Object bean) {}
 
-    private Object defaultValue(Class<?> type, boolean varargs) {
-      if (type.isPrimitive()) {
-        if (type == int.class) return 0;
-        else if (type == long.class) return 0L;
-        else if (type == short.class) return (short) 0;
-        else if (type == char.class) return (char) 0;
-        else if (type == byte.class) return (byte) 0;
-        else if (type == float.class) return 0f;
-        else if (type == double.class) return 0d;
-        else if (type == boolean.class) return Boolean.FALSE;
-        else return null;
-      } else if (varargs) {
-        return Array.newInstance(type.getComponentType(), 0);
+    private Object defaultValue(Parameter parameter) {
+      if (parameter.getType().isPrimitive()) {
+        return Array.get(Array.newInstance(parameter.getType(), 1), 0);
+      } else if (parameter.isVarArgs()) {
+        return Array.newInstance(parameter.getType().getComponentType(), 0);
       } else {
         return null;
       }
@@ -346,16 +367,14 @@ public class ApplicationRunner implements Runnable {
 
     private static final int BUCKET_SIZE = 64;
 
-    private Object[][] buckets;
+    private final Object[][] buckets;
 
     private IntMap(int size) {
-      var fixedSize = (size % BUCKET_SIZE) == 0 ? size / BUCKET_SIZE : size / BUCKET_SIZE + 1;
-      buckets = new Object[fixedSize][];
+      buckets = new Object[Math.ceilDiv(size, BUCKET_SIZE)][];
     }
 
     private void put(int key, T value) {
       var bucketIndex = key / BUCKET_SIZE;
-      if (buckets.length <= bucketIndex) buckets = Arrays.copyOf(buckets, bucketIndex + 1, Object[][].class);
       var bucket = buckets[bucketIndex];
       if (bucket == null) buckets[bucketIndex] = bucket = new Object[BUCKET_SIZE];
       bucket[key % BUCKET_SIZE] = value;
@@ -364,7 +383,8 @@ public class ApplicationRunner implements Runnable {
     private T get(int key) {
       var bucketIndex = key / BUCKET_SIZE;
       if (bucketIndex >= buckets.length) return null;
-      return (T) buckets[bucketIndex][key % BUCKET_SIZE];
+      var bucket = buckets[bucketIndex];
+      return bucket == null ? null : (T) bucket[key % BUCKET_SIZE];
     }
 
     @Override
@@ -376,11 +396,7 @@ public class ApplicationRunner implements Runnable {
           i += BUCKET_SIZE;
         } else {
           for (var v : bucket) {
-            if (v != null) {
-              map.put(i++, v);
-            } else {
-              i++;
-            }
+            if (v != null) map.put(i++, v); else i++;
           }
         }
       }
