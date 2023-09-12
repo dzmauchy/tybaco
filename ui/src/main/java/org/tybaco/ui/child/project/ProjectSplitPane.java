@@ -21,7 +21,6 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
-import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.scene.control.SplitPane;
 import org.springframework.stereotype.Component;

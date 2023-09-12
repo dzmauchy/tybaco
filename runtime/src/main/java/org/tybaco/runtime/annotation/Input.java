@@ -1,6 +1,8 @@
+package org.tybaco.runtime.annotation;
+
 /*-
  * #%L
- * ui
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -19,39 +21,12 @@
  * #L%
  */
 
-.root {
-    -fx-base: #333533;
-}
+import java.lang.annotation.*;
 
-.diagram-block {
-    -fx-border-color: white;
-    -fx-border-width: 2;
-    -fx-border-radius: 5;
-    -fx-border-style: solid;
-}
-
-.diagram-block > .ty-title {
-    -fx-border-width: 0 0 2 0;
-    -fx-background-color: linear-gradient(to top, black, transparent);
-    -fx-alignment: center;
-    -fx-padding: 5;
-    -fx-font-weight: bold;
-}
-
-.diagram-block > .ty-content {
-    -fx-padding: 5;
-    -fx-background-color: #444;
-}
-
-.diagram-block > .ty-content > * {
-    -fx-padding: 5;
-    -fx-background-color: transparent;
-}
-
-.diagram-block > .ty-content > .ty-block-factory {
-    -fx-alignment: center;
-}
-
-.diagram-block > .ty-content > .ty-block-value {
-    -fx-alignment: center;
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD})
+public @interface Input {
+  String name() default "";
+  String description() default "";
+  String icon() default "";
 }

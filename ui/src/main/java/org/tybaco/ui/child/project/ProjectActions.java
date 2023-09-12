@@ -21,6 +21,7 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
+import org.kordamp.ikonli.materialdesign.MaterialDesign;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignB;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -54,7 +55,7 @@ public class ProjectActions {
   @Qualifier("projectAction")
   @Order(11)
   public Action accordionVisibleAction(ProjectAccordion accordion) {
-    return new Action(null, MaterialDesignB.BALLOON, "Accordion visibility")
+    return new Action(null, MaterialDesign.MDI_BOOK_OPEN, "Accordion visibility")
       .selectionBoundTo(accordion.visibleProperty(), true);
   }
 }
