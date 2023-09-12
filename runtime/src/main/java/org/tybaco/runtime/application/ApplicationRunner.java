@@ -106,14 +106,14 @@ public class ApplicationRunner implements Runnable {
     private final IdentityHashMap<ResolvableObject, Object> beans;
     private final HashMap<Conn, Conns> inputs;
     private final HashMap<Conn, Object> outValues;
-    private final IntMap<ResolvableObject> objectMap;
+    private final ResolvableObjectMap objectMap;
     private final LinkedList<Ref<AutoCloseable>> closeables = new LinkedList<>();
 
     private ApplicationResolver(Application app) {
       this.beans = new IdentityHashMap<>(app.blocks().size());
       this.inputs = new HashMap<>(app.links().size());
       this.outValues = new HashMap<>(app.links().size());
-      this.objectMap = new IntMap<>(app.maxInternalId() + 1);
+      this.objectMap = new ResolvableObjectMap(app.maxInternalId() + 1);
 
       app.blocks().forEach(b -> objectMap.put(b.id(), b));
       app.constants().forEach(c -> objectMap.put(c.id(), c));
@@ -362,29 +362,28 @@ public class ApplicationRunner implements Runnable {
 
   private record Ref<T>(T ref, int id) {}
 
-  @SuppressWarnings("unchecked")
-  private static final class IntMap<T> {
+  private static final class ResolvableObjectMap {
 
     private static final int BUCKET_SIZE = 64;
 
-    private final Object[][] buckets;
+    private final ResolvableObject[][] buckets;
 
-    private IntMap(int size) {
-      buckets = new Object[Math.ceilDiv(size, BUCKET_SIZE)][];
+    private ResolvableObjectMap(int size) {
+      buckets = new ResolvableObject[Math.ceilDiv(size, BUCKET_SIZE)][];
     }
 
-    private void put(int key, T value) {
+    private void put(int key, ResolvableObject value) {
       var bucketIndex = key / BUCKET_SIZE;
       var bucket = buckets[bucketIndex];
-      if (bucket == null) buckets[bucketIndex] = bucket = new Object[BUCKET_SIZE];
+      if (bucket == null) buckets[bucketIndex] = bucket = new ResolvableObject[BUCKET_SIZE];
       bucket[key % BUCKET_SIZE] = value;
     }
 
-    private T get(int key) {
+    private ResolvableObject get(int key) {
       var bucketIndex = key / BUCKET_SIZE;
       if (bucketIndex >= buckets.length) return null;
       var bucket = buckets[bucketIndex];
-      return bucket == null ? null : (T) bucket[key % BUCKET_SIZE];
+      return bucket == null ? null : bucket[key % BUCKET_SIZE];
     }
 
     @Override
