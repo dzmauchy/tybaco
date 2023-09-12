@@ -23,17 +23,17 @@ package org.tybaco.runtime.application;
 
 import java.lang.reflect.*;
 
-public record Constant(int id, String factory, String value) implements ResolvableObject {
+public record ApplicationConstant(int id, String factory, String value) implements ResolvableObject {
 
-  public static Constant fromClass(int id, Class<?> type, String value) {
+  public static ApplicationConstant fromClass(int id, Class<?> type, String value) {
     for (var method : type.getMethods()) {
       if (isFactoryExecutable(method)) {
-        return new Constant(id, type.getName(), value);
+        return new ApplicationConstant(id, type.getName(), value);
       }
     }
     for (var constructor : type.getConstructors()) {
       if (isFactoryExecutable(constructor)) {
-        return new Constant(id, type.getName(), value);
+        return new ApplicationConstant(id, type.getName(), value);
       }
     }
     throw new IllegalArgumentException("Unable to locate a method: " + type);

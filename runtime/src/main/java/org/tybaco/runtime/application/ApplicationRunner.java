@@ -28,7 +28,6 @@ import java.util.concurrent.CountDownLatch;
 import static java.lang.Long.parseLong;
 import static java.lang.Runtime.getRuntime;
 import static java.lang.System.*;
-import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.concurrent.locks.LockSupport.parkNanos;
@@ -103,7 +102,6 @@ public class ApplicationRunner implements Runnable {
   private static final class ApplicationResolver {
 
     private final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    private final IdentityHashMap<ResolvableObject, ResolvedMethod> methods;
     private final IdentityHashMap<ResolvableObject, Object> beans;
     private final HashMap<Conn, TreeMap<Integer, Conn>> inputs;
     private final HashMap<Conn, Object> outValues;
@@ -111,7 +109,6 @@ public class ApplicationRunner implements Runnable {
     private final LinkedList<Ref<AutoCloseable>> closeables = new LinkedList<>();
 
     private ApplicationResolver(Application app) {
-      this.methods = new IdentityHashMap<>(app.blocks().size());
       this.beans = new IdentityHashMap<>(app.blocks().size());
       this.inputs = new HashMap<>(app.links().size());
       this.outValues = new HashMap<>(app.links().size());
@@ -127,7 +124,7 @@ public class ApplicationRunner implements Runnable {
       });
     }
 
-    private void resolveConstant(Constant c) {
+    private void resolveConstant(ApplicationConstant c) {
       try {
         var v = primitiveConstValue(c);
         beans.put(c, v == null ? constValue(c) : v);
@@ -136,22 +133,22 @@ public class ApplicationRunner implements Runnable {
       }
     }
 
-    private Object constValue(Constant c) throws Exception {
+    private Object constValue(ApplicationConstant c) throws Exception {
       var factoryClass = Class.forName(c.factory(), true, classLoader);
       for (var method : factoryClass.getMethods()) {
-        if (Constant.isFactoryExecutable(method)) {
+        if (ApplicationConstant.isFactoryExecutable(method)) {
           return method.invoke(null, c.value());
         }
       }
       for (var constructor : factoryClass.getConstructors()) {
-        if (Constant.isFactoryExecutable(constructor)) {
+        if (ApplicationConstant.isFactoryExecutable(constructor)) {
           return constructor.newInstance(c.value());
         }
       }
       throw new NoSuchElementException("No value methods found on " + factoryClass);
     }
 
-    private Object resolveBlock(Block b, BitSet passed) {
+    private Object resolveBlock(ApplicationBlock b, BitSet passed) {
       if (beans.containsKey(b)) return beans.get(b);
       if (passed.get(b.id())) throw new IllegalStateException("Circular reference of blocks: %s".formatted(passed));
       passed.set(b.id());
@@ -168,13 +165,13 @@ public class ApplicationRunner implements Runnable {
           } else if (param.isVarArgs()) {
             var array = Array.newInstance(param.getType().getComponentType(), out.lastKey() + 1);
             out.forEach((index, o) -> {
-              var bean = beans.containsKey(o.block) ? beans.get(o.block) : resolveBlock((Block) o.block, passed);
+              var bean = beans.containsKey(o.block) ? beans.get(o.block) : resolveBlock((ApplicationBlock) o.block, passed);
               Array.set(array, index, resolveOut(o, bean));
             });
             resolvedParams[i] = array;
           } else {
             var conn = out.firstEntry().getValue();
-            var bean = beans.containsKey(conn.block) ? beans.get(conn.block) : resolveBlock((Block) conn.block(), passed);
+            var bean = beans.containsKey(conn.block) ? beans.get(conn.block) : resolveBlock((ApplicationBlock) conn.block(), passed);
             resolvedParams[i] = resolveOut(conn, bean);
           }
         }
@@ -191,12 +188,11 @@ public class ApplicationRunner implements Runnable {
       }
     }
 
-    private void invokeInputs(Block b) {
+    private void invokeInputs(ApplicationBlock b) {
       var bean = beans.get(b);
       for (var method : bean.getClass().getMethods()) {
         if (method.getParameterCount() != 1) continue;
         if (Modifier.isStatic(method.getModifiers())) continue;
-        if (method.getReturnType() != void.class) continue;
         var conn = new Conn(b, "+" + method.getName());
         var out = inputs.get(conn);
         if (out != null) {
@@ -222,30 +218,17 @@ public class ApplicationRunner implements Runnable {
       }
     }
 
-    private ResolvedMethod method(Block b, BitSet passed) throws Exception {
-      {
-        var m = methods.get(b);
-        if (m != null) {
-          return m;
-        }
-      }
+    private ResolvedMethod method(ApplicationBlock b, BitSet passed) throws Exception {
       if (b.isDependent()) {
         var parentBlockId = b.parentBlockId();
         var parentBlock = requireNonNull(objectMap.get(parentBlockId), () -> "Block %d doesn't exist".formatted(parentBlockId));
-        var bean = beans.containsKey(parentBlock) ? beans.get(parentBlock) : resolveBlock((Block) parentBlock, passed);
-        var method = resolveFactoryMethod(parentBlock.id(), b.method(), bean);
-        var result = new ResolvedMethod(method, bean);
-        methods.put(b, result);
-        return result;
+        var bean = beans.containsKey(parentBlock) ? beans.get(parentBlock) : resolveBlock((ApplicationBlock) parentBlock, passed);
+        var method = b.resolveFactoryMethod(bean);
+        return new ResolvedMethod(method, bean);
       }
       var type = Class.forName(b.factory(), true, classLoader);
-      var method = stream(type.getMethods())
-        .filter(m -> m.getName().equals(b.method()))
-        .findFirst()
-        .orElse(null);
-      var result = new ResolvedMethod(method, type);
-      methods.put(b, result);
-      return result;
+      var method = b.resolveFactoryMethod(type);
+      return new ResolvedMethod(method, type);
     }
 
     private record Conn(ResolvableObject block, String spot) {
@@ -306,18 +289,6 @@ public class ApplicationRunner implements Runnable {
         }
       }
     }
-
-    private Method resolveFactoryMethod(int blockId, String factory, Object bean) {
-      try {
-        return stream(bean.getClass().getMethods())
-          .filter(m -> !Modifier.isStatic(m.getModifiers()))
-          .filter(m -> m.getName().equals(factory))
-          .findFirst()
-          .orElseThrow(() -> new NoSuchElementException(factory));
-      } catch (Throwable e) {
-        throw new IllegalStateException("Block %d: error on resolving factory %s".formatted(blockId, factory));
-      }
-    }
   }
 
   record RuntimeApp(LinkedList<Ref<Runnable>> tasks, LinkedList<Ref<AutoCloseable>> closeables) implements AutoCloseable {
@@ -354,7 +325,7 @@ public class ApplicationRunner implements Runnable {
     }
   }
 
-  private static Object primitiveConstValue(Constant b) {
+  private static Object primitiveConstValue(ApplicationConstant b) {
     var v = b.value();
     return switch (b.factory()) {
       case "int" -> Integer.parseInt(v);

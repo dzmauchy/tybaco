@@ -21,5 +21,5 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
-public record Link(Connector out, Connector in) {
+public record ApplicationLink(ApplicationConnector out, ApplicationConnector in) {
 }

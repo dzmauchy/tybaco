@@ -22,8 +22,12 @@ package org.tybaco.runtime.application;
  */
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.NoSuchElementException;
 
-public record Block(int id, String factory, String method) implements ResolvableObject {
+import static java.util.Arrays.stream;
+
+public record ApplicationBlock(int id, String factory, String method) implements ResolvableObject {
 
   public boolean isDependent() {
     return factory.chars().allMatch(Character::isDigit);
@@ -33,9 +37,25 @@ public record Block(int id, String factory, String method) implements Resolvable
     return Integer.parseInt(factory);
   }
 
-  public static Block fromMethod(int id, Method method) {
+  public Method resolveFactoryMethod(Object bean) {
+    return stream(bean.getClass().getMethods())
+      .filter(m -> !Modifier.isStatic(m.getModifiers()))
+      .filter(m -> m.getName().equals(method))
+      .findFirst()
+      .orElseThrow(() -> new NoSuchElementException(method + " of " + this + "(" + bean.getClass() + ")"));
+  }
+
+  public Method resolveFactoryMethod(Class<?> type) {
+    return stream(type.getMethods())
+      .filter(m -> Modifier.isStatic(m.getModifiers()))
+      .filter(m -> m.getName().equals(method))
+      .findFirst()
+      .orElseThrow(() -> new NoSuchElementException(method + "of " + this + "(" + type + ")"));
+  }
+
+  public static ApplicationBlock fromMethod(int id, Method method) {
     var factory = method.getDeclaringClass().getName();
     var value = method.getName();
-    return new Block(id, factory, value);
+    return new ApplicationBlock(id, factory, value);
   }
 }

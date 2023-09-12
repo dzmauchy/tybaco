@@ -21,13 +21,13 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
-public record Connector(int block, String spot, int index) {
+public record ApplicationConnector(int block, String spot, int index) {
 
-  public Connector(int block, String spot) {
+  public ApplicationConnector(int block, String spot) {
     this(block, spot, -1);
   }
 
-  public static Connector out(int block) {
-    return new Connector(block, "*");
+  public static ApplicationConnector out(int block) {
+    return new ApplicationConnector(block, "*");
   }
 }

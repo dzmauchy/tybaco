@@ -101,8 +101,8 @@ public class ApplicationLoader implements Runnable {
     Application.CURRENT_APPLICATION.set(application);
   }
 
-  private List<Constant> constants(Element element) {
-    var list = new LinkedList<Constant>();
+  private List<ApplicationConstant> constants(Element element) {
+    var list = new LinkedList<ApplicationConstant>();
     var wrapperNodes = element.getElementsByTagName("constants");
     for (int i = 0; i < wrapperNodes.getLength(); i++) {
       if (wrapperNodes.item(i) instanceof Element blocks) {
@@ -117,19 +117,19 @@ public class ApplicationLoader implements Runnable {
     return List.copyOf(list);
   }
 
-  private Constant constant(Element element, int i, int j) {
+  private ApplicationConstant constant(Element element, int i, int j) {
     var id = parseInt(element.getAttribute("id")).orElseThrow(() -> new IllegalArgumentException("Invalid block [%d][%d]".formatted(i, j)));
     var factory = requireNonNull(element.getAttribute("factory"), () -> "Constant factory is null: %d".formatted(id));
     if (factory.isBlank()) {
       throw new IllegalArgumentException("Block factory is blank: %d".formatted(id));
     }
     var value = requireNonNull(element.getAttribute("value"), () -> "Block value is null [%d][%d]".formatted(i, j));
-    return new Constant(id, factory, value);
+    return new ApplicationConstant(id, factory, value);
 
   }
 
-  private List<Block> blocks(Element element) {
-    var list = new LinkedList<Block>();
+  private List<ApplicationBlock> blocks(Element element) {
+    var list = new LinkedList<ApplicationBlock>();
     var wrapperNodes = element.getElementsByTagName("blocks");
     for (int i = 0; i < wrapperNodes.getLength(); i++) {
       if (wrapperNodes.item(i) instanceof Element blocks) {
@@ -144,7 +144,7 @@ public class ApplicationLoader implements Runnable {
     return List.copyOf(list);
   }
 
-  private Block block(Element element, int i, int j) {
+  private ApplicationBlock block(Element element, int i, int j) {
     var id = parseInt(element.getAttribute("id")).orElseThrow(() -> new IllegalArgumentException("Invalid block [%d][%d]".formatted(i, j)));
     var factory = requireNonNull(element.getAttribute("factory"), () -> "Block factory is null: %d".formatted(id));
     if (factory.isBlank()) {
@@ -154,11 +154,11 @@ public class ApplicationLoader implements Runnable {
       throw new IllegalArgumentException("Invalid block factory [%d][%d]: %s".formatted(i, j, factory));
     }
     var method = requireNonNull(element.getAttribute("method"), () -> "Block method is null [%d][%d]".formatted(i, j));
-    return new Block(id, factory, method);
+    return new ApplicationBlock(id, factory, method);
   }
 
-  private List<Link> links(Element element) {
-    var list = new LinkedList<Link>();
+  private List<ApplicationLink> links(Element element) {
+    var list = new LinkedList<ApplicationLink>();
     var linksNodes = element.getElementsByTagName("links");
     for (int i = 0; i < linksNodes.getLength(); i++) {
       if (linksNodes.item(i) instanceof Element links) {
@@ -173,7 +173,7 @@ public class ApplicationLoader implements Runnable {
     return List.copyOf(list);
   }
 
-  private Link link(Element element, int i, int j) {
+  private ApplicationLink link(Element element, int i, int j) {
     Element out = null;
     var outNodes = element.getElementsByTagName("out");
     for (int k = 0; k < outNodes.getLength(); k++) {
@@ -194,14 +194,14 @@ public class ApplicationLoader implements Runnable {
     if (in == null) {
       throw new IllegalArgumentException("Link [%d][%d] error: in is null".formatted(i, j));
     }
-    return new Link(connector(out, "out", i, j), connector(in, "in", i, j));
+    return new ApplicationLink(connector(out, "out", i, j), connector(in, "in", i, j));
   }
 
-  private Connector connector(Element element, String name, int i, int j) {
+  private ApplicationConnector connector(Element element, String name, int i, int j) {
     var blockId = parseInt(element.getAttribute("block")).orElseThrow(() -> new IllegalArgumentException("Block [%d][%d].%s id = null".formatted(i, j, name)));
     var spot = requireNonNull(element.getAttribute("spot"), () -> "Block [%d][%d].%s spot is null".formatted(i, j, name));
     var index = parseInt(element.getAttribute("index"), 0).orElseThrow(() -> new IllegalArgumentException("Block [%d].%s invalid index".formatted(blockId, name)));
-    return new Connector(blockId, spot, index);
+    return new ApplicationConnector(blockId, spot, index);
   }
 
   private OptionalInt parseInt(String v) {

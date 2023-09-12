@@ -21,7 +21,7 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
-public sealed interface ResolvableObject permits Constant, Block {
+public sealed interface ResolvableObject permits ApplicationConstant, ApplicationBlock {
   int id();
   String factory();
 }
