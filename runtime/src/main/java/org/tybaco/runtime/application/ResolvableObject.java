@@ -21,15 +21,7 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
-import java.util.List;
-
-import static java.util.Objects.requireNonNull;
-
-public record Application(String id, List<Constant> constants, List<Block> blocks, List<Link> links) {
-
-  static final ThreadLocal<Application> CURRENT_APPLICATION = new ThreadLocal<>();
-
-  public static Application activeApplication() {
-    return requireNonNull(CURRENT_APPLICATION.get(), "No active application found");
-  }
+public sealed interface ResolvableObject permits Constant, Block {
+  int id();
+  String factory();
 }

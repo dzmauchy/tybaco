@@ -22,13 +22,8 @@ package org.tybaco.runtime.application;
  */
 
 import java.lang.reflect.*;
-import java.net.URI;
-import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
-import java.util.regex.Pattern;
 
 import static java.lang.Long.parseLong;
 import static java.lang.Runtime.getRuntime;
@@ -37,8 +32,6 @@ import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 import static java.util.concurrent.locks.LockSupport.parkNanos;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toUnmodifiableMap;
 import static org.tybaco.runtime.application.Application.activeApplication;
 
 public class ApplicationRunner implements Runnable {
@@ -65,6 +58,9 @@ public class ApplicationRunner implements Runnable {
     var tasks = new LinkedList<Ref<Runnable>>();
     var runtime = new RuntimeApp(tasks, closeables);
     try {
+      for (var constant : app.constants()) {
+        resolver.resolveConstant(constant);
+      }
       for (var block : app.blocks()) {
         var bean = resolver.resolveBlock(block, new BitSet());
         if (bean instanceof Thread t) {
@@ -106,58 +102,61 @@ public class ApplicationRunner implements Runnable {
 
   private static final class ApplicationResolver {
 
-    private final Pattern commaPattern = Pattern.compile(",");
     private final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    private final IdentityHashMap<Block, ResolvedMethod> methods;
-    private final IdentityHashMap<Block, Object> beans;
+    private final IdentityHashMap<ResolvableObject, ResolvedMethod> methods;
+    private final IdentityHashMap<ResolvableObject, Object> beans;
     private final HashMap<Conn, TreeMap<Integer, Conn>> inputs;
     private final HashMap<Conn, Object> outValues;
-    private final Map<Integer, Block> blockMap;
+    private final Map<Integer, ResolvableObject> objectMap;
     private final LinkedList<Ref<AutoCloseable>> closeables = new LinkedList<>();
 
-    private ApplicationResolver(Application application) {
-      this.methods = new IdentityHashMap<>(application.blocks().size());
-      this.beans = new IdentityHashMap<>(application.blocks().size());
-      this.inputs = new HashMap<>(application.links().size());
-      this.outValues = new HashMap<>(application.links().size());
-      this.blockMap = application.blocks().stream().collect(toUnmodifiableMap(Block::id, identity()));
+    private ApplicationResolver(Application app) {
+      this.methods = new IdentityHashMap<>(app.blocks().size());
+      this.beans = new IdentityHashMap<>(app.blocks().size());
+      this.inputs = new HashMap<>(app.links().size());
+      this.outValues = new HashMap<>(app.links().size());
+      this.objectMap = new HashMap<>(app.constants().size() + app.blocks().size());
 
-      application.links().forEach(l -> {
-        var outBlock = requireNonNull(blockMap.get(l.out().block()), () -> "Block %d doesn't exist".formatted(l.out().block()));
-        var inBlock = requireNonNull(blockMap.get(l.in().block()), () -> "Block %d doesn't exist".formatted(l.in().block()));
+      app.blocks().forEach(b -> objectMap.put(b.id(), b));
+      app.constants().forEach(c -> objectMap.put(c.id(), c));
+
+      app.links().forEach(l -> {
+        var outBlock = requireNonNull(objectMap.get(l.out().block()), () -> "Object %d doesn't exist".formatted(l.out().block()));
+        var inBlock = requireNonNull(objectMap.get(l.in().block()), () -> "Object %d doesn't exist".formatted(l.in().block()));
         inputs.computeIfAbsent(new Conn(inBlock, l.in().spot()), k -> new TreeMap<>()).put(l.in().index(), new Conn(outBlock, l.out().spot()));
       });
     }
 
-    private Object resolveBlock(Block b, BitSet passed) {
-      {
-        var bean = beans.get(b);
-        if (bean != null) {
-          return bean;
+    private void resolveConstant(Constant c) {
+      try {
+        var v = primitiveConstValue(c);
+        beans.put(c, v == null ? constValue(c) : v);
+      } catch (Throwable e) {
+        throw new IllegalStateException("Unable to create " + c);
+      }
+    }
+
+    private Object constValue(Constant c) throws Exception {
+      var factoryClass = Class.forName(c.factory(), true, classLoader);
+      for (var method : factoryClass.getMethods()) {
+        if (Constant.isFactoryExecutable(method)) {
+          return method.invoke(null, c.value());
         }
       }
-      if (passed.get(b.id())) {
-        throw new IllegalStateException("Circular reference of blocks: %s".formatted(passed));
+      for (var constructor : factoryClass.getConstructors()) {
+        if (Constant.isFactoryExecutable(constructor)) {
+          return constructor.newInstance(c.value());
+        }
       }
+      throw new NoSuchElementException("No value methods found on " + factoryClass);
+    }
+
+    private Object resolveBlock(Block b, BitSet passed) {
+      if (beans.containsKey(b)) return beans.get(b);
+      if (passed.get(b.id())) throw new IllegalStateException("Circular reference of blocks: %s".formatted(passed));
       passed.set(b.id());
       try {
-        {
-          var constValue = resolveConstant(b);
-          if (constValue != null) {
-            beans.put(b, constValue);
-            return constValue;
-          }
-        }
         var resolvedMethod = method(b, passed);
-        if (resolvedMethod.method == null) {
-          if (resolvedMethod.bean instanceof Class<?> c) {
-            var constValue = constValue(c, b.value());
-            beans.put(b, constValue);
-            return constValue;
-          } else {
-            throw new IllegalStateException("Unresolved method %s".formatted(b.value()));
-          }
-        }
         var params = resolvedMethod.method.getParameters();
         var resolvedParams = new Object[params.length];
         for (int i = 0; i < params.length; i++) {
@@ -169,13 +168,13 @@ public class ApplicationRunner implements Runnable {
           } else if (param.isVarArgs()) {
             var array = Array.newInstance(param.getType().getComponentType(), out.lastKey() + 1);
             out.forEach((index, o) -> {
-              var bean = resolveBlock(o.block, passed);
+              var bean = beans.containsKey(o.block) ? beans.get(o.block) : resolveBlock((Block) o.block, passed);
               Array.set(array, index, resolveOut(o, bean));
             });
             resolvedParams[i] = array;
           } else {
             var conn = out.firstEntry().getValue();
-            var bean = resolveBlock(conn.block(), passed);
+            var bean = beans.containsKey(conn.block) ? beans.get(conn.block) : resolveBlock((Block) conn.block(), passed);
             resolvedParams[i] = resolveOut(conn, bean);
           }
         }
@@ -232,16 +231,16 @@ public class ApplicationRunner implements Runnable {
       }
       if (b.isDependent()) {
         var parentBlockId = b.parentBlockId();
-        var parentBlock = requireNonNull(blockMap.get(parentBlockId), () -> "Block %d doesn't exist".formatted(parentBlockId));
-        var bean = resolveBlock(parentBlock, passed);
-        var method = resolveFactoryMethod(parentBlock.id(), b.value(), bean);
+        var parentBlock = requireNonNull(objectMap.get(parentBlockId), () -> "Block %d doesn't exist".formatted(parentBlockId));
+        var bean = beans.containsKey(parentBlock) ? beans.get(parentBlock) : resolveBlock((Block) parentBlock, passed);
+        var method = resolveFactoryMethod(parentBlock.id(), b.method(), bean);
         var result = new ResolvedMethod(method, bean);
         methods.put(b, result);
         return result;
       }
       var type = Class.forName(b.factory(), true, classLoader);
       var method = stream(type.getMethods())
-        .filter(m -> m.getName().equals(b.value()))
+        .filter(m -> m.getName().equals(b.method()))
         .findFirst()
         .orElse(null);
       var result = new ResolvedMethod(method, type);
@@ -249,42 +248,7 @@ public class ApplicationRunner implements Runnable {
       return result;
     }
 
-    private Object resolveConstant(Block b) throws Exception {
-      var v = b.value();
-      return switch (b.factory()) {
-        case "int" -> Integer.parseInt(v);
-        case "int[]" -> commaPattern.splitAsStream(v).map(String::trim).mapToInt(Integer::parseInt).toArray();
-        case "long" -> parseLong(v);
-        case "long[]" -> commaPattern.splitAsStream(v).map(String::trim).mapToLong(Long::parseLong).toArray();
-        case "short" -> Short.parseShort(v);
-        case "byte" -> Byte.parseByte(v);
-        case "char" -> v.charAt(0);
-        case "codePoint" -> v.chars().findFirst().orElseThrow();
-        case "boolean" -> Boolean.parseBoolean(v);
-        case "float" -> Float.parseFloat(v);
-        case "double" -> Double.parseDouble(v);
-        case "double[]" -> commaPattern.splitAsStream(v).map(String::trim).mapToDouble(Double::parseDouble).toArray();
-        case "URL" -> new URI(v).toURL();
-        case "URI" -> new URI(v);
-        case "Locale" -> Locale.forLanguageTag(v);
-        case "String" -> v;
-        case "Random" -> new Random(v.isEmpty() ? 0L : parseLong(v));
-        case "Pattern" -> Pattern.compile(v);
-        case "stringBytes" -> v.getBytes(StandardCharsets.UTF_8);
-        case "stringChars" -> v.toCharArray();
-        case "stringCodePoints" -> v.chars().toArray();
-        case "DateTimeFormatter" -> DateTimeFormatter.ofPattern(v, Locale.getDefault());
-        case "TimeZone" -> TimeZone.getTimeZone(v);
-        case "ByteOrder" -> switch (v) {
-          case "BE" -> ByteOrder.BIG_ENDIAN;
-          case "LE" -> ByteOrder.LITTLE_ENDIAN;
-          default -> ByteOrder.nativeOrder();
-        };
-        default -> null;
-      };
-    }
-
-    private record Conn(Block block, String spot) {
+    private record Conn(ResolvableObject block, String spot) {
 
       @Override
       public boolean equals(Object obj) {
@@ -390,23 +354,19 @@ public class ApplicationRunner implements Runnable {
     }
   }
 
-  private static Object constValue(Class<?> type, String value) throws Exception {
-    for (var method : type.getMethods()) {
-      if (!Modifier.isStatic(method.getModifiers())) continue;
-      if (method.getParameterCount() != 1) continue;
-      if (method.getParameterTypes()[0] != String.class) continue;
-      switch (method.getName()) {
-        case "valueOf", "parse", "of", "getInstance", "instance", "instanceOf", "getByName", "byName", "forName" -> {
-          return method.invoke(type, value);
-        }
-      }
-    }
-    for (var constructor : type.getConstructors()) {
-      if (constructor.getParameterCount() != 1) continue;
-      if (constructor.getParameterTypes()[0] != String.class) continue;
-      return constructor.newInstance(value);
-    }
-    throw new NoSuchElementException("No value methods found on " + type);
+  private static Object primitiveConstValue(Constant b) {
+    var v = b.value();
+    return switch (b.factory()) {
+      case "int" -> Integer.parseInt(v);
+      case "long" -> parseLong(v);
+      case "short" -> Short.parseShort(v);
+      case "byte" -> Byte.parseByte(v);
+      case "char" -> v.charAt(0);
+      case "boolean" -> Boolean.parseBoolean(v);
+      case "float" -> Float.parseFloat(v);
+      case "double" -> Double.parseDouble(v);
+      default -> null;
+    };
   }
 
   private record Ref<T>(T ref, int id) {}

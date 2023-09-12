@@ -94,21 +94,48 @@ public class ApplicationLoader implements Runnable {
     var root = requireNonNull(document.getDocumentElement(), "Document element is null");
     var application = new Application(
       requireNonNull(root.getAttribute("id"), "id attribute is null"),
-      requireNonNull(root.getAttribute("name"), "name attribute is null"),
+      constants(root),
       blocks(root),
       links(root)
     );
     Application.CURRENT_APPLICATION.set(application);
   }
 
+  private List<Constant> constants(Element element) {
+    var list = new LinkedList<Constant>();
+    var wrapperNodes = element.getElementsByTagName("constants");
+    for (int i = 0; i < wrapperNodes.getLength(); i++) {
+      if (wrapperNodes.item(i) instanceof Element blocks) {
+        var nodes = blocks.getElementsByTagName("constant");
+        for (int j = 0; j < nodes.getLength(); j++) {
+          if (nodes.item(j) instanceof Element block) {
+            list.add(constant(block, i, j));
+          }
+        }
+      }
+    }
+    return List.copyOf(list);
+  }
+
+  private Constant constant(Element element, int i, int j) {
+    var id = parseInt(element.getAttribute("id")).orElseThrow(() -> new IllegalArgumentException("Invalid block [%d][%d]".formatted(i, j)));
+    var factory = requireNonNull(element.getAttribute("factory"), () -> "Constant factory is null: %d".formatted(id));
+    if (factory.isBlank()) {
+      throw new IllegalArgumentException("Block factory is blank: %d".formatted(id));
+    }
+    var value = requireNonNull(element.getAttribute("value"), () -> "Block value is null [%d][%d]".formatted(i, j));
+    return new Constant(id, factory, value);
+
+  }
+
   private List<Block> blocks(Element element) {
     var list = new LinkedList<Block>();
-    var blocksNodes = element.getElementsByTagName("blocks");
-    for (int i = 0; i < blocksNodes.getLength(); i++) {
-      if (blocksNodes.item(i) instanceof Element blocks) {
-        var blockNodes = blocks.getElementsByTagName("block");
-        for (int j = 0; j < blockNodes.getLength(); j++) {
-          if (blockNodes.item(j) instanceof Element block) {
+    var wrapperNodes = element.getElementsByTagName("blocks");
+    for (int i = 0; i < wrapperNodes.getLength(); i++) {
+      if (wrapperNodes.item(i) instanceof Element blocks) {
+        var nodes = blocks.getElementsByTagName("block");
+        for (int j = 0; j < nodes.getLength(); j++) {
+          if (nodes.item(j) instanceof Element block) {
             list.add(block(block, i, j));
           }
         }
@@ -118,35 +145,16 @@ public class ApplicationLoader implements Runnable {
   }
 
   private Block block(Element element, int i, int j) {
-    final int id;
-    try {
-      id = Integer.parseInt(element.getAttribute("id"));
-    } catch (RuntimeException e) {
-      throw new IllegalArgumentException("Invalid block [%d][%d]".formatted(i, j));
-    }
-    var name = requireNonNull(
-      element.getAttribute("name"),
-      () -> "Block name is null [%d][%d]".formatted(i, j)
-    );
-    var factory = requireNonNull(
-      element.getAttribute("factory"),
-      () -> "Block factory is null [%d][%d]".formatted(i, j)
-    );
+    var id = parseInt(element.getAttribute("id")).orElseThrow(() -> new IllegalArgumentException("Invalid block [%d][%d]".formatted(i, j)));
+    var factory = requireNonNull(element.getAttribute("factory"), () -> "Block factory is null: %d".formatted(id));
     if (factory.isBlank()) {
       throw new IllegalArgumentException("Block factory is blank [%d][%d]".formatted(i, j));
     }
-    if (Character.isDigit(factory.charAt(0))) {
-      try {
-        Integer.parseInt(factory);
-      } catch (RuntimeException e) {
-        throw new IllegalArgumentException("Invalid block factory [%d][%d]".formatted(i, j), e);
-      }
+    if (factory.chars().allMatch(Character::isDigit) && factory.length() > 8) {
+      throw new IllegalArgumentException("Invalid block factory [%d][%d]: %s".formatted(i, j, factory));
     }
-    var value = requireNonNull(
-      element.getAttribute("value"),
-      () -> "Block value is null [%d][%d]".formatted(i, j)
-    );
-    return new Block(id, name, factory, value);
+    var method = requireNonNull(element.getAttribute("method"), () -> "Block method is null [%d][%d]".formatted(i, j));
+    return new Block(id, factory, method);
   }
 
   private List<Link> links(Element element) {
@@ -186,30 +194,25 @@ public class ApplicationLoader implements Runnable {
     if (in == null) {
       throw new IllegalArgumentException("Link [%d][%d] error: in is null".formatted(i, j));
     }
-    return new Link(
-      connector(out, "out", i, j),
-      connector(in, "in", i, j)
-    );
+    return new Link(connector(out, "out", i, j), connector(in, "in", i, j));
   }
 
   private Connector connector(Element element, String name, int i, int j) {
-    final int blockId;
-    try {
-      blockId = Integer.parseInt(element.getAttribute("block"));
-    } catch (RuntimeException e) {
-      throw new IllegalArgumentException("Block [%d][%d].%s id = null".formatted(i, j, name));
-    }
-    var spot = requireNonNull(
-      element.getAttribute("spot"),
-      () -> "Block [%d][%d].%s spot is null".formatted(i, j, name)
-    );
-    final int index;
-    try {
-      var indexStr = element.getAttribute("index");
-      index = indexStr.isEmpty() ? 0 : Integer.parseInt(indexStr);
-    } catch (RuntimeException e) {
-      throw new IllegalArgumentException("Block [%d][%d].%s index format error".formatted(i, j, name));
-    }
+    var blockId = parseInt(element.getAttribute("block")).orElseThrow(() -> new IllegalArgumentException("Block [%d][%d].%s id = null".formatted(i, j, name)));
+    var spot = requireNonNull(element.getAttribute("spot"), () -> "Block [%d][%d].%s spot is null".formatted(i, j, name));
+    var index = parseInt(element.getAttribute("index"), 0).orElseThrow(() -> new IllegalArgumentException("Block [%d].%s invalid index".formatted(blockId, name)));
     return new Connector(blockId, spot, index);
+  }
+
+  private OptionalInt parseInt(String v) {
+    try {
+      return OptionalInt.of(Integer.parseInt(v));
+    } catch (NumberFormatException e) {
+      return OptionalInt.empty();
+    }
+  }
+
+  private OptionalInt parseInt(String v, int defaultValue) {
+    return v.isEmpty() ? OptionalInt.of(defaultValue) : parseInt(v);
   }
 }

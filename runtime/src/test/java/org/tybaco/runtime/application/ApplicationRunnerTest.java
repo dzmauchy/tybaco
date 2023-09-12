@@ -21,6 +21,7 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
+import org.checkerframework.checker.units.qual.C;
 import org.junit.jupiter.api.Test;
 import org.tybaco.runtime.application.beans.SampleBeanA;
 import org.tybaco.runtime.application.beans.SampleBeanB;
@@ -38,8 +39,8 @@ class ApplicationRunnerTest {
   @Test
   void a() throws Exception {
     // given
-    var blocks = List.of(Block.fromMethod(0, "b1", SampleBeanA.class.getMethod("sampleBeanA")));
-    var app = new Application("app", "App", blocks, List.of());
+    var blocks = List.of(Block.fromMethod(0, SampleBeanA.class.getMethod("sampleBeanA")));
+    var app = new Application("app", List.of(), blocks, List.of());
     // when
     runApp(app);
     // then
@@ -50,12 +51,14 @@ class ApplicationRunnerTest {
   @Test
   void b() throws Exception {
     // given
+    var constants = List.of(
+      new Constant(0, "int", "12"),
+      new Constant(1, "long", "234"),
+      new Constant(2, "java.net.URI", "http://localhost:80"),
+      new Constant(3, "java.math.BigDecimal", "1.2")
+    );
     var blocks = List.of(
-      new Block(0, "c1", "int", "12"),
-      new Block(1, "c2", "long", "234"),
-      new Block(2, "c3", "URI", "http://localhost:80"),
-      new Block(3, "c4", BigDecimal.class.getName(), "1.2"),
-      Block.fromMethod(100, "b1", SampleBeanB.class.getMethod("sampleBeanB", Object[].class))
+      Block.fromMethod(100, SampleBeanB.class.getMethod("sampleBeanB", Object[].class))
     );
     var links = List.of(
       new Link(out(0), new Connector(100, "+v", 1)),
@@ -63,7 +66,7 @@ class ApplicationRunnerTest {
       new Link(out(2), new Connector(100, "+v", 4)),
       new Link(out(3), new Connector(100, "values", 2))
     );
-    var app = new Application("app", "App", blocks, links);
+    var app = new Application("app", constants, blocks, links);
     // when
     runApp(app);
     // then

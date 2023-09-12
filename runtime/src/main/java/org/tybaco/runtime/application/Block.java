@@ -23,7 +23,7 @@ package org.tybaco.runtime.application;
 
 import java.lang.reflect.Method;
 
-public record Block(int id, String name, String factory, String value) {
+public record Block(int id, String factory, String method) implements ResolvableObject {
 
   public boolean isDependent() {
     return factory.chars().allMatch(Character::isDigit);
@@ -33,9 +33,9 @@ public record Block(int id, String name, String factory, String value) {
     return Integer.parseInt(factory);
   }
 
-  public static Block fromMethod(int id, String name, Method method) {
+  public static Block fromMethod(int id, Method method) {
     var factory = method.getDeclaringClass().getName();
     var value = method.getName();
-    return new Block(id, name, factory, value);
+    return new Block(id, factory, value);
   }
 }
