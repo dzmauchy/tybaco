@@ -25,7 +25,12 @@ import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
-public record Application(String id, List<ApplicationConstant> constants, List<ApplicationBlock> blocks, List<ApplicationLink> links) {
+public record Application(
+  String id,
+  List<ApplicationConstant> constants,
+  List<ApplicationBlock> blocks,
+  List<ApplicationLink> links
+) {
 
   static final ThreadLocal<Application> CURRENT_APPLICATION = new ThreadLocal<>();
 

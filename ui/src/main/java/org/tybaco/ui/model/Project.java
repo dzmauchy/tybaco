@@ -44,11 +44,11 @@ public final class Project {
   public final ObservableList<Lib> libs;
   private final Observable[] observables;
 
-  Project(String id, String name, Collection<Block> blocks, Collection<Constant> constants, Collection<Link> links, Collection<Lib> libs) {
+  Project(String id, String name, Collection<Constant> constants, Collection<Block> blocks, Collection<Link> links, Collection<Lib> libs) {
     this.id = id;
     this.name = new SimpleStringProperty(this, "name", name);
-    this.blocks = Block.newList(blocks);
     this.constants = Constant.newList(constants);
+    this.blocks = Block.newList(blocks);
     this.links = Link.newList(links);
     this.libs = Lib.libs(libs);
     this.observables = new Observable[] {this.name, this.blocks, this.libs};
@@ -62,16 +62,8 @@ public final class Project {
     this(
       element.getAttribute("id"),
       element.getAttribute("name"),
-      elementsByTag(element, "blocks")
-        .filter(e -> "block".equals(e.getAttribute("type")))
-        .flatMap(e -> elementsByTag(e, "block"))
-        .map(Block::new)
-        .toList(),
-      elementsByTag(element, "blocks")
-        .filter(e -> "constant".equals(e.getAttribute("type")))
-        .flatMap(e -> elementsByTag(e, "block"))
-        .map(Constant::new)
-        .toList(),
+      elementsByTags(element, "constants", "constant").map(Constant::new).toList(),
+      elementsByTags(element, "blocks", "block").map(Block::new).toList(),
       elementsByTags(element, "links", "link").map(Link::new).toList(),
       elementsByTags(element, "libs", "lib").map(Lib::new).toList()
     );
@@ -80,14 +72,8 @@ public final class Project {
   public void saveTo(Element element) {
     element.setAttribute("id", id);
     element.setAttribute("name", name.get());
-    withChild(element, "blocks", blocksElem -> {
-      blocksElem.setAttribute("type", "block");
-      blocks.forEach(b -> withChild(blocksElem, "block", b::saveTo));
-    });
-    withChild(element, "blocks", blocksElem -> {
-      blocksElem.setAttribute("type", "constant");
-      constants.forEach(c -> withChild(blocksElem, "block", c::saveTo));
-    });
+    withChildren(element, "constants", "constant", constants, Constant::saveTo);
+    withChildren(element, "blocks", "block", blocks, Block::saveTo);
     withChildren(element, "links", "link", links, Link::saveTo);
     withChildren(element, "libs", "lib", libs, Lib::saveTo);
   }
@@ -134,7 +120,10 @@ public final class Project {
   }
 
   private int nextId() {
-    return blocks.stream().collect(BitSet::new, (s, b) -> s.set(b.id), BitSet::or).nextClearBit(0);
+    var set = new BitSet();
+    blocks.forEach(b -> set.set(b.id));
+    constants.forEach(c -> set.set(c.id));
+    return set.nextClearBit(0);
   }
 
   public String guessBlockName() {

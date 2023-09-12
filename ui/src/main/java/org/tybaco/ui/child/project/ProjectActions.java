@@ -30,8 +30,14 @@ import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.action.Action;
 import org.tybaco.ui.model.Project;
 
+import java.util.logging.*;
+
+import static java.util.logging.Level.INFO;
+
 @Component
 public class ProjectActions {
+
+  private final Logger LOG = LogManager.getLogManager().getLogger("");
 
   @Bean
   @Qualifier("projectAction")
@@ -40,7 +46,8 @@ public class ProjectActions {
     return new Action(null, MaterialDesignB.BABY_BOTTLE, "New block", ev -> {
       var factory = "com.example.factory";
       var method = "method";
-      project.newBlock(project.guessBlockName(), factory, method, 0d, 0d);
+      var block = project.newBlock(project.guessBlockName(), factory, method, 0d, 0d);
+      LOG.log(INFO, "Block {0} created", block.id);
     });
   }
 

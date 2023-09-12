@@ -46,7 +46,6 @@ public class ApplicationLoader implements Runnable {
   @Override
   public void run() {
     var documentBuilderFactory = DocumentBuilderFactory.newDefaultInstance();
-    final Document document;
     try {
       var documentBuilder = documentBuilderFactory.newDocumentBuilder();
       if (args.length > 0) {
@@ -57,14 +56,14 @@ public class ApplicationLoader implements Runnable {
           c.setConnectTimeout(60_000);
           c.setInstanceFollowRedirects(true);
           c.setUseCaches(false);
-          c.setAllowUserInteraction(false);
         }
         connection.connect();
         try (var inputStream = connection.getInputStream()) {
           var inputSource = new InputSource(inputStream);
           inputSource.setEncoding("UTF-8");
           inputSource.setSystemId(url.toExternalForm());
-          document = documentBuilder.parse(inputSource);
+          var document = documentBuilder.parse(inputSource);
+          application(document);
         } finally {
           if (connection instanceof HttpURLConnection c) {
             c.disconnect();
@@ -74,9 +73,9 @@ public class ApplicationLoader implements Runnable {
         var inputSource = new InputSource(System.in);
         inputSource.setEncoding("UTF-8");
         inputSource.setPublicId("stdin");
-        document = documentBuilder.parse(inputSource);
+        var document = documentBuilder.parse(inputSource);
+        application(document);
       }
-      application(document);
     } catch (URISyntaxException | MalformedURLException e) {
       throw new IllegalStateException("Invalid URL: " + Arrays.asList(args));
     } catch (ParserConfigurationException e) {
