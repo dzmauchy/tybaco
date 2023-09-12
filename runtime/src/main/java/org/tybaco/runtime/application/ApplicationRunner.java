@@ -24,6 +24,7 @@ package org.tybaco.runtime.application;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledFuture;
 
 import static java.lang.Long.parseLong;
 import static java.lang.Runtime.getRuntime;
@@ -180,6 +181,10 @@ public class ApplicationRunner implements Runnable {
           closeables.addLast(new Ref<>(c, b.id()));
         } else if (bean instanceof Timer t) {
           closeables.addLast(new Ref<>(t::cancel, b.id()));
+        } else if (bean instanceof TimerTask t) {
+          closeables.addLast(new Ref<>(t::cancel, b.id()));
+        } else if (bean instanceof ScheduledFuture<?> f) {
+          closeables.addLast(new Ref<>(() -> f.cancel(false), b.id()));
         }
         beans.put(b, bean);
         return bean;
@@ -270,15 +275,9 @@ public class ApplicationRunner implements Runnable {
     }
 
     private Object resolveOut(Conn out, Object bean) {
-      if ("*".equals(out.spot)) {
-        return bean;
-      } else {
-        {
-          var v = outValues.get(out);
-          if (v != null) {
-            return v;
-          }
-        }
+      if ("*".equals(out.spot)) return bean;
+      else if (outValues.containsKey(out)) return outValues.get(out);
+      else {
         try {
           var method = out.getClass().getMethod(out.spot);
           var value = method.invoke(bean);
