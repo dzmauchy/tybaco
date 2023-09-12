@@ -106,14 +106,14 @@ public class ApplicationRunner implements Runnable {
     private final IdentityHashMap<ResolvableObject, Object> beans;
     private final HashMap<Conn, TreeMap<Integer, Conn>> inputs;
     private final HashMap<Conn, Object> outValues;
-    private final Map<Integer, ResolvableObject> objectMap;
+    private final IntMap<ResolvableObject> objectMap;
     private final LinkedList<Ref<AutoCloseable>> closeables = new LinkedList<>();
 
     private ApplicationResolver(Application app) {
       this.beans = new IdentityHashMap<>(app.blocks().size());
       this.inputs = new HashMap<>(app.links().size());
       this.outValues = new HashMap<>(app.links().size());
-      this.objectMap = new HashMap<>(app.constants().size() + app.blocks().size());
+      this.objectMap = new IntMap<>(app.maxInternalId() + 1);
 
       app.blocks().forEach(b -> objectMap.put(b.id(), b));
       app.constants().forEach(c -> objectMap.put(c.id(), c));
@@ -340,4 +340,51 @@ public class ApplicationRunner implements Runnable {
   }
 
   private record Ref<T>(T ref, int id) {}
+
+  @SuppressWarnings("unchecked")
+  private static final class IntMap<T> {
+
+    private static final int BUCKET_SIZE = 64;
+
+    private Object[][] buckets;
+
+    private IntMap(int size) {
+      var fixedSize = (size % BUCKET_SIZE) == 0 ? size / BUCKET_SIZE : size / BUCKET_SIZE + 1;
+      buckets = new Object[fixedSize][];
+    }
+
+    private void put(int key, T value) {
+      var bucketIndex = key / BUCKET_SIZE;
+      if (buckets.length <= bucketIndex) buckets = Arrays.copyOf(buckets, bucketIndex + 1, Object[][].class);
+      var bucket = buckets[bucketIndex];
+      if (bucket == null) buckets[bucketIndex] = bucket = new Object[BUCKET_SIZE];
+      bucket[key % BUCKET_SIZE] = value;
+    }
+
+    private T get(int key) {
+      var bucketIndex = key / BUCKET_SIZE;
+      if (bucketIndex >= buckets.length) return null;
+      return (T) buckets[bucketIndex][key % BUCKET_SIZE];
+    }
+
+    @Override
+    public String toString() {
+      var map = new TreeMap<Integer, Object>();
+      int i = 0;
+      for (var bucket : buckets) {
+        if (bucket == null) {
+          i += BUCKET_SIZE;
+        } else {
+          for (var v : bucket) {
+            if (v != null) {
+              map.put(i++, v);
+            } else {
+              i++;
+            }
+          }
+        }
+      }
+      return map.toString();
+    }
+  }
 }

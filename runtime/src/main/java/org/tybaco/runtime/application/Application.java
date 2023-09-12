@@ -32,4 +32,11 @@ public record Application(String id, List<ApplicationConstant> constants, List<A
   public static Application activeApplication() {
     return requireNonNull(CURRENT_APPLICATION.get(), "No active application found");
   }
+
+  public int maxInternalId() {
+    return Math.max(
+      constants.stream().mapToInt(ApplicationConstant::id).max().orElse(0),
+      blocks.stream().mapToInt(ApplicationBlock::id).max().orElse(0)
+    );
+  }
 }
