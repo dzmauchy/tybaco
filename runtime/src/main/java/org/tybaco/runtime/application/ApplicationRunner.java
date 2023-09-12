@@ -285,7 +285,7 @@ public class ApplicationRunner implements Runnable {
 
     private record ResolvedMethod(Method method, Object bean) {}
 
-    private Object defaultValue(Parameter parameter) {
+    private static Object defaultValue(Parameter parameter) {
       if (parameter.getType().isPrimitive()) {
         return Array.get(Array.newInstance(parameter.getType(), 1), 0);
       } else if (parameter.isVarArgs()) {
@@ -388,7 +388,7 @@ public class ApplicationRunner implements Runnable {
 
     @Override
     public String toString() {
-      var map = new TreeMap<Integer, Object>();
+      var map = new TreeMap<Integer, ResolvableObject>();
       int i = 0;
       for (var bucket : buckets) {
         if (bucket == null) {
