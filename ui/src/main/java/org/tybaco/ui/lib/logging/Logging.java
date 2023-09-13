@@ -21,11 +21,13 @@ package org.tybaco.ui.lib.logging;
  * #L%
  */
 
-import java.util.logging.LogRecord;
+import java.util.logging.*;
 
 import static java.util.logging.Level.*;
 
 public class Logging {
+
+  public static final Logger LOG = LogManager.getLogManager().getLogger("");
 
   private Logging() {
   }

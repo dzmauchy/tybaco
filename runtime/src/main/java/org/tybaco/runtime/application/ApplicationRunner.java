@@ -28,11 +28,12 @@ import java.util.concurrent.ScheduledFuture;
 
 import static java.lang.Long.parseLong;
 import static java.lang.Runtime.getRuntime;
-import static java.lang.System.*;
+import static java.lang.System.identityHashCode;
 import static java.util.Objects.requireNonNull;
-import static java.util.Objects.requireNonNullElse;
 import static java.util.concurrent.locks.LockSupport.parkNanos;
 import static org.tybaco.runtime.application.Application.activeApplication;
+import static org.tybaco.runtime.application.ApplicationHelper.booleanSetting;
+import static org.tybaco.runtime.application.ApplicationHelper.longSetting;
 
 public class ApplicationRunner implements Runnable {
 
@@ -88,12 +89,10 @@ public class ApplicationRunner implements Runnable {
   private static void watch(CountDownLatch latch) {
     try {
       latch.await();
-      var exitEnabled = "true".equals(getProperty("tybaco.app.exit.enabled")) || "true".equals(getenv("TYBACO_APP_EXIT_ENABLED"));
-      if (!exitEnabled) {
+      if (!booleanSetting("TYBACO_EXIT_ENABLED").orElse(false)) {
         return;
       }
-      var waitTimeout = parseLong(getProperty("tybaco.app.exit.wait.timeout", requireNonNullElse(getenv("TYBACO_APP_EXIT_WAIT_TIMEOUT"), "1")));
-      parkNanos(waitTimeout * 1_000_000_000L);
+      parkNanos(longSetting("TYBACO_EXIT_WAIT_TIMEOUT").orElse(1L) * 1_000_000_000L);
       System.exit(0);
     } catch (Throwable e) {
       e.printStackTrace(System.err);

@@ -21,92 +21,27 @@ package org.tybaco.ui.lib.repo;
  * #L%
  */
 
-import org.eclipse.aether.RepositoryEvent;
-import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.collection.CollectRequest;
-import org.eclipse.aether.graph.Dependency;
-import org.eclipse.aether.resolution.ArtifactRequest;
-import org.eclipse.aether.resolution.DependencyRequest;
-import org.eclipse.aether.transfer.TransferEvent;
-import org.eclipse.aether.util.filter.ScopeDependencyFilter;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.tybaco.ui.model.Lib;
 
-import java.nio.file.Path;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static org.apache.maven.artifact.Artifact.SCOPE_COMPILE_PLUS_RUNTIME;
-import static org.apache.maven.artifact.Artifact.SCOPE_RUNTIME;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.io.CleanupMode.ALWAYS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Tag("slow")
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 @Execution(ExecutionMode.CONCURRENT)
 class RepositorySystemTest {
 
-  @TempDir(cleanup = ALWAYS)
-  private Path tempDir;
+  private final ArtifactResolver resolver = new ArtifactResolver();
 
   @Test
-  void resolveArtifact() throws Exception {
-    try (var system = new RepositorySystem()) {
-      var artifact = new DefaultArtifact("org.slf4j", "jcl-over-slf4j", "jar", "2.0.7");
-      var req = new ArtifactRequest(artifact, List.of(system.mavenRepo()), null);
-      var txEvents = new ConcurrentLinkedQueue<TransferEvent>();
-      var repoEvents = new ConcurrentLinkedQueue<RepositoryEvent>();
-      var session = system.session(tempDir, txEvents::add, repoEvents::add);
-      var result = system.resolve(req, session);
-      assertTrue(result.isResolved());
-      assertFalse(result.isMissing());
-      assertTrue(result.getArtifact().getFile().length() > 0L);
-      assertFalse(txEvents.isEmpty());
-      assertFalse(repoEvents.isEmpty());
-    }
-  }
-
-  @Test
-  void collectDependency() throws Exception {
-    try (var system = new RepositorySystem()) {
-      var artifact = new DefaultArtifact("org.slf4j", "jcl-over-slf4j", "jar", "2.0.7");
-      var request = new CollectRequest(new Dependency(artifact, SCOPE_COMPILE_PLUS_RUNTIME), List.of(system.mavenRepo()));
-      var txEvents = new ConcurrentLinkedQueue<TransferEvent>();
-      var repoEvents = new ConcurrentLinkedQueue<RepositoryEvent>();
-      var session = system.session(tempDir, txEvents::add, repoEvents::add);
-      var result = system.collect(request, session);
-      assertFalse(txEvents.isEmpty());
-      assertFalse(repoEvents.isEmpty());
-      assertNotNull(result.getRoot());
-      assertFalse(result.getRoot().getChildren().isEmpty());
-    }
-  }
-
-  @Test
-  void resolveDependency() throws Exception {
-    try (var system = new RepositorySystem()) {
-      var artifact = new DefaultArtifact("org.slf4j", "jcl-over-slf4j", "jar", "2.0.7");
-      var collectRequest = new CollectRequest(new Dependency(artifact, SCOPE_RUNTIME), List.of(system.mavenRepo()));
-      var request = new DependencyRequest(collectRequest, new ScopeDependencyFilter(Set.of("runtime", "compile"), Set.of()));
-      var txEvents = new ConcurrentLinkedQueue<TransferEvent>();
-      var repoEvents = new ConcurrentLinkedQueue<RepositoryEvent>();
-      var session = system.session(tempDir, txEvents::add, repoEvents::add);
-      var result = system.resolve(request, session);
-      assertFalse(txEvents.isEmpty());
-      assertFalse(repoEvents.isEmpty());
-      assertNotNull(result.getRoot());
-      assertEquals(2, result.getArtifactResults().size());
-      assertFalse(result.getRoot().getChildren().isEmpty());
-      for (var r : result.getArtifactResults()) {
-        assertTrue(r.isResolved());
-        assertFalse(r.isMissing());
-        assertNotNull(r.getArtifact().getFile());
-        assertTrue(r.getArtifact().getFile().exists());
-        assertTrue(r.getArtifact().getFile().toPath().startsWith(tempDir));
-      }
+  void resolveArtifacts() throws Exception {
+    try (var cp = resolver.resolve("test", List.of(new Lib("org.slf4j", "slf4j-jdk14", "2.0.9")))) {
+      var classLoader = cp.getClassLoader();
+      assertEquals(2, classLoader.getURLs().length);
     }
   }
 }

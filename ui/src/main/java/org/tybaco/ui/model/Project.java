@@ -25,14 +25,16 @@ import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.tybaco.ui.lib.id.Ids;
 import org.w3c.dom.Element;
 
 import java.util.*;
 import java.util.stream.Stream;
 
+import static java.nio.ByteBuffer.allocate;
+import static java.util.Base64.getUrlEncoder;
 import static java.util.Collections.emptyList;
-import static org.tybaco.xml.Xml.*;
+import static org.tybaco.xml.Xml.elementsByTags;
+import static org.tybaco.xml.Xml.withChildren;
 
 public final class Project {
 
@@ -45,7 +47,7 @@ public final class Project {
   private final Observable[] observables;
 
   Project(String id, String name, Collection<Constant> constants, Collection<Block> blocks, Collection<Link> links, Collection<Lib> libs) {
-    this.id = id;
+    this.id = id == null ? newId() : id;
     this.name = new SimpleStringProperty(this, "name", name);
     this.constants = Constant.newList(constants);
     this.blocks = Block.newList(blocks);
@@ -55,7 +57,7 @@ public final class Project {
   }
 
   public Project(String name) {
-    this(Ids.newId(), name, emptyList(), emptyList(), emptyList(), emptyList());
+    this(null, name, emptyList(), emptyList(), emptyList(), emptyList());
   }
 
   public Project(Element element) {
@@ -113,10 +115,16 @@ public final class Project {
     return links.stream().filter(l -> l.in().blockId() == block.id);
   }
 
-  public Block newBlock(String name, String factory, String value, double x, double y) {
-    var block = new Block(nextId(), name, factory, value, x, y);
+  public Block newBlock(String name, String factory, String method, double x, double y) {
+    var block = new Block(nextId(), name, factory, method, x, y);
     blocks.add(block);
     return block;
+  }
+
+  public Constant newConstant(String name, String factory, String value) {
+    var constant = new Constant(nextId(), name, factory, value);
+    constants.add(constant);
+    return constant;
   }
 
   private int nextId() {
@@ -128,5 +136,12 @@ public final class Project {
 
   public String guessBlockName() {
     return "Block " + nextId();
+  }
+
+  private String newId() {
+    var hash = System.identityHashCode(this);
+    var time = System.currentTimeMillis() - 1_600_000_000_000L;
+    var longId = (time << 32) | ((long) hash & 0xFFFF_FFFFL);
+    return getUrlEncoder().withoutPadding().encodeToString(allocate(8).putLong(0, longId).array());
   }
 }
