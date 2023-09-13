@@ -21,7 +21,7 @@ package org.tybaco.ui.lib.repo;
  * #L%
  */
 
-import org.springframework.util.FileSystemUtils;
+import org.tybaco.io.PathCloseable;
 
 import java.io.*;
 import java.net.*;
@@ -57,7 +57,7 @@ public class ArtifactClassPath implements Closeable {
 
   @Override
   public void close() throws IOException {
-    var closeable = (Closeable) () -> FileSystemUtils.deleteRecursively(directory);
+    var closeable = new PathCloseable(directory);
     try (closeable) {
       classLoader.close();
     }

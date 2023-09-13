@@ -30,13 +30,13 @@ import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.apache.ivy.util.Message;
-import org.springframework.util.FileSystemUtils;
+import org.tybaco.io.CancellablePathCloseable;
+import org.tybaco.io.PathCloseable;
 import org.tybaco.ui.model.Lib;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.text.ParseException;
 import java.util.List;
 
 public final class ArtifactResolver {
@@ -46,11 +46,11 @@ public final class ArtifactResolver {
     Message.setDefaultLogger(new ArtifactMessageLogger());
   }
 
-  public ArtifactClassPath resolve(String name, List<Lib> libs) {
+  public ArtifactClassPath resolve(String name, List<Lib> libs) throws IOException {
     var ivySettings = new IvySettings();
-    var tempDirectory = tempDir();
+    var tempDirectory = Files.createTempDirectory("tybaco-repo-");
     var cacheDir = tempDirectory.resolve("cache");
-    try {
+    try (var tempDirWrapper = new CancellablePathCloseable(tempDirectory)) {
       ivySettings.setBaseDir(tempDirectory.toFile());
       ivySettings.setDefaultCache(cacheDir.toFile());
       ivySettings.addResolver(mavenResolver(ivySettings));
@@ -78,17 +78,13 @@ public final class ArtifactResolver {
           throw e;
         }
 
+        tempDirWrapper.cancel();
         return new ArtifactClassPath(tempDirectory, name);
       } finally {
         ivy.popContext();
       }
-    } catch (Throwable e) {
-      try {
-        FileSystemUtils.deleteRecursively(tempDirectory);
-      } catch (Throwable x) {
-        e.addSuppressed(x);
-      }
-      throw new IllegalStateException(e);
+    } catch (ParseException e) {
+      throw new IOException(e);
     }
   }
 
@@ -107,13 +103,5 @@ public final class ArtifactResolver {
     resolver.setUseMavenMetadata(true);
     resolver.setName("public");
     return resolver;
-  }
-
-  private static Path tempDir() {
-    try {
-      return Files.createTempDirectory("tybaco-repo");
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
   }
 }
