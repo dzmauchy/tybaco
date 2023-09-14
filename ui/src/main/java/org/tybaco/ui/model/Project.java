@@ -22,21 +22,27 @@ package org.tybaco.ui.model;
  */
 
 import javafx.beans.Observable;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.tybaco.ui.lib.logging.Logging;
+import org.tybaco.ui.lib.repo.ArtifactClassPath;
 import org.w3c.dom.Element;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import static java.nio.ByteBuffer.allocate;
 import static java.util.Base64.getUrlEncoder;
 import static java.util.Collections.emptyList;
+import static java.util.logging.Level.WARNING;
+import static org.tybaco.ui.lib.logging.Logging.LOG;
 import static org.tybaco.xml.Xml.elementsByTags;
 import static org.tybaco.xml.Xml.withChildren;
 
-public final class Project {
+public final class Project implements AutoCloseable {
 
   public final String id;
   public final SimpleStringProperty name;
@@ -44,6 +50,7 @@ public final class Project {
   public final ObservableList<Constant> constants;
   public final ObservableList<Link> links;
   public final ObservableList<Lib> libs;
+  public final SimpleObjectProperty<ArtifactClassPath> classPath = new SimpleObjectProperty<>(this, "classpath");
   private final Observable[] observables;
 
   Project(String id, String name, Collection<Constant> constants, Collection<Block> blocks, Collection<Link> links, Collection<Lib> libs) {
@@ -53,7 +60,7 @@ public final class Project {
     this.blocks = Block.newList(blocks);
     this.links = Link.newList(links);
     this.libs = Lib.libs(libs);
-    this.observables = new Observable[] {this.name, this.blocks, this.libs};
+    this.observables = new Observable[] {this.name, this.constants, this.blocks, this.libs, classPath};
   }
 
   public Project(String name) {
@@ -143,5 +150,22 @@ public final class Project {
     var time = System.currentTimeMillis() - 1_600_000_000_000L;
     var longId = (time << 32) | ((long) hash & 0xFFFF_FFFFL);
     return getUrlEncoder().withoutPadding().encodeToString(allocate(8).putLong(0, longId).array());
+  }
+
+  @Override
+  public void close() {
+    try {
+      var cp = classPath.get();
+      if (cp != null) {
+        cp.close();
+      }
+    } catch (Throwable e) {
+      LOG.log(WARNING, "Unable to close " + this, e);
+    }
+  }
+
+  @Override
+  public String toString() {
+    return name.get() + " (" + id + ")";
   }
 }

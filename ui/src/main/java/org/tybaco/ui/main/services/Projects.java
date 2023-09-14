@@ -28,13 +28,16 @@ import org.tybaco.ui.model.Project;
 
 import java.math.BigInteger;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.TreeMap;
+
+import static java.util.logging.Level.*;
+import static org.tybaco.ui.lib.logging.Logging.LOG;
 
 @Component
-public class Projects {
+public class Projects implements AutoCloseable {
 
   public final ObservableList<Project> projects = Project.newList();
-  private final ConcurrentHashMap<String, Project> map = new ConcurrentHashMap<>();
+  private final TreeMap<String, Project> map = new TreeMap<>();
 
   public Projects() {
     projects.addListener(this::onChange);
@@ -65,11 +68,31 @@ public class Projects {
   private void onChange(ListChangeListener.Change<? extends Project> c) {
     while (c.next()) {
       if (c.wasRemoved()) {
-        c.getRemoved().forEach(p -> map.remove(p.id));
+        c.getRemoved().forEach(p -> {
+          try (var pr = map.remove(p.id)) {
+            LOG.log(INFO, "Closing {0}", pr);
+          } catch (Throwable e) {
+            LOG.log(WARNING, "Unable to close " + p, e);
+          }
+        });
       }
       if (c.wasAdded()) {
-        c.getAddedSubList().forEach(p -> map.put(p.id, p));
+        c.getAddedSubList().forEach(p -> {
+          var old = map.put(p.id, p);
+          if (old != null) {
+            try (old) {
+              LOG.log(SEVERE, "Project id conflict: {0}", p);
+            } catch (Throwable e) {
+              LOG.log(SEVERE, "Unable to close " + old, e);
+            }
+          }
+        });
       }
     }
+  }
+
+  @Override
+  public void close() {
+    projects.forEach(Project::close);
   }
 }

@@ -31,18 +31,17 @@ import java.nio.file.Path;
 public class ArtifactClassPath implements Closeable {
 
   final Path directory;
-  private final URLClassLoader classLoader;
+  public final URLClassLoader classLoader;
 
   public ArtifactClassPath(Path directory, String classPathName) {
     this.directory = directory;
     this.classLoader = classLoader(classPathName);
   }
 
-  public URLClassLoader getClassLoader() {
-    return classLoader;
-  }
-
   private URLClassLoader classLoader(String name) {
+    if (directory == null) {
+      return new URLClassLoader(new URL[0], ClassLoader.getPlatformClassLoader());
+    }
     try (var ds = Files.walk(directory)) {
       var uris = ds.filter(f -> f.getFileName().toString().endsWith(".jar")).map(Path::toUri).toArray(URI[]::new);
       var urls = new URL[uris.length];

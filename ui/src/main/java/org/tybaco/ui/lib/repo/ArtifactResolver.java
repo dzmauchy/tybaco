@@ -42,7 +42,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
-import java.util.List;
+import java.util.Collection;
 
 import static java.nio.file.Files.isDirectory;
 
@@ -53,7 +53,10 @@ public final class ArtifactResolver {
     Message.setDefaultLogger(new ArtifactMessageLogger());
   }
 
-  public ArtifactClassPath resolve(String name, List<Lib> libs) throws IOException {
+  public ArtifactClassPath resolve(String name, Collection<? extends Lib> libs) throws IOException {
+    if (libs.isEmpty()) {
+      return new ArtifactClassPath(null, name);
+    }
     var ivySettings = new IvySettings();
     var tempDirectory = Files.createTempDirectory("tybaco-repo-");
     var cacheDir = tempDirectory.resolve("cache");

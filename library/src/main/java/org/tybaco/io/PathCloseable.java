@@ -28,6 +28,8 @@ public record PathCloseable(Path path) implements Closeable {
 
   @Override
   public void close() throws IOException {
-    Paths.deleteRecursively(path);
+    if (path != null) {
+      Paths.deleteRecursively(path);
+    }
   }
 }

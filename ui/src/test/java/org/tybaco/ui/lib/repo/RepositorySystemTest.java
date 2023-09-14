@@ -40,7 +40,7 @@ class RepositorySystemTest {
     final Path dir;
     try (var cp = resolver.resolve("test", List.of(new Lib("org.slf4j", "slf4j-jdk14", "2.0.9")))) {
       dir = cp.directory;
-      var classLoader = cp.getClassLoader();
+      var classLoader = cp.classLoader;
       assertEquals(2, classLoader.getURLs().length);
     }
     assertFalse(Files.exists(dir));
