@@ -21,27 +21,28 @@ package org.tybaco.ui.lib.repo;
  * #L%
  */
 
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.Test;
 import org.tybaco.ui.model.Lib;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-@Tag("slow")
-@TestInstance(TestInstance.Lifecycle.PER_METHOD)
-@Execution(ExecutionMode.CONCURRENT)
 class RepositorySystemTest {
 
   private final ArtifactResolver resolver = new ArtifactResolver();
 
   @Test
   void resolveArtifacts() throws Exception {
+    final Path dir;
     try (var cp = resolver.resolve("test", List.of(new Lib("org.slf4j", "slf4j-jdk14", "2.0.9")))) {
+      dir = cp.directory;
       var classLoader = cp.getClassLoader();
       assertEquals(2, classLoader.getURLs().length);
     }
+    assertFalse(Files.exists(dir));
   }
 }

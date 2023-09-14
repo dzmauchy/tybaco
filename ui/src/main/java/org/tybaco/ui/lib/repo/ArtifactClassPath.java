@@ -30,7 +30,7 @@ import java.nio.file.Path;
 
 public class ArtifactClassPath implements Closeable {
 
-  private final Path directory;
+  final Path directory;
   private final URLClassLoader classLoader;
 
   public ArtifactClassPath(Path directory, String classPathName) {
