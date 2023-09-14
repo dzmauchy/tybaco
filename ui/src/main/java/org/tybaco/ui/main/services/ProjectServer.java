@@ -23,28 +23,28 @@ package org.tybaco.ui.main.services;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.*;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.tybaco.ui.lib.context.EagerComponent;
 import org.tybaco.ui.model.Project;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.InetSocketAddress;
+import java.net.JarURLConnection;
 import java.util.Optional;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.logging.*;
+import java.util.logging.Logger;
 
 import static com.sun.net.httpserver.HttpServer.create;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.InetAddress.getLoopbackAddress;
-import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
 
-@EagerComponent
+@Lazy(false)
 public class ProjectServer {
 
   private static final Logger LOG = Logger.getLogger(ProjectServer.class.getName());

@@ -21,13 +21,15 @@ package org.tybaco.ui.main.services;
  * #L%
  */
 
-import org.tybaco.ui.lib.context.EagerComponent;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-@EagerComponent
+@Lazy(false)
+@Component
 public final class Directories {
 
   public final Path userHome;

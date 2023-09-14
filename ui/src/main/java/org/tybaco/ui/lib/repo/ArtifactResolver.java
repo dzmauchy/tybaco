@@ -113,6 +113,7 @@ public final class ArtifactResolver {
     resolver.setName("public");
     resolver.setLatestStrategy(new LatestRevisionStrategy());
     resolver.setCheckmodified(false);
+    resolver.setReturnFirst(true);
     var localMavenRepoPath = Path.of(System.getProperty("user.home"), ".m2", "repository");
     if (isDirectory(localMavenRepoPath)) {
       var localResolver = new IBiblioResolver();

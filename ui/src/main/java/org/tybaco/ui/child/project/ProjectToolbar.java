@@ -26,12 +26,12 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToolBar;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.action.Action;
-import org.tybaco.ui.lib.context.UIComponent;
 
 import java.util.TreeMap;
 
-@UIComponent
+@Component
 public class ProjectToolbar extends ToolBar {
 
   public ProjectToolbar(@Qualifier("projectAction") ObjectProvider<Action> actions) {

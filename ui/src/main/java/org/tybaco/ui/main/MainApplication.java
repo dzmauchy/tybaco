@@ -64,7 +64,7 @@ public class MainApplication extends Application {
       stage.setTitle("Tybaco IDE");
       updateSplash();
       context.getDefaultListableBeanFactory().registerSingleton("primaryStage", stage);
-      context.register(MainPane.class);
+      context.register(MainConfiguration.class);
       updateSplash();
       context.refresh();
       updateSplash();

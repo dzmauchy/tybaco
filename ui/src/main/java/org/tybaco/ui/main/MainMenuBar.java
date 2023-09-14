@@ -25,10 +25,10 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.action.Action;
-import org.tybaco.ui.lib.context.UIComponent;
 
-@UIComponent
+@Component
 public class MainMenuBar extends MenuBar {
 
   public MainMenuBar(@Qualifier("mainMenu") ObjectProvider<Action> actions) {

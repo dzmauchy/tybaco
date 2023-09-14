@@ -1,4 +1,4 @@
-package org.tybaco.ui.lib.context;
+package org.tybaco.ui.main;
 
 /*-
  * #%L
@@ -21,21 +21,15 @@ package org.tybaco.ui.lib.context;
  * #L%
  */
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.AliasFor;
+import org.springframework.context.annotation.*;
+import org.tybaco.ui.lib.repo.ArtifactResolver;
 
-import java.lang.annotation.*;
-
-@Target({ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-@Configuration(proxyBeanMethods = false)
 @ComponentScan(lazyInit = true)
-public @interface UIRootComponent {
+@Configuration(proxyBeanMethods = false)
+public class MainConfiguration {
 
-  @AliasFor(annotation = Configuration.class, attribute = "value")
-  String value() default "";
-
-  @AliasFor(annotation = ComponentScan.class, attribute = "lazyInit")
-  boolean lazyInit() default true;
+  @Bean
+  public ArtifactResolver artifactResolver() {
+    return new ArtifactResolver();
+  }
 }

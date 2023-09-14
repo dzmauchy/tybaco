@@ -28,15 +28,15 @@ import javafx.scene.control.TabPane;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.stereotype.Component;
 import org.tybaco.ui.child.project.ProjectBean;
 import org.tybaco.ui.child.project.ProjectPane;
 import org.tybaco.ui.lib.context.ChildContext;
-import org.tybaco.ui.lib.context.UIComponent;
 import org.tybaco.ui.lib.icon.Icons;
 import org.tybaco.ui.main.services.Projects;
 import org.tybaco.ui.model.Project;
 
-@UIComponent
+@Component
 public class MainTabPane extends TabPane {
 
   private final AnnotationConfigApplicationContext context;

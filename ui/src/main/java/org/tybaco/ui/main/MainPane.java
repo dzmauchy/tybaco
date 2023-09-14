@@ -22,9 +22,9 @@ package org.tybaco.ui.main;
  */
 
 import javafx.scene.layout.BorderPane;
-import org.tybaco.ui.lib.context.UIRootComponent;
+import org.springframework.stereotype.Component;
 
-@UIRootComponent
+@Component
 public class MainPane extends BorderPane {
 
   public MainPane(MainTabPane tabPane, MainMenuBar menuBar) {
