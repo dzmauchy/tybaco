@@ -28,16 +28,23 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.plugins.circular.ErrorCircularDependencyStrategy;
+import org.apache.ivy.plugins.conflict.LatestConflictManager;
+import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
+import org.apache.ivy.plugins.lock.NoLockStrategy;
+import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.apache.ivy.util.Message;
 import org.tybaco.io.CancellablePathCloseable;
-import org.tybaco.io.PathCloseable;
 import org.tybaco.ui.model.Lib;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.List;
+
+import static java.nio.file.Files.isDirectory;
 
 public final class ArtifactResolver {
 
@@ -53,8 +60,13 @@ public final class ArtifactResolver {
     try (var tempDirWrapper = new CancellablePathCloseable(tempDirectory)) {
       ivySettings.setBaseDir(tempDirectory.toFile());
       ivySettings.setDefaultCache(cacheDir.toFile());
-      ivySettings.addResolver(mavenResolver(ivySettings));
+      ivySettings.addResolver(chainResolver(ivySettings));
       ivySettings.setDefaultResolver("public");
+      ivySettings.setCheckUpToDate(false);
+      ivySettings.setDefaultLockStrategy(new NoLockStrategy());
+      ivySettings.setDefaultLatestStrategy(new LatestRevisionStrategy());
+      ivySettings.setCircularDependencyStrategy(ErrorCircularDependencyStrategy.getInstance());
+      ivySettings.setDefaultConflictManager(new LatestConflictManager(ivySettings.getDefaultLatestStrategy()));
 
       var ivy = Ivy.newInstance(ivySettings);
       ivy.pushContext();
@@ -95,13 +107,33 @@ public final class ArtifactResolver {
       .setConfs(new String[] {"default"});
   }
 
-  private IBiblioResolver mavenResolver(IvySettings settings) {
-    var resolver = new IBiblioResolver();
+  private ChainResolver chainResolver(IvySettings settings) {
+    var resolver = new ChainResolver();
     resolver.setSettings(settings);
-    resolver.setUsepoms(true);
-    resolver.setM2compatible(true);
-    resolver.setUseMavenMetadata(true);
     resolver.setName("public");
+    resolver.setLatestStrategy(new LatestRevisionStrategy());
+    resolver.setCheckmodified(false);
+    var localMavenRepoPath = Path.of(System.getProperty("user.home"), ".m2", "repository");
+    if (isDirectory(localMavenRepoPath)) {
+      var localResolver = new IBiblioResolver();
+      localResolver.setRoot(localMavenRepoPath.toUri().toString());
+      localResolver.setM2compatible(true);
+      localResolver.setUseMavenMetadata(false);
+      localResolver.setName("mavenLocal");
+      localResolver.setSettings(settings);
+      localResolver.setCheckmodified(false);
+      localResolver.setLatestStrategy(new LatestRevisionStrategy());
+      resolver.add(localResolver);
+    }
+    var mavenResolver = new IBiblioResolver();
+    mavenResolver.setSettings(settings);
+    mavenResolver.setUsepoms(true);
+    mavenResolver.setM2compatible(true);
+    mavenResolver.setUseMavenMetadata(false);
+    mavenResolver.setCheckmodified(false);
+    mavenResolver.setName("mavenRemote");
+    mavenResolver.setLatestStrategy(new LatestRevisionStrategy());
+    resolver.add(mavenResolver);
     return resolver;
   }
 }
