@@ -1,4 +1,4 @@
-package org.tybaco.ui.child.project;
+package org.tybaco.ui.child.project.libs;
 
 /*-
  * #%L
@@ -21,24 +21,17 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
-import javafx.scene.control.Accordion;
-import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToolBar;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.child.project.libs.ProjectLibrariesPane;
-import org.tybaco.ui.lib.text.Texts;
+import org.tybaco.ui.lib.action.Action;
+import org.tybaco.ui.lib.control.Toolbars;
 
 @Component
-public class ProjectAccordion extends Accordion {
+public class ProjectLibrariesToolbar extends ToolBar {
 
-  private final TitledPane constantsPane;
-  private final TitledPane librariesPane;
-
-  public ProjectAccordion(ProjectConstantsPane constants, ProjectLibrariesPane libraries) {
-    constantsPane = new TitledPane(null, constants);
-    constantsPane.textProperty().bind(Texts.text("Constants"));
-    librariesPane = new TitledPane(null, libraries);
-    librariesPane.textProperty().bind(Texts.text("Libraries"));
-    getPanes().addAll(constantsPane, librariesPane);
-    setExpandedPane(constantsPane);
+  public ProjectLibrariesToolbar(@Qualifier("libsAction") ObjectProvider<Action> actions) {
+    Toolbars.fillToolbar(this, actions);
   }
 }

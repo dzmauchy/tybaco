@@ -1,4 +1,4 @@
-package org.tybaco.ui.child.project;
+package org.tybaco.ui.child.project.libs;
 
 /*-
  * #%L
@@ -21,24 +21,20 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
-import javafx.scene.control.Accordion;
-import javafx.scene.control.TitledPane;
+import org.kordamp.ikonli.materialdesign.MaterialDesign;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.child.project.libs.ProjectLibrariesPane;
-import org.tybaco.ui.lib.text.Texts;
+import org.tybaco.ui.lib.action.Action;
 
 @Component
-public class ProjectAccordion extends Accordion {
+public class ProjectLibrariesActions {
 
-  private final TitledPane constantsPane;
-  private final TitledPane librariesPane;
+  @Bean
+  @Qualifier("libsAction")
+  public Action addLibraryAction() {
+    return new Action(null, MaterialDesign.MDI_LIBRARY, "Add a library", e -> {
 
-  public ProjectAccordion(ProjectConstantsPane constants, ProjectLibrariesPane libraries) {
-    constantsPane = new TitledPane(null, constants);
-    constantsPane.textProperty().bind(Texts.text("Constants"));
-    librariesPane = new TitledPane(null, libraries);
-    librariesPane.textProperty().bind(Texts.text("Libraries"));
-    getPanes().addAll(constantsPane, librariesPane);
-    setExpandedPane(constantsPane);
+    }).separatorGroup("modifyLibs");
   }
 }
