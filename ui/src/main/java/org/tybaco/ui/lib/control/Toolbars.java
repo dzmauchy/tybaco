@@ -1,3 +1,5 @@
+package org.tybaco.ui.lib.control;
+
 /*-
  * #%L
  * ui
@@ -19,39 +21,24 @@
  * #L%
  */
 
-.root {
-    -fx-base: #313532;
-}
+import javafx.scene.control.*;
+import org.springframework.beans.factory.ObjectProvider;
+import org.tybaco.ui.lib.action.Action;
 
-.diagram-block {
-    -fx-border-color: white;
-    -fx-border-width: 2;
-    -fx-border-radius: 5;
-    -fx-border-style: solid;
-}
+import java.util.*;
 
-.diagram-block > .ty-title {
-    -fx-border-width: 0 0 2 0;
-    -fx-background-color: linear-gradient(to top, black, transparent);
-    -fx-alignment: center;
-    -fx-padding: 5;
-    -fx-font-weight: bold;
-}
+public interface Toolbars {
 
-.diagram-block > .ty-content {
-    -fx-padding: 5;
-    -fx-background-color: #444;
-}
-
-.diagram-block > .ty-content > * {
-    -fx-padding: 5;
-    -fx-background-color: transparent;
-}
-
-.diagram-block > .ty-content > .ty-block-factory {
-    -fx-alignment: center;
-}
-
-.diagram-block > .ty-content > .ty-block-value {
-    -fx-alignment: center;
+  static void fillToolbar(ToolBar toolBar, ObjectProvider<Action> actions) {
+    var groupMap = new TreeMap<String, ToggleGroup>();
+    var map = new TreeMap<String, ArrayList<Action>>();
+    actions.forEach(a -> map.computeIfAbsent(a.getSeparatorGroup(), k -> new ArrayList<>()).add(a));
+    var items = toolBar.getItems();
+    map.forEach((group, list) -> {
+      list.forEach(a -> items.add(a.toSmartButton(groupMap)));
+      if (map.higherKey(group) != null) {
+        items.add(new Separator());
+      }
+    });
+  }
 }

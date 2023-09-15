@@ -21,9 +21,53 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 import org.springframework.stereotype.Component;
+import org.tybaco.ui.lib.control.Tables;
+import org.tybaco.ui.model.Lib;
+import org.tybaco.ui.model.Project;
+
+import java.util.List;
 
 @Component
 public class ProjectLibrariesPane extends BorderPane {
+
+  public ProjectLibrariesPane(ProjectLibrariesTable table) {
+    super(table);
+  }
+
+  @Component
+  public static final class ProjectLibrariesTable extends TableView<Lib> {
+
+    public ProjectLibrariesTable(Project project) {
+      setItems(project.libs);
+      setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+      setTableMenuButtonVisible(true);
+      getColumns().addAll(List.of(groupColumn(), artifactColumn(), versionColumn()));
+      Tables.initColumnWidths(this, 100, 150, 100);
+    }
+
+    private TableColumn<Lib, String> groupColumn() {
+      var col = new TableColumn<Lib, String>("groupId");
+      col.setReorderable(false);
+      col.setSortable(true);
+      return col;
+    }
+
+    private TableColumn<Lib, String> artifactColumn() {
+      var col = new TableColumn<Lib, String>("artifactId");
+      col.setReorderable(false);
+      col.setSortable(true);
+      return col;
+    }
+
+    private TableColumn<Lib, String> versionColumn() {
+      var col = new TableColumn<Lib, String>("version");
+      col.setReorderable(false);
+      col.setSortable(true);
+      return col;
+    }
+  }
 }

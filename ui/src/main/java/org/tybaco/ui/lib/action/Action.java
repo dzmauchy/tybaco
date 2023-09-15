@@ -54,6 +54,7 @@ public final class Action {
   private final SimpleListProperty<Action> actions = new SimpleListProperty<>(this, "actions");
   private final SimpleStringProperty group = new SimpleStringProperty(this, "group");
 
+  private String separatorGroup = "";
   private boolean selectionEnabled;
 
   public Action() {
@@ -202,6 +203,15 @@ public final class Action {
     return this;
   }
 
+  public Action separatorGroup(String group) {
+    this.separatorGroup = group;
+    return this;
+  }
+
+  public String getSeparatorGroup() {
+    return separatorGroup;
+  }
+
   public boolean isActionsBound() {
     return actions.isBound();
   }
@@ -228,10 +238,6 @@ public final class Action {
 
   public boolean isSelectionEnabled() {
     return selectionEnabled;
-  }
-
-  public void setSelectionEnabled(boolean selectionEnabled) {
-    this.selectionEnabled = selectionEnabled;
   }
 
   public ObjectBinding<Node> graphic(int size) {

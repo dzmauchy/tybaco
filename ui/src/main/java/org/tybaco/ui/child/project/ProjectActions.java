@@ -30,14 +30,11 @@ import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.action.Action;
 import org.tybaco.ui.model.Project;
 
-import java.util.logging.*;
-
 import static java.util.logging.Level.INFO;
+import static org.tybaco.ui.lib.logging.Logging.LOG;
 
 @Component
 public class ProjectActions {
-
-  private final Logger LOG = LogManager.getLogManager().getLogger("");
 
   @Bean
   @Qualifier("projectAction")
@@ -48,21 +45,15 @@ public class ProjectActions {
       var method = "method";
       var block = project.newBlock(project.guessBlockName(), factory, method, 0d, 0d);
       LOG.log(INFO, "Block {0} created", block.id);
-    });
+    }).separatorGroup("block");
   }
 
   @Bean
   @Qualifier("projectAction")
-  @Order(10)
-  public Action diagramActionsSeparator() {
-    return new Action();
-  }
-
-  @Bean
-  @Qualifier("projectAction")
-  @Order(11)
+  @Order(1001)
   public Action accordionVisibleAction(ProjectAccordion accordion) {
     return new Action(null, MaterialDesign.MDI_BOOK_OPEN, "Accordion visibility")
-      .selectionBoundTo(accordion.visibleProperty(), true);
+      .selectionBoundTo(accordion.visibleProperty(), true)
+      .separatorGroup("visibility");
   }
 }

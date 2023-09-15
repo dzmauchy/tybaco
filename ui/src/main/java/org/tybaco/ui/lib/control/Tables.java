@@ -1,3 +1,5 @@
+package org.tybaco.ui.lib.control;
+
 /*-
  * #%L
  * ui
@@ -19,39 +21,18 @@
  * #L%
  */
 
-.root {
-    -fx-base: #313532;
-}
+import javafx.scene.control.TableView;
 
-.diagram-block {
-    -fx-border-color: white;
-    -fx-border-width: 2;
-    -fx-border-radius: 5;
-    -fx-border-style: solid;
-}
+public interface Tables {
 
-.diagram-block > .ty-title {
-    -fx-border-width: 0 0 2 0;
-    -fx-background-color: linear-gradient(to top, black, transparent);
-    -fx-alignment: center;
-    -fx-padding: 5;
-    -fx-font-weight: bold;
-}
-
-.diagram-block > .ty-content {
-    -fx-padding: 5;
-    -fx-background-color: #444;
-}
-
-.diagram-block > .ty-content > * {
-    -fx-padding: 5;
-    -fx-background-color: transparent;
-}
-
-.diagram-block > .ty-content > .ty-block-factory {
-    -fx-alignment: center;
-}
-
-.diagram-block > .ty-content > .ty-block-value {
-    -fx-alignment: center;
+  static void initColumnWidths(TableView<?> table, int... widths) {
+    var columns = table.getColumns();
+    for (int i = 0; i < widths.length; i++) {
+      var column = columns.get(i);
+      var width = widths[i];
+      column.setMinWidth(width * 0.9);
+      column.setPrefWidth(width);
+      column.setMaxWidth(width * 5);
+    }
+  }
 }
