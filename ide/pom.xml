@@ -62,7 +62,7 @@
       </exclusions>
     </dependency>
 
-    <!-- javafx base libs -->
+    <!-- javafx base dependencies -->
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-base</artifactId>
@@ -382,7 +382,7 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>copy-linux-libs</id>
+            <id>copy-linux-dependencies</id>
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
@@ -393,7 +393,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>copy-win-libs</id>
+            <id>copy-win-dependencies</id>
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
@@ -404,7 +404,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>copy-mac-libs</id>
+            <id>copy-mac-dependencies</id>
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
@@ -415,7 +415,7 @@
             </configuration>
           </execution>
           <execution>
-            <id>copy-mac-aarch64-libs</id>
+            <id>copy-mac-aarch64-dependencies</id>
             <goals>
               <goal>copy-dependencies</goal>
             </goals>

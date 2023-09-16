@@ -36,7 +36,7 @@ import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.apache.ivy.util.Message;
 import org.tybaco.io.CancellablePathCloseable;
-import org.tybaco.ui.model.Lib;
+import org.tybaco.ui.model.Dependency;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -53,7 +53,7 @@ public final class ArtifactResolver {
     Message.setDefaultLogger(new ArtifactMessageLogger());
   }
 
-  public ArtifactClassPath resolve(String name, Collection<? extends Lib> libs) throws IOException {
+  public ArtifactClassPath resolve(String name, Collection<? extends Dependency> libs) throws IOException {
     if (libs.isEmpty()) {
       return new ArtifactClassPath(null, name);
     }

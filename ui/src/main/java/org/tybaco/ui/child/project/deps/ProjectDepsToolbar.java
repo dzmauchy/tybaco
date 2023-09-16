@@ -1,4 +1,4 @@
-package org.tybaco.ui.child.project.libs;
+package org.tybaco.ui.child.project.deps;
 
 /*-
  * #%L
@@ -29,9 +29,9 @@ import org.tybaco.ui.lib.action.Action;
 import org.tybaco.ui.lib.control.Toolbars;
 
 @Component
-public class ProjectLibrariesToolbar extends ToolBar {
+public class ProjectDepsToolbar extends ToolBar {
 
-  public ProjectLibrariesToolbar(@Qualifier("libsAction") ObjectProvider<Action> actions) {
+  public ProjectDepsToolbar(@Qualifier("depsAction") ObjectProvider<Action> actions) {
     Toolbars.fillToolbar(this, actions);
   }
 }

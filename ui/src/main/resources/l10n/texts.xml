@@ -42,7 +42,13 @@
   <key value="Right pane visibility">
     <val lang="es">Visibilidad de la pestaña derecha</val>
   </key>
-  <key value="Add a library">
-    <val lang="es">Añadir una librería</val>
+  <key value="Add a dependency">
+    <val lang="es">Añadir una dependencia</val>
+  </key>
+  <key value="Dependencies">
+    <val lang="es">Dependencias</val>
+  </key>
+  <key value="Constants">
+    <val lang="es">Constantes</val>
   </key>
 </localization>

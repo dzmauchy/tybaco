@@ -1,4 +1,4 @@
-package org.tybaco.ui.child.project.libs;
+package org.tybaco.ui.child.project.deps;
 
 /*-
  * #%L
@@ -21,13 +21,20 @@ package org.tybaco.ui.child.project.libs;
  * #L%
  */
 
-import javafx.scene.layout.BorderPane;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.tybaco.ui.lib.action.Action;
 
 @Component
-public class ProjectLibrariesPane extends BorderPane {
+public class ProjectDepsActions {
 
-  public ProjectLibrariesPane(ProjectLibrariesTable table, ProjectLibrariesToolbar toolbar) {
-    super(table, toolbar, null, null, null);
+  @Bean
+  @Qualifier("depsAction")
+  public Action addLibraryAction() {
+    return new Action(null, MaterialDesignP.PLUS, "Add a dependency", e -> {
+
+    }).separatorGroup("modifyLibs");
   }
 }

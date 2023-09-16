@@ -44,18 +44,18 @@ public final class Project {
   public final ObservableList<Block> blocks;
   public final ObservableList<Constant> constants;
   public final ObservableList<Link> links;
-  public final ObservableList<Lib> libs;
+  public final ObservableList<Dependency> dependencies;
   private final Observable[] observables;
 
-  Project(String id, String name, Collection<Constant> constants, Collection<Block> blocks, Collection<Link> links, Collection<Lib> libs) {
+  Project(String id, String name, Collection<Constant> constants, Collection<Block> blocks, Collection<Link> links, Collection<Dependency> dependencies) {
     this.id = id == null ? newId() : id;
     this.threadGroup = new ThreadGroup(id);
     this.name = new SimpleStringProperty(this, "name", name);
     this.constants = Constant.newList(constants);
     this.blocks = Block.newList(blocks);
     this.links = Link.newList(links);
-    this.libs = Lib.libs(libs);
-    this.observables = new Observable[] {this.name, this.constants, this.blocks, this.libs};
+    this.dependencies = Dependency.libs(dependencies);
+    this.observables = new Observable[] {this.name, this.constants, this.blocks, this.dependencies};
   }
 
   public Project(String name) {
@@ -69,7 +69,7 @@ public final class Project {
       elementsByTags(element, "constants", "constant").map(Constant::new).toList(),
       elementsByTags(element, "blocks", "block").map(Block::new).toList(),
       elementsByTags(element, "links", "link").map(Link::new).toList(),
-      elementsByTags(element, "libs", "lib").map(Lib::new).toList()
+      elementsByTags(element, "libs", "lib").map(Dependency::new).toList()
     );
   }
 
@@ -79,7 +79,7 @@ public final class Project {
     withChildren(element, "constants", "constant", constants, Constant::saveTo);
     withChildren(element, "blocks", "block", blocks, Block::saveTo);
     withChildren(element, "links", "link", links, Link::saveTo);
-    withChildren(element, "libs", "lib", libs, Lib::saveTo);
+    withChildren(element, "libs", "lib", dependencies, Dependency::saveTo);
   }
 
   private Observable[] observables() {

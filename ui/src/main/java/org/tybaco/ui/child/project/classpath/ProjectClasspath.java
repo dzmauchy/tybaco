@@ -29,7 +29,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.repo.ArtifactClassPath;
 import org.tybaco.ui.lib.repo.ArtifactResolver;
-import org.tybaco.ui.model.Lib;
+import org.tybaco.ui.model.Dependency;
 import org.tybaco.ui.model.Project;
 
 import java.util.Set;
@@ -45,22 +45,22 @@ public final class ProjectClasspath implements AutoCloseable {
   final Project project;
   private final ArtifactResolver artifactResolver;
   private final InvalidationListener libsInvalidationListener;
-  private volatile Set<Lib> libs;
+  private volatile Set<Dependency> libs;
 
   public ProjectClasspath(Project project, ArtifactResolver artifactResolver) {
     this.project = project;
     this.artifactResolver = artifactResolver;
     this.libsInvalidationListener = this::onChangeLibs;
-    this.libs = Set.copyOf(project.libs);
+    this.libs = Set.copyOf(project.dependencies);
   }
 
   @PostConstruct
   public void init() {
-    project.libs.addListener(libsInvalidationListener);
+    project.dependencies.addListener(libsInvalidationListener);
   }
 
   private void onChangeLibs(Observable observable) {
-    var newLibs = Set.copyOf(project.libs);
+    var newLibs = Set.copyOf(project.dependencies);
     if (newLibs.equals(libs)) {
       return;
     }
@@ -72,7 +72,7 @@ public final class ProjectClasspath implements AutoCloseable {
 
   private void update() {
     try {
-      var cp = requireNonNull(artifactResolver.resolve(project.id, project.libs));
+      var cp = requireNonNull(artifactResolver.resolve(project.id, project.dependencies));
       Platform.runLater(() -> classPath.set(cp));
     } catch (Throwable e) {
       LOG.log(WARNING, "Unable to set classpath", e);
@@ -85,7 +85,7 @@ public final class ProjectClasspath implements AutoCloseable {
       if (cp != null) {
         LOG.log(INFO, "Closing classpath {0}", cp.classLoader.getName());
       }
-      project.libs.removeListener(libsInvalidationListener);
+      project.dependencies.removeListener(libsInvalidationListener);
     } catch (Throwable e) {
       LOG.log(SEVERE, "Unable to close classpath " + project.id, e);
     }

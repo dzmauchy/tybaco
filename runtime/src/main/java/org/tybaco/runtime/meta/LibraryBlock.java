@@ -1,8 +1,8 @@
-package org.tybaco.ui.model;
+package org.tybaco.runtime.meta;
 
 /*-
  * #%L
- * ui
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,29 +21,5 @@ package org.tybaco.ui.model;
  * #L%
  */
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import org.w3c.dom.Element;
-
-import java.util.Collection;
-
-public record Lib(String group, String artifact, String version) {
-
-  public Lib(Element element) {
-    this(
-      element.getAttribute("group"),
-      element.getAttribute("artifact"),
-      element.getAttribute("version")
-    );
-  }
-
-  public void saveTo(Element element) {
-    element.setAttribute("group", group);
-    element.setAttribute("artifact", artifact);
-    element.setAttribute("version", version);
-  }
-
-  public static ObservableList<Lib> libs(Collection<Lib> libs) {
-    return FXCollections.observableArrayList(libs);
-  }
+public class LibraryBlock {
 }

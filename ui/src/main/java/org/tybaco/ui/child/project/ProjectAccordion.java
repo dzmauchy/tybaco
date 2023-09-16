@@ -24,7 +24,7 @@ package org.tybaco.ui.child.project;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.child.project.libs.ProjectLibrariesPane;
+import org.tybaco.ui.child.project.deps.ProjectDepsPane;
 import org.tybaco.ui.lib.text.Texts;
 
 @Component
@@ -33,11 +33,11 @@ public class ProjectAccordion extends Accordion {
   private final TitledPane constantsPane;
   private final TitledPane librariesPane;
 
-  public ProjectAccordion(ProjectConstantsPane constants, ProjectLibrariesPane libraries) {
+  public ProjectAccordion(ProjectConstantsPane constants, ProjectDepsPane libraries) {
     constantsPane = new TitledPane(null, constants);
     constantsPane.textProperty().bind(Texts.text("Constants"));
     librariesPane = new TitledPane(null, libraries);
-    librariesPane.textProperty().bind(Texts.text("Libraries"));
+    librariesPane.textProperty().bind(Texts.text("Dependencies"));
     getPanes().addAll(constantsPane, librariesPane);
     setExpandedPane(constantsPane);
   }

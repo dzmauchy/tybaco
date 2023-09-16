@@ -1,4 +1,4 @@
-package org.tybaco.ui.child.project.libs;
+package org.tybaco.ui.child.project.deps;
 
 /*-
  * #%L
@@ -25,38 +25,38 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.control.Tables;
-import org.tybaco.ui.model.Lib;
+import org.tybaco.ui.model.Dependency;
 import org.tybaco.ui.model.Project;
 
 import java.util.List;
 
 @Component
-public final class ProjectLibrariesTable extends TableView<Lib> {
+public final class ProjectDepsTable extends TableView<Dependency> {
 
-  public ProjectLibrariesTable(Project project) {
-    setItems(project.libs);
+  public ProjectDepsTable(Project project) {
+    setItems(project.dependencies);
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     setTableMenuButtonVisible(true);
     getColumns().addAll(List.of(groupColumn(), artifactColumn(), versionColumn()));
     Tables.initColumnWidths(this, 100, 150, 100);
   }
 
-  private TableColumn<Lib, String> groupColumn() {
-    var col = new TableColumn<Lib, String>("groupId");
+  private TableColumn<Dependency, String> groupColumn() {
+    var col = new TableColumn<Dependency, String>("groupId");
     col.setReorderable(false);
     col.setSortable(true);
     return col;
   }
 
-  private TableColumn<Lib, String> artifactColumn() {
-    var col = new TableColumn<Lib, String>("artifactId");
+  private TableColumn<Dependency, String> artifactColumn() {
+    var col = new TableColumn<Dependency, String>("artifactId");
     col.setReorderable(false);
     col.setSortable(true);
     return col;
   }
 
-  private TableColumn<Lib, String> versionColumn() {
-    var col = new TableColumn<Lib, String>("version");
+  private TableColumn<Dependency, String> versionColumn() {
+    var col = new TableColumn<Dependency, String>("version");
     col.setReorderable(false);
     col.setSortable(true);
     return col;

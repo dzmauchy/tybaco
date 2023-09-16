@@ -1,4 +1,4 @@
-package org.tybaco.ui.lib.repo;
+package org.tybaco.ui.model;
 
 /*-
  * #%L
@@ -21,28 +21,29 @@ package org.tybaco.ui.lib.repo;
  * #L%
  */
 
-import org.junit.jupiter.api.Test;
-import org.tybaco.ui.model.Dependency;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import org.w3c.dom.Element;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+public record Dependency(String group, String artifact, String version) {
 
-class RepositorySystemTest {
+  public Dependency(Element element) {
+    this(
+      element.getAttribute("group"),
+      element.getAttribute("artifact"),
+      element.getAttribute("version")
+    );
+  }
 
-  private final ArtifactResolver resolver = new ArtifactResolver();
+  public void saveTo(Element element) {
+    element.setAttribute("group", group);
+    element.setAttribute("artifact", artifact);
+    element.setAttribute("version", version);
+  }
 
-  @Test
-  void resolveArtifacts() throws Exception {
-    final Path dir;
-    try (var cp = resolver.resolve("test", List.of(new Dependency("org.slf4j", "slf4j-jdk14", "2.0.9")))) {
-      dir = cp.directory;
-      var classLoader = cp.classLoader;
-      assertEquals(2, classLoader.getURLs().length);
-    }
-    assertFalse(Files.exists(dir));
+  public static ObservableList<Dependency> libs(Collection<Dependency> dependencies) {
+    return FXCollections.observableArrayList(dependencies);
   }
 }
