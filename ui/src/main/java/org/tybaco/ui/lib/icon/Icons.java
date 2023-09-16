@@ -29,58 +29,82 @@ import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.IkonProvider;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-import java.util.*;
+import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.logging.Level.INFO;
 import static org.tybaco.ui.lib.logging.Logging.LOG;
 
 public final class Icons {
 
   private static final ConcurrentHashMap<IconKey, Image> IMAGES = new ConcurrentHashMap<>(64, 0.5f);
-  public static final Map<String, Ikon> IKONS;
+  static final ConcurrentHashMap<String, Ikon> ICONS = new ConcurrentHashMap<>(32768, 0.5f);
+  private static final CountDownLatch LATCH = new CountDownLatch(1);
 
   static {
     LOG.log(INFO, "Loading icons");
-    var map = new ConcurrentHashMap<String, Ikon>(1024, 0.5f);
-    var loader = ServiceLoader.load(IkonProvider.class);
-    try {
-      loader.stream().parallel()
-        .map(ServiceLoader.Provider::get)
-        .map(IkonProvider::getIkon)
-        .filter(Class::isEnum)
-        .forEach(c -> {
-          var values = c.getEnumConstants();
-          for (var v : values) {
-            if (v instanceof Ikon icon) {
-              map.put(icon.getDescription(), icon);
+    var thread = new Thread(() -> {
+      try {
+        var loader = ServiceLoader.load(IkonProvider.class);
+        loader.stream().parallel()
+          .map(ServiceLoader.Provider::get)
+          .map(IkonProvider::getIkon)
+          .filter(Class::isEnum)
+          .forEach(c -> {
+            var values = c.getEnumConstants();
+            for (var v : values) {
+              if (v instanceof Ikon icon) {
+                ICONS.put(icon.getDescription(), icon);
+              }
             }
-          }
-        });
-    } finally {
-      loader.reload();
-    }
-    IKONS = Map.copyOf(map);
-    LOG.log(INFO, "{0} icons loaded", IKONS.size());
+          });
+      } finally {
+        LATCH.countDown();
+      }
+      LOG.log(INFO, "{0} icons loaded", ICONS.size());
+    }, "icon-loader");
+    thread.setDaemon(true);
+    thread.start();
   }
 
   private Icons() {
   }
 
+  public static void prefetch() {
+    LOG.info("Prefetching icons");
+  }
+
   public static Node icon(String key, int size) {
     if (key == null) {
       return null;
+    } else if (key.indexOf('.') > 0) {
+      var image = IMAGES.computeIfAbsent(
+        new IconKey(key, size),
+        k -> new Image(k.key, k.size, k.size, false, true, false)
+      );
+      return new ImageView(image);
     } else {
-      var ikon = IKONS.get(key);
-      if (ikon == null) {
-        var image = IMAGES.computeIfAbsent(
-          new IconKey(key, size),
-          k -> new Image(k.key, k.size, k.size, false, true, false)
-        );
-        return new ImageView(image);
-      } else {
-        return icon(ikon, size);
+      var icon = ICONS.get(key);
+      if (icon != null) {
+        return icon(icon, size);
       }
+      if (LATCH.getCount() != 0L) {
+        try {
+          LOG.log(INFO, "Waiting for {0}", key);
+          if (!LATCH.await(1L, MINUTES)) {
+            LOG.log(Level.SEVERE, "Unable to load icons in 1 minutes");
+            return null;
+          }
+        } catch (InterruptedException e) {
+          LOG.log(Level.SEVERE, "Interrupted", e);
+          return null;
+        }
+      }
+      icon = ICONS.get(key);
+      return icon == null ? null : icon(icon, size);
     }
   }
 

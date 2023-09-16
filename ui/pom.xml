@@ -71,13 +71,19 @@
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-fluentui-pack</artifactId>
+      <artifactId>ikonli-unicons-pack</artifactId>
       <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-unicons-pack</artifactId>
+      <artifactId>ikonli-ionicons4-pack</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-fontawesome5-pack</artifactId>
       <version>${ikonli.version}</version>
     </dependency>
 

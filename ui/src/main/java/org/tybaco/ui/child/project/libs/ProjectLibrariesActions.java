@@ -21,7 +21,6 @@ package org.tybaco.ui.child.project.libs;
  * #L%
  */
 
-import org.kordamp.ikonli.materialdesign.MaterialDesign;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -33,7 +32,7 @@ public class ProjectLibrariesActions {
   @Bean
   @Qualifier("libsAction")
   public Action addLibraryAction() {
-    return new Action(null, MaterialDesign.MDI_PLUS, "Add a library", e -> {
+    return new Action(null, "mdi-plus", "Add a library", e -> {
 
     }).separatorGroup("modifyLibs");
   }

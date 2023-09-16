@@ -37,7 +37,7 @@ import java.util.Comparator;
 public class IconViewer extends ListView<Ikon> {
 
   public IconViewer() {
-    var icons = Icons.IKONS.values().stream()
+    var icons = Icons.ICONS.values().stream()
       .sorted(Comparator.comparing(icon -> {
         var desc = icon.getDescription();
         var idx = desc.indexOf('-');
