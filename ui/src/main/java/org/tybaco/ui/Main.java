@@ -24,7 +24,6 @@ package org.tybaco.ui;
 import javafx.application.Application;
 import org.tybaco.logging.FastConsoleHandler;
 import org.tybaco.logging.LoggingManager;
-import org.tybaco.ui.lib.icon.Icons;
 import org.tybaco.ui.lib.logging.UILogHandler;
 import org.tybaco.ui.main.MainApplication;
 
@@ -41,7 +40,6 @@ public final class Main {
     System.setProperty("com.sun.javafx.gestures.scroll", "true");
     updateSplash.run();
     initLogging();
-    Icons.prefetch();
     updateSplash.run();
     Application.launch(MainApplication.class, args);
   }

@@ -38,13 +38,6 @@ public final class Icons {
 
   private static final ConcurrentHashMap<IconKey, Image> IMAGES = new ConcurrentHashMap<>(64, 0.5f);
 
-  private Icons() {
-  }
-
-  public static void prefetch() {
-    LOG.info("Prefetching icons");
-  }
-
   public static Node icon(String key, int size) {
     if (key == null) {
       return null;
@@ -68,10 +61,7 @@ public final class Icons {
   }
 
   public static Node icon(Ikon icon, int size) {
-    var fontIcon = new FontIcon(icon);
-    fontIcon.setIconSize(size);
-    fontIcon.setIconColor(Color.WHITE);
-    return fontIcon;
+    return FontIcon.of(icon, size, Color.WHITE);
   }
 
   private record IconKey(String key, int size) {
