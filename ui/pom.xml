@@ -59,7 +59,19 @@
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-materialdesign-pack</artifactId>
+      <artifactId>ikonli-evaicons-pack</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-openiconic-pack</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-octicons-pack</artifactId>
       <version>${ikonli.version}</version>
     </dependency>
 
@@ -84,6 +96,48 @@
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-fontawesome5-pack</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-maki2-pack</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-mapicons-pack</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-foundation-pack</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-elusive-pack</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-bootstrapicons-pack</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-jamicons-pack</artifactId>
+      <version>${ikonli.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-typicons-pack</artifactId>
       <version>${ikonli.version}</version>
     </dependency>
 

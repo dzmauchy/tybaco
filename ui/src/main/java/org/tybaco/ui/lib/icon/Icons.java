@@ -49,18 +49,17 @@ public final class Icons {
     var thread = new Thread(() -> {
       try {
         var loader = ServiceLoader.load(IkonProvider.class);
-        loader.stream().parallel()
-          .map(ServiceLoader.Provider::get)
-          .map(IkonProvider::getIkon)
-          .filter(Class::isEnum)
-          .forEach(c -> {
-            var values = c.getEnumConstants();
+        for (var provider : loader) {
+          var ik = provider.getIkon();
+          var values = ik.getEnumConstants();
+          if (values != null) {
             for (var v : values) {
               if (v instanceof Ikon icon) {
                 ICONS.put(icon.getDescription(), icon);
               }
             }
-          });
+          }
+        }
       } finally {
         LATCH.countDown();
       }
