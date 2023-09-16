@@ -1,4 +1,4 @@
-package org.tybaco.ui.child.project.libs;
+package org.tybaco.ui.child.project.classpath;
 
 /*-
  * #%L
@@ -21,20 +21,27 @@ package org.tybaco.ui.child.project.libs;
  * #L%
  */
 
-import org.kordamp.ikonli.materialdesign.MaterialDesign;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.lib.action.Action;
+
+import java.lang.reflect.Method;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Component
-public class ProjectLibrariesActions {
+public final class ProjectCache implements AutoCloseable {
 
-  @Bean
-  @Qualifier("libsAction")
-  public Action addLibraryAction() {
-    return new Action(null, MaterialDesign.MDI_PLUS, "Add a library", e -> {
+  final ConcurrentHashMap<Class<?>, ConcurrentLinkedQueue<Method>> blocks = new ConcurrentHashMap<>(64, 0.5f);
+  final ConcurrentHashMap<Class<?>, Boolean> constants = new ConcurrentHashMap<>(64, 0.5f);
+  final ConcurrentHashMap<Class<?>, ConcurrentLinkedQueue<Method>> inputs = new ConcurrentHashMap<>(64, 0.5f);
 
-    }).separatorGroup("modifyLibs");
+  void clear() {
+    blocks.clear();
+    constants.clear();
+    inputs.clear();
+  }
+
+  @Override
+  public void close() {
+    clear();
   }
 }

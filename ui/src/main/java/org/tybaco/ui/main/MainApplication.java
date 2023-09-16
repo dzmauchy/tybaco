@@ -32,6 +32,7 @@ import org.tybaco.ui.lib.logging.UILogHandler;
 public class MainApplication extends Application {
 
   private final MainApplicationContext context = new MainApplicationContext();
+  private final Thread shutdownHook = new Thread(context::close);
 
   private static void updateSplash() {
     Main.updateSplash.run();
@@ -47,12 +48,15 @@ public class MainApplication extends Application {
     Application.setUserAgentStylesheet(STYLESHEET_MODENA);
     updateSplash();
     Platform.runLater(MainApplication::initLaf);
+    Runtime.getRuntime().addShutdownHook(shutdownHook);
   }
 
   @Override
   public void stop() {
     try (context) {
       context.stop();
+    } finally {
+      Runtime.getRuntime().removeShutdownHook(shutdownHook);
     }
   }
 

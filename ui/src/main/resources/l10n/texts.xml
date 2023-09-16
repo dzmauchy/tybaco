@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  #%L
+  ui
+  %%
+  Copyright (C) 2023 Montoni
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<localization>
+  <key value="Project">
+    <val lang="es">Proyecto</val>
+  </key>
+  <key value="Languages">
+    <val lang="es">Idiomas</val>
+  </key>
+  <key value="Set to system default">
+    <val lang="es">Usar un idioma por defecto</val>
+  </key>
+  <key value="New project">
+    <val lang="es">Nuevo proyecto</val>
+  </key>
+  <key value="Save all projects">
+    <val lang="es">Guardar todos los proyectos</val>
+  </key>
+  <key value="New block">
+    <val lang="es">Nuevo bloco</val>
+  </key>
+  <key value="Right pane visibility">
+    <val lang="es">Visibilidad de la pestaña derecha</val>
+  </key>
+  <key value="Add a library">
+    <val lang="es">Añadir una librería</val>
+  </key>
+</localization>

@@ -26,31 +26,27 @@ import javafx.beans.Observable;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import org.tybaco.xml.Xml;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
-import static java.util.logging.Level.WARNING;
+import static java.util.logging.Level.*;
 import static java.util.stream.Stream.concat;
 import static javafx.beans.binding.Bindings.createStringBinding;
+import static org.tybaco.ui.lib.logging.Logging.LOG;
 
-public class Texts {
+public final class Texts {
 
-  private static final Logger LOGGER = Logger.getLogger("Texts");
   private static final Preferences PREFERENCES = Preferences.userNodeForPackage(Texts.class);
   private static final SimpleObjectProperty<Locale> LOCALE = new SimpleObjectProperty<>(Texts.class, "locale", defaultLocale());
-  private static final ConcurrentHashMap<Locale, Locale> NORMALIZED_LOCALES = new ConcurrentHashMap<>(16, 0.5f);
-  private static final ConcurrentHashMap<Locale, Properties> TEXTS_BUNDLES = new ConcurrentHashMap<>(8, 0.5f);
-  private static final ConcurrentHashMap<Locale, Properties> MESSAGES_BUNDLES = new ConcurrentHashMap<>(8, 0.5f);
+  private static final Map<Locale, Map<String, String>> TEXTS = loadData("l10n/texts.xml");
+  private static final Map<Locale, Map<String, String>> MESSAGES = loadData("l10n/messages.xml");
 
   static {
     PREFERENCES.addPreferenceChangeListener(ev -> {
@@ -61,6 +57,9 @@ public class Texts {
     });
   }
 
+  private Texts() {
+  }
+
   private static Locale defaultLocale() {
     var localeFromPrefs = PREFERENCES.get("locale", "");
     if (!localeFromPrefs.isEmpty()) {
@@ -69,36 +68,29 @@ public class Texts {
     return Locale.getDefault();
   }
 
-  private Texts() {
+  private static String key(String key, Map<Locale, Map<String, String>> bundles) {
+    return key(LOCALE.get(), key, bundles);
   }
 
-  private static String key(String key, ConcurrentHashMap<Locale, Properties> bundles) {
+  private static String key(Locale locale, String key, Map<Locale, Map<String, String>> bundles) {
     if (key == null) {
       return null;
     }
     try {
-      var normalizedLocale = NORMALIZED_LOCALES.computeIfAbsent(LOCALE.get(), l -> Locale.of(l.getLanguage()));
-      var ps = bundles.computeIfAbsent(normalizedLocale, l -> {
-        var classLoader = Thread.currentThread().getContextClassLoader();
-        var resource = bundles == TEXTS_BUNDLES ? "l10n/texts" : "l10n/messages";
-        try (var is = classLoader.getResourceAsStream(resource + "_" + l.getLanguage() + ".properties")) {
-          var props = new Properties();
-          if (is == null) {
-            return props;
-          } else {
-            props.load(is);
-          }
-          return props;
-        } catch (IOException e) {
-          throw new UncheckedIOException(e);
+      var map = bundles.get(locale);
+      if (map == null) {
+        if (!locale.getVariant().isEmpty()) {
+          return key(Locale.of(locale.getLanguage(), locale.getCountry()), key, bundles);
+        } else if (!locale.getCountry().isEmpty()) {
+          return key(Locale.of(locale.getLanguage()), key, bundles);
+        } else {
+          map = Map.of();
         }
-      });
-      return ps.getProperty(key, key);
+      }
+      var v = map.get(key);
+      return v == null ? key : v;
     } catch (RuntimeException e) {
-      var r = new LogRecord(WARNING, "Unable to get {0}");
-      r.setThrown(e);
-      r.setParameters(new Object[]{key});
-      LOGGER.log(r);
+      LOG.log(WARNING, "Unable to get " + key, e);
       return key;
     }
   }
@@ -108,12 +100,9 @@ public class Texts {
       return null;
     }
     try {
-      return key(key, TEXTS_BUNDLES).formatted(args.get());
+      return key(key, TEXTS).formatted(args.get());
     } catch (RuntimeException e) {
-      var r = new LogRecord(WARNING, "Unable to format {0}");
-      r.setThrown(e);
-      r.setParameters(new Object[]{key});
-      LOGGER.log(r);
+      LOG.log(WARNING, "Unable to format " + key, e);
       return key;
     }
   }
@@ -123,12 +112,9 @@ public class Texts {
       return null;
     }
     try {
-      return MessageFormat.format(key(key, MESSAGES_BUNDLES), args.get());
+      return MessageFormat.format(key(key, MESSAGES), args.get());
     } catch (RuntimeException e) {
-      var r = new LogRecord(WARNING, "Unable to format a message {0}");
-      r.setThrown(e);
-      r.setParameters(new Object[]{key});
-      LOGGER.log(r);
+      LOG.log(WARNING, "Unable to format " + key, e);
       return key;
     }
   }
@@ -146,7 +132,7 @@ public class Texts {
   }
 
   public static StringBinding text(String text) {
-    return createStringBinding(() -> key(text, TEXTS_BUNDLES), LOCALE);
+    return createStringBinding(() -> key(text, TEXTS), LOCALE);
   }
 
   public static StringBinding text(String format, Object... args) {
@@ -154,7 +140,7 @@ public class Texts {
   }
 
   public static StringBinding msg(String msg) {
-    return createStringBinding(() -> key(msg, MESSAGES_BUNDLES), LOCALE);
+    return createStringBinding(() -> key(msg, MESSAGES), LOCALE);
   }
 
   public static StringBinding msg(String msg, Object... args) {
@@ -167,5 +153,37 @@ public class Texts {
 
   private static Object[] values(Object... args) {
     return stream(args).map(a -> a instanceof ObservableValue<?> o ? o.getValue() : a).toArray();
+  }
+
+  private static Map<Locale, Map<String, String>> loadData(String file) {
+    var url = Thread.currentThread().getContextClassLoader().getResource(file);
+    if (url == null) {
+      LOG.log(SEVERE, "No {0} found", file);
+      return Map.of();
+    }
+    var crudeMap = Xml.loadFrom(url, root -> Xml.elementsByTag(root, "key")
+      .flatMap(key -> {
+        var k = key.getAttribute("value");
+        return Xml.elementsByTag(key, "val")
+          .map(v -> {
+            var lang = v.getAttribute("lang");
+            var val = v.getTextContent();
+            return new String[] {lang, k, val};
+          });
+      })
+      .collect(Collectors.groupingBy(a -> a[0], Collectors.toMap(a -> a[1], a -> a[2], (v1, v2) -> v2)))
+    );
+    var result = crudeMap.entrySet().stream().collect(Collectors.toMap(
+      e -> Locale.forLanguageTag(e.getKey()),
+      e -> Map.copyOf(e.getValue()),
+      (m1, m2) -> m2,
+      () -> new TreeMap<>(Comparator
+        .comparing(Locale::getLanguage)
+        .thenComparing(Locale::getCountry)
+        .thenComparing(Locale::getVariant)
+      )
+    ));
+    LOG.log(INFO, "Loaded {0}: locales = {1}", new Object[] {file, result.keySet()});
+    return result;
   }
 }

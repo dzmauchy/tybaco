@@ -21,12 +21,8 @@ package org.tybaco.runtime.annotation;
  * #L%
  */
 
-import java.lang.annotation.*;
-
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
-public @interface Block {
+public @interface ConstantFactory {
   String name() default "";
-  String icon() default "";
   String description() default "";
+  String icon() default "";
 }

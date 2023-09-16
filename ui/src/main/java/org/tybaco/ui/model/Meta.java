@@ -1,8 +1,8 @@
-package org.tybaco.runtime.annotation;
+package org.tybaco.ui.model;
 
 /*-
  * #%L
- * runtime
+ * ui
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,12 +21,17 @@ package org.tybaco.runtime.annotation;
  * #L%
  */
 
-import java.lang.annotation.*;
+import java.util.Map;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
-public @interface Block {
-  String name() default "";
-  String icon() default "";
-  String description() default "";
+import static java.util.Objects.requireNonNullElse;
+
+public record Meta(String name, String icon, String description) {
+
+  public Meta(Map<String, Object> attrs) {
+    this(
+      requireNonNullElse(attrs.get("name"), "").toString(),
+      requireNonNullElse(attrs.get("icon"), "").toString(),
+      requireNonNullElse(attrs.get("description"), "").toString()
+    );
+  }
 }

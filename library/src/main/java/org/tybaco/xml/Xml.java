@@ -83,6 +83,7 @@ public class Xml {
     try (var inputStream = url.openStream()) {
       var inputSource = new InputSource(inputStream);
       inputSource.setEncoding("UTF-8");
+      inputSource.setSystemId(url.toExternalForm());
       return loadFrom(inputSource, func);
     } catch (IOException e) {
       throw new UncheckedIOException(e);

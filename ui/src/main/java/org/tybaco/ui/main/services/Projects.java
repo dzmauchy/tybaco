@@ -30,9 +30,6 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.TreeMap;
 
-import static java.util.logging.Level.*;
-import static org.tybaco.ui.lib.logging.Logging.LOG;
-
 @Component
 public class Projects implements AutoCloseable {
 
@@ -68,31 +65,16 @@ public class Projects implements AutoCloseable {
   private void onChange(ListChangeListener.Change<? extends Project> c) {
     while (c.next()) {
       if (c.wasRemoved()) {
-        c.getRemoved().forEach(p -> {
-          try (var pr = map.remove(p.id)) {
-            LOG.log(INFO, "Closing {0}", pr);
-          } catch (Throwable e) {
-            LOG.log(WARNING, "Unable to close " + p, e);
-          }
-        });
+        c.getRemoved().forEach(p -> map.remove(p.id));
       }
       if (c.wasAdded()) {
-        c.getAddedSubList().forEach(p -> {
-          var old = map.put(p.id, p);
-          if (old != null) {
-            try (old) {
-              LOG.log(SEVERE, "Project id conflict: {0}", p);
-            } catch (Throwable e) {
-              LOG.log(SEVERE, "Unable to close " + old, e);
-            }
-          }
-        });
+        c.getAddedSubList().forEach(p -> map.put(p.id, p));
       }
     }
   }
 
   @Override
   public void close() {
-    projects.forEach(Project::close);
+    map.clear();
   }
 }
