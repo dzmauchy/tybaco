@@ -26,15 +26,43 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import org.kordamp.ikonli.Ikon;
+import org.kordamp.ikonli.IkonProvider;
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static java.util.logging.Level.INFO;
+import static org.tybaco.ui.lib.logging.Logging.LOG;
 
 public final class Icons {
 
   private static final ConcurrentHashMap<IconKey, Image> IMAGES = new ConcurrentHashMap<>(64, 0.5f);
-  private static final ConcurrentHashMap<Ikon, String> FKEYS = new ConcurrentHashMap<>(1024, 0.5f);
-  private static final ConcurrentHashMap<String, Ikon> RKEYS = new ConcurrentHashMap<>(1024, 0.5f);
+  public static final Map<String, Ikon> IKONS;
+
+  static {
+    LOG.log(INFO, "Loading icons");
+    var map = new ConcurrentHashMap<String, Ikon>(1024, 0.5f);
+    var loader = ServiceLoader.load(IkonProvider.class);
+    try {
+      loader.stream().parallel()
+        .map(ServiceLoader.Provider::get)
+        .map(IkonProvider::getIkon)
+        .filter(Class::isEnum)
+        .forEach(c -> {
+          var values = c.getEnumConstants();
+          for (var v : values) {
+            if (v instanceof Ikon icon) {
+              map.put(icon.getDescription(), icon);
+            }
+          }
+        });
+    } finally {
+      loader.reload();
+    }
+    IKONS = Map.copyOf(map);
+    LOG.log(INFO, "{0} icons loaded", IKONS.size());
+  }
 
   private Icons() {
   }
@@ -42,32 +70,25 @@ public final class Icons {
   public static Node icon(String key, int size) {
     if (key == null) {
       return null;
-    }
-    if (key.startsWith("IK_")) {
-      var icon = RKEYS.get(key);
-      if (icon == null) {
-        return null;
-      }
-      var fontIcon = new FontIcon(icon);
-      fontIcon.setIconSize(size);
-      fontIcon.setIconColor(Color.WHITE);
-      return fontIcon;
     } else {
-      var image = IMAGES.computeIfAbsent(new IconKey(key, size), k -> new Image(k.key, k.size, k.size, false, true, false));
-      return new ImageView(image);
+      var ikon = IKONS.get(key);
+      if (ikon == null) {
+        var image = IMAGES.computeIfAbsent(
+          new IconKey(key, size),
+          k -> new Image(k.key, k.size, k.size, false, true, false)
+        );
+        return new ImageView(image);
+      } else {
+        return icon(ikon, size);
+      }
     }
   }
 
-  public static String iconKey(Ikon ikon) {
-    return FKEYS.computeIfAbsent(ikon, i -> {
-      var k = "IK_" + i.getDescription();
-      RKEYS.putIfAbsent(k, ikon);
-      return k;
-    });
-  }
-
-  public static Node icon(Ikon ikon, int size) {
-    return icon(iconKey(ikon), size);
+  public static Node icon(Ikon icon, int size) {
+    var fontIcon = new FontIcon(icon);
+    fontIcon.setIconSize(size);
+    fontIcon.setIconColor(Color.WHITE);
+    return fontIcon;
   }
 
   private record IconKey(String key, int size) {

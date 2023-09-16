@@ -83,7 +83,7 @@ public final class Action {
 
   public Action(String text, Ikon icon) {
     this(text);
-    this.icon.bind(new SimpleStringProperty(Icons.iconKey(icon)));
+    this.icon.bind(new SimpleStringProperty(icon.getDescription()));
   }
 
   public Action(String text, String icon, String description) {
@@ -148,11 +148,11 @@ public final class Action {
   }
 
   public Action ikon(Ikon ikon) {
-    return icon(new SimpleObjectProperty<>(Icons.iconKey(ikon)));
+    return icon(new SimpleObjectProperty<>(ikon.getDescription()));
   }
 
   public Action ikon(ObservableValue<Ikon> icon) {
-    return icon(createObjectBinding(() -> Icons.iconKey(icon.getValue()), icon));
+    return icon(createObjectBinding(() -> icon.getValue().getDescription(), icon));
   }
 
   public Action handler(ObservableValue<EventHandler<ActionEvent>> handler) {

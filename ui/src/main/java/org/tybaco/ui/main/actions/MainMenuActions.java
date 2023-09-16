@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.action.Action;
+import org.tybaco.ui.lib.icon.IconViewer;
 import org.tybaco.ui.lib.text.Texts;
 
 import java.util.List;
@@ -49,6 +50,14 @@ public class MainMenuActions {
       new Action("Italiano", "icon/it.png", e -> Texts.setLocale(Locale.ITALIAN)),
       new Action(),
       new Action("Set to system default", MaterialDesignE.ERASER, e -> Texts.setLocale(null))
+    );
+  }
+
+  @Qualifier("mainMenu")
+  @Bean
+  public Action iconsMenu() {
+    return new Action("Icons").actions(
+      new Action("Viewer", MaterialDesignV.VIEW_ARRAY_OUTLINE, e -> IconViewer.show())
     );
   }
 }
