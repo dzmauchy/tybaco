@@ -129,7 +129,7 @@ public class ApplicationLoader implements Runnable {
 
   private List<ApplicationBlock> blocks(Element element) {
     var list = new LinkedList<ApplicationBlock>();
-    var wrapperNodes = element.getElementsByTagName("blocks");
+    var wrapperNodes = element.getElementsByTagName("tybaco");
     for (int i = 0; i < wrapperNodes.getLength(); i++) {
       if (wrapperNodes.item(i) instanceof Element blocks) {
         var nodes = blocks.getElementsByTagName("block");

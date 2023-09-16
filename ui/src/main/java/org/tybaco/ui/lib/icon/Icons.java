@@ -26,48 +26,17 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import org.kordamp.ikonli.Ikon;
-import org.kordamp.ikonli.IkonProvider;
 import org.kordamp.ikonli.javafx.FontIcon;
+import org.kordamp.ikonli.javafx.IkonResolver;
 
-import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.Level;
 
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.WARNING;
 import static org.tybaco.ui.lib.logging.Logging.LOG;
 
 public final class Icons {
 
   private static final ConcurrentHashMap<IconKey, Image> IMAGES = new ConcurrentHashMap<>(64, 0.5f);
-  static final ConcurrentHashMap<String, Ikon> ICONS = new ConcurrentHashMap<>(32768, 0.5f);
-  private static final CountDownLatch LATCH = new CountDownLatch(1);
-
-  static {
-    LOG.log(INFO, "Loading icons");
-    var thread = new Thread(() -> {
-      try {
-        var loader = ServiceLoader.load(IkonProvider.class);
-        for (var provider : loader) {
-          var ik = provider.getIkon();
-          var values = ik.getEnumConstants();
-          if (values != null) {
-            for (var v : values) {
-              if (v instanceof Ikon icon) {
-                ICONS.put(icon.getDescription(), icon);
-              }
-            }
-          }
-        }
-      } finally {
-        LATCH.countDown();
-      }
-      LOG.log(INFO, "{0} icons loaded", ICONS.size());
-    }, "icon-loader");
-    thread.setDaemon(true);
-    thread.start();
-  }
 
   private Icons() {
   }
@@ -86,24 +55,15 @@ public final class Icons {
       );
       return new ImageView(image);
     } else {
-      var icon = ICONS.get(key);
-      if (icon != null) {
-        return icon(icon, size);
+      var resolver = IkonResolver.getInstance();
+      try {
+        var handler = resolver.resolve(key);
+        var icon = handler.resolve(key);
+        return icon == null ? null : icon(icon, size);
+      } catch (RuntimeException ignore) {
+        LOG.log(WARNING, "Unable to resolve {0}", key);
+        return null;
       }
-      if (LATCH.getCount() != 0L) {
-        try {
-          LOG.log(INFO, "Waiting for {0}", key);
-          if (!LATCH.await(1L, MINUTES)) {
-            LOG.log(Level.SEVERE, "Unable to load icons in 1 minutes");
-            return null;
-          }
-        } catch (InterruptedException e) {
-          LOG.log(Level.SEVERE, "Interrupted", e);
-          return null;
-        }
-      }
-      icon = ICONS.get(key);
-      return icon == null ? null : icon(icon, size);
     }
   }
 

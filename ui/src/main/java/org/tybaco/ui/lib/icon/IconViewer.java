@@ -29,21 +29,29 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.kordamp.ikonli.Ikon;
+import org.kordamp.ikonli.IkonProvider;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.tybaco.ui.lib.text.Texts;
 
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.ServiceLoader;
 
 public class IconViewer extends ListView<Ikon> {
 
   public IconViewer() {
-    var icons = Icons.ICONS.values().stream()
-      .sorted(Comparator.comparing(icon -> {
-        var desc = icon.getDescription();
-        var idx = desc.indexOf('-');
-        return idx < 0 ? desc : desc.substring(idx + 1);
-      }))
-        .toList();
+    var list = new ArrayList<Ikon>();
+    var loader = ServiceLoader.load(IkonProvider.class);
+    for (var provider : loader) {
+      var values = provider.getIkon().getEnumConstants();
+      if (values != null) {
+        for (var v : values) {
+          if (v instanceof Ikon ikon) {
+            list.add(ikon);
+          }
+        }
+      }
+    }
+    var icons = FXCollections.observableList(list);
     setItems(FXCollections.observableList(icons));
     setCellFactory(param -> new TextFieldListCell<>() {
       @Override

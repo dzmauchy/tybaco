@@ -42,14 +42,7 @@ public record ApplicationConstant(int id, String factory, String value) implemen
   public static boolean isFactoryExecutable(Executable executable) {
     if (executable.getParameterCount() != 1) return false;
     else if (executable.getParameterTypes()[0] != String.class) return false;
-    else if (executable instanceof Method m) return Modifier.isStatic(m.getModifiers()) && isConstantMethodName(m.getName());
+    else if (executable instanceof Method m) return Modifier.isStatic(m.getModifiers());
     else return executable instanceof Constructor<?>;
-  }
-
-  public static boolean isConstantMethodName(String name) {
-    return switch (name) {
-      case "valueOf", "parse", "of", "getInstance", "instance", "instanceOf", "getByName", "byName", "forName" -> true;
-      default -> false;
-    };
   }
 }
