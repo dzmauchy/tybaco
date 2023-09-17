@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application;
+package org.tybaco.runtime.meta;
 
 /*-
  * #%L
@@ -23,23 +23,9 @@ package org.tybaco.runtime.application;
 
 import org.w3c.dom.Element;
 
-import static java.lang.Integer.parseInt;
+public record LibraryTypeOutput(Meta meta) {
 
-public record ApplicationConnector(int block, String spot, int index) {
-
-  public ApplicationConnector(int block, String spot) {
-    this(block, spot, -1);
-  }
-
-  public ApplicationConnector(Element element) {
-    this(
-      parseInt(element.getAttribute("block")),
-      element.getAttribute("spot"),
-      parseInt(element.getAttribute("index"))
-    );
-  }
-
-  public static ApplicationConnector out(int block) {
-    return new ApplicationConnector(block, "*");
+  public LibraryTypeOutput(Element element) {
+    this(new Meta(element));
   }
 }

@@ -21,20 +21,31 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
+import org.w3c.dom.Element;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.NoSuchElementException;
 
+import static java.lang.Integer.parseInt;
 import static java.util.Arrays.stream;
 
 public record ApplicationBlock(int id, String factory, String method) implements ResolvableObject {
+
+  public ApplicationBlock(Element element) {
+    this(
+      parseInt(element.getAttribute("id")),
+      element.getAttribute("factory"),
+      element.getAttribute("method")
+    );
+  }
 
   public boolean isDependent() {
     return factory.chars().allMatch(Character::isDigit);
   }
 
   public int parentBlockId() {
-    return Integer.parseInt(factory);
+    return parseInt(factory);
   }
 
   public Method resolveFactoryMethod(Object bean) {

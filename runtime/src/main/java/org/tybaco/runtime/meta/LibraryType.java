@@ -23,11 +23,17 @@ package org.tybaco.runtime.meta;
 
 import org.w3c.dom.Element;
 
-public record LibraryType(Meta meta) {
+import java.util.List;
+
+import static org.tybaco.runtime.util.Xml.elementsByTag;
+
+public record LibraryType(Meta meta, List<LibraryTypeInput> inputs, List<LibraryTypeOutput> outputs) {
 
   public LibraryType(Element element) {
     this(
-      new Meta(element)
+      new Meta(element),
+      elementsByTag(element, "input").map(LibraryTypeInput::new).toList(),
+      elementsByTag(element, "output").map(LibraryTypeOutput::new).toList()
     );
   }
 }

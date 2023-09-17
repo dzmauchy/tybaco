@@ -21,5 +21,18 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
+import org.w3c.dom.Element;
+
+import java.util.NoSuchElementException;
+
+import static org.tybaco.runtime.util.Xml.elementByTag;
+
 public record ApplicationLink(ApplicationConnector out, ApplicationConnector in) {
+
+  public ApplicationLink(Element element) {
+    this(
+      elementByTag(element, "out").map(ApplicationConnector::new).orElseThrow(() -> new NoSuchElementException("out")),
+      elementByTag(element, "in").map(ApplicationConnector::new).orElseThrow(() -> new NoSuchElementException("in"))
+    );
+  }
 }

@@ -21,22 +21,20 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
+import org.w3c.dom.Element;
+
 import java.lang.reflect.*;
+
+import static java.lang.Integer.parseInt;
 
 public record ApplicationConstant(int id, String factory, String value) implements ResolvableObject {
 
-  public static ApplicationConstant fromClass(int id, Class<?> type, String value) {
-    for (var method : type.getMethods()) {
-      if (isFactoryExecutable(method)) {
-        return new ApplicationConstant(id, type.getName(), value);
-      }
-    }
-    for (var constructor : type.getConstructors()) {
-      if (isFactoryExecutable(constructor)) {
-        return new ApplicationConstant(id, type.getName(), value);
-      }
-    }
-    throw new IllegalArgumentException("Unable to locate a method: " + type);
+  public ApplicationConstant(Element element) {
+    this(
+      parseInt(element.getAttribute("id")),
+      element.getAttribute("factory"),
+      element.getAttribute("value")
+    );
   }
 
   public static boolean isFactoryExecutable(Executable executable) {

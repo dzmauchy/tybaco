@@ -21,21 +21,28 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
+import org.w3c.dom.Element;
+
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
+import static org.tybaco.runtime.util.Xml.elementsByTag;
 
-public record Application(
-  String id,
-  List<ApplicationConstant> constants,
-  List<ApplicationBlock> blocks,
-  List<ApplicationLink> links
-) {
+public record Application(String id, List<ApplicationConstant> constants, List<ApplicationBlock> blocks, List<ApplicationLink> links) {
 
   static final ThreadLocal<Application> CURRENT_APPLICATION = new ThreadLocal<>();
 
   public static Application activeApplication() {
     return requireNonNull(CURRENT_APPLICATION.get(), "No active application found");
+  }
+
+  public Application(Element element) {
+    this(
+      element.getAttribute("id"),
+      elementsByTag(element, "constant").map(ApplicationConstant::new).toList(),
+      elementsByTag(element, "block").map(ApplicationBlock::new).toList(),
+      elementsByTag(element, "link").map(ApplicationLink::new).toList()
+    );
   }
 
   public int maxInternalId() {

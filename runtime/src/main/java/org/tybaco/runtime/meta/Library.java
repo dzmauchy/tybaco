@@ -21,8 +21,10 @@ package org.tybaco.runtime.meta;
  * #L%
  */
 
+import org.tybaco.runtime.util.Xml;
 import org.w3c.dom.Element;
 
+import java.net.URL;
 import java.util.List;
 
 import static org.tybaco.runtime.util.Xml.elementsByTag;
@@ -36,5 +38,9 @@ public record Library(Meta meta, List<LibraryBlocks> blocks, List<LibraryConstan
       elementsByTag(element, "constants").map(LibraryConstants::new).toList(),
       elementsByTag(element, "type").map(LibraryType::new).toList()
     );
+  }
+
+  public static Library load(URL url) {
+    return Xml.load(url, Library::new);
   }
 }

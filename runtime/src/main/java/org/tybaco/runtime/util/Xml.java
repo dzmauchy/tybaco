@@ -29,7 +29,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.URL;
+import java.net.*;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -51,11 +51,32 @@ public interface Xml {
   }
 
   static <T> T load(URL url, Function<Element, T> supplier) {
-    var documentBuilderFactory = DocumentBuilderFactory.newDefaultInstance();
-    try (var is = url.openStream()) {
-      var inputSource = new InputSource(is);
-      inputSource.setEncoding("UTF-8");
-      inputSource.setSystemId(url.toExternalForm());
+    try {
+      var connection = url.openConnection();
+      if (connection instanceof HttpURLConnection c) {
+        c.setUseCaches(false);
+        c.setReadTimeout(10_000);
+        c.setConnectTimeout(10_000);
+      }
+      connection.connect();
+      try (var is = connection.getInputStream()) {
+        var inputSource = new InputSource(is);
+        inputSource.setEncoding("UTF-8");
+        inputSource.setSystemId(url.toExternalForm());
+        return load(inputSource, supplier);
+      } finally {
+        if (connection instanceof HttpURLConnection c) {
+          c.disconnect();
+        }
+      }
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  static <T> T load(InputSource inputSource, Function<Element, T> supplier) {
+    try {
+      var documentBuilderFactory = DocumentBuilderFactory.newDefaultInstance();
       var documentBuilder = documentBuilderFactory.newDocumentBuilder();
       var document = documentBuilder.parse(inputSource);
       return supplier.apply(document.getDocumentElement());
