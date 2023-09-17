@@ -28,6 +28,7 @@ import org.xml.sax.SAXParseException;
 import java.io.StringReader;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.tybaco.runtime.application.Application.schema;
 import static org.tybaco.runtime.util.Xml.load;
 
 class ApplicationParseTest {
@@ -36,12 +37,12 @@ class ApplicationParseTest {
   void parseSuccessFromString() throws Exception {
     // language=xml
     var xml = """
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="/tybaco/application/application.xsd" id="abc">
+      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="/tybaco/application/application.xsd" id="abc" name="p1">
         <constant id="23" factory="int" value="45" name="abc"/>
       </project>
       """;
     var inputSource = new InputSource(new StringReader(xml));
-    var application = load(inputSource, Application.schema(), Application::new);
+    var application = load(inputSource, schema(), Application::new);
     assertEquals(1, application.constants().size());
     assertEquals("abc", application.id());
     assertEquals("int", application.constants().get(0).factory());
@@ -53,12 +54,12 @@ class ApplicationParseTest {
   void parseFailureFromString() {
     // language=xml
     var xml = """
-      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="/tybaco/application/application.xsd" id="abc">
+      <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="/tybaco/application/application.xsd" id="abc" name="p1">
         <constant id="anInvalidId" factory="int" value="45" name="abc"/>
       </project>
       """;
     var inputSource = new InputSource(new StringReader(xml));
-    var exception = assertThrows(SAXParseException.class, () -> load(inputSource, Application.schema(), Application::new));
+    var exception = assertThrows(SAXParseException.class, () -> load(inputSource, schema(), Application::new));
     assertTrue(exception.getMessage().contains("anInvalidId"));
   }
 }

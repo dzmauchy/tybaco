@@ -69,7 +69,7 @@ public final class Project {
       elementsByTag(element, "constant").map(Constant::new).toList(),
       elementsByTag(element, "block").map(Block::new).toList(),
       elementsByTag(element, "link").map(Link::new).toList(),
-      elementsByTag(element, "lib").map(Dependency::new).toList()
+      elementsByTag(element, "dependency").map(Dependency::new).toList()
     );
   }
 
@@ -79,7 +79,7 @@ public final class Project {
     withChildren(element, "constant", constants, Constant::saveTo);
     withChildren(element, "block", blocks, Block::saveTo);
     withChildren(element, "link", links, Link::saveTo);
-    withChildren(element, "lib", dependencies, Dependency::saveTo);
+    withChildren(element, "dependency", dependencies, Dependency::saveTo);
   }
 
   private Observable[] observables() {

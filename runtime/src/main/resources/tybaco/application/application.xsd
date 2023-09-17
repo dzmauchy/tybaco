@@ -38,9 +38,16 @@
             </xs:sequence>
           </xs:complexType>
         </xs:element>
+        <xs:element name="dependency" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:attribute name="group" type="xs:string" use="required"/>
+            <xs:attribute name="artifact" type="xs:string" use="required"/>
+            <xs:attribute name="version" type="xs:string" use="required"/>
+          </xs:complexType>
+        </xs:element>
       </xs:sequence>
       <xs:attribute name="id" type="xs:string" use="required"/>
-      <xs:anyAttribute/>
+      <xs:attribute name="name" type="xs:string" use="required"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>

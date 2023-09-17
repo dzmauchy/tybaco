@@ -28,6 +28,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -82,5 +83,14 @@ public interface Xml {
     } catch (ParserConfigurationException e) {
       throw new IOException(e);
     }
+  }
+
+  static Schema loadSchema(URL url) throws SAXException {
+    var schemaFactory = SchemaFactory.newDefaultInstance();
+    return schemaFactory.newSchema(url);
+  }
+
+  static Schema loadSchema(String resource) throws SAXException {
+    return loadSchema(Thread.currentThread().getContextClassLoader().getResource(resource));
   }
 }

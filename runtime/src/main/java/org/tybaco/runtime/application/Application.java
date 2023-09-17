@@ -21,6 +21,7 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
+import org.tybaco.runtime.util.Xml;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -48,13 +49,7 @@ public record Application(String id, List<ApplicationConstant> constants, List<A
     );
   }
 
-  public static Schema schema() {
-    var schemaFactory = SchemaFactory.newDefaultInstance();
-    var classLoader = Thread.currentThread().getContextClassLoader();
-    try {
-      return schemaFactory.newSchema(classLoader.getResource("tybaco/application/application.xsd"));
-    } catch (SAXException e) {
-      throw new IllegalStateException(e);
-    }
+  public static Schema schema() throws SAXException {
+    return Xml.loadSchema("tybaco/application/application.xsd");
   }
 }
