@@ -1,4 +1,4 @@
-package org.tybaco.runtime.meta;
+package org.tybaco.meta;
 
 /*-
  * #%L
@@ -21,20 +21,14 @@ package org.tybaco.runtime.meta;
  * #L%
  */
 
+import org.tybaco.xml.Xml;
 import org.w3c.dom.Element;
 
 import java.util.List;
 
-import static org.tybaco.runtime.util.Xml.elementsByTag;
+public record LibraryBlocks(Meta meta, List<LibraryBlock> blocks) {
 
-public record LibraryBlock(Meta meta, String factory, String method, List<LibraryBlockParam> params) {
-
-  public LibraryBlock(Element element) {
-    this(
-      new Meta(element),
-      element.getAttribute("factory"),
-      element.getAttribute("method"),
-      elementsByTag(element, "param").map(LibraryBlockParam::new).toList()
-    );
+  public LibraryBlocks(Element element) {
+    this(new Meta(element), Xml.elementsByTag(element, "block").map(LibraryBlock::new).toList());
   }
 }

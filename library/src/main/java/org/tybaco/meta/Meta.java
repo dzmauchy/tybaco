@@ -1,4 +1,4 @@
-package org.tybaco.runtime.meta;
+package org.tybaco.meta;
 
 /*-
  * #%L

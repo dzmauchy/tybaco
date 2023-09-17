@@ -1,4 +1,4 @@
-package org.tybaco.runtime.meta;
+package org.tybaco.meta;
 
 /*-
  * #%L
@@ -23,9 +23,9 @@ package org.tybaco.runtime.meta;
 
 import org.w3c.dom.Element;
 
-public record LibraryTypeOutput(Meta meta) {
+public record LibraryTypeInput(Meta meta) {
 
-  public LibraryTypeOutput(Element element) {
+  public LibraryTypeInput(Element element) {
     this(new Meta(element));
   }
 }

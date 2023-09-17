@@ -1,4 +1,4 @@
-package org.tybaco.runtime.meta;
+package org.tybaco.meta;
 
 /*-
  * #%L
@@ -21,6 +21,7 @@ package org.tybaco.runtime.meta;
  * #L%
  */
 
+import org.tybaco.xml.Xml;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -28,16 +29,14 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.util.List;
 
-import static org.tybaco.runtime.util.Xml.elementsByTag;
-
 public record Library(Meta meta, List<LibraryBlocks> blocks, List<LibraryConstants> constants, List<LibraryType> types) {
 
   public Library(Element element) {
     this(
       new Meta(element),
-      elementsByTag(element, "blocks").map(LibraryBlocks::new).toList(),
-      elementsByTag(element, "constants").map(LibraryConstants::new).toList(),
-      elementsByTag(element, "type").map(LibraryType::new).toList()
+      Xml.elementsByTag(element, "blocks").map(LibraryBlocks::new).toList(),
+      Xml.elementsByTag(element, "constants").map(LibraryConstants::new).toList(),
+      Xml.elementsByTag(element, "type").map(LibraryType::new).toList()
     );
   }
 

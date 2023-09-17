@@ -1,4 +1,4 @@
-package org.tybaco.runtime.meta;
+package org.tybaco.meta;
 
 /*-
  * #%L
@@ -21,11 +21,14 @@ package org.tybaco.runtime.meta;
  * #L%
  */
 
+import org.tybaco.xml.Xml;
 import org.w3c.dom.Element;
 
-public record LibraryTypeInput(Meta meta) {
+import java.util.List;
 
-  public LibraryTypeInput(Element element) {
-    this(new Meta(element));
+public record LibraryConstants(Meta meta, List<LibraryConstant> constants) {
+
+  public LibraryConstants(Element element) {
+    this(new Meta(element), Xml.elementsByTag(element, "constant").map(LibraryConstant::new).toList());
   }
 }

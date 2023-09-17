@@ -1,4 +1,4 @@
-package org.tybaco.runtime.meta;
+package org.tybaco.meta;
 
 /*-
  * #%L
@@ -23,9 +23,9 @@ package org.tybaco.runtime.meta;
 
 import org.w3c.dom.Element;
 
-public record LibraryBlockParam(Meta meta) {
+public record LibraryConstant(Meta meta, String factory) {
 
-  public LibraryBlockParam(Element element) {
-    this(new Meta(element));
+  public LibraryConstant(Element element) {
+    this(new Meta(element), element.getAttribute("factory"));
   }
 }
