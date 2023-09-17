@@ -26,6 +26,7 @@ import javafx.collections.ObservableList;
 import org.w3c.dom.Element;
 
 import java.util.Collection;
+import java.util.NoSuchElementException;
 
 import static org.tybaco.xml.Xml.elementByTag;
 import static org.tybaco.xml.Xml.withChild;
@@ -34,8 +35,8 @@ public record Link(Connector out, Connector in) {
 
   public Link(Element element) {
     this(
-      new Connector(elementByTag(element, "out")),
-      new Connector(elementByTag(element, "in"))
+      new Connector(elementByTag(element, "out").orElseThrow(() -> new NoSuchElementException("out"))),
+      new Connector(elementByTag(element, "in").orElseThrow(() -> new NoSuchElementException("in")))
     );
   }
 

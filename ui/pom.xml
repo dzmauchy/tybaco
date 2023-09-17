@@ -46,6 +46,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.montoni</groupId>
+      <artifactId>tybaco-runtime</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-web</artifactId>
       <version>${javafx.version}</version>

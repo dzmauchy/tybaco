@@ -35,6 +35,7 @@ import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.function.*;
 import java.util.stream.Stream;
 
@@ -47,17 +48,11 @@ public class Xml {
     var list = element.getElementsByTagName(tag);
     return range(0, list.getLength())
       .mapToObj(list::item)
-      .filter(Element.class::isInstance)
       .map(Element.class::cast);
   }
 
-  public static Element elementByTag(Element element, String tag) {
-    var list = element.getElementsByTagName(tag);
-    return (Element) list.item(0);
-  }
-
-  public static Stream<Element> elementsByTags(Element element, String enclosingTag, String tag) {
-    return elementsByTag(element, enclosingTag).flatMap(e -> elementsByTag(e, tag));
+  public static Optional<Element> elementByTag(Element element, String tag) {
+    return elementsByTag(element, tag).findFirst();
   }
 
   public static void withChild(Element element, String tag, Consumer<Element> consumer) {
@@ -67,8 +62,8 @@ public class Xml {
     consumer.accept(child);
   }
 
-  public static <T> void withChildren(Element element, String enclosingTag, String tag, Iterable<T> children, BiConsumer<T, Element> consumer) {
-    withChild(element, enclosingTag, p -> children.forEach(c -> withChild(p, tag, e -> consumer.accept(c, e))));
+  public static <T> void withChildren(Element element, String tag, Iterable<T> list, BiConsumer<T, Element> consumer) {
+    list.forEach(e -> withChild(element, tag, elem -> consumer.accept(e, elem)));
   }
 
   public static <T> T loadFrom(Path path, Function<Element, T> func) {

@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 import static java.nio.ByteBuffer.allocate;
 import static java.util.Base64.getUrlEncoder;
 import static java.util.Collections.emptyList;
-import static org.tybaco.xml.Xml.elementsByTags;
+import static org.tybaco.xml.Xml.elementsByTag;
 import static org.tybaco.xml.Xml.withChildren;
 
 public final class Project {
@@ -66,20 +66,20 @@ public final class Project {
     this(
       element.getAttribute("id"),
       element.getAttribute("name"),
-      elementsByTags(element, "constants", "constant").map(Constant::new).toList(),
-      elementsByTags(element, "blocks", "block").map(Block::new).toList(),
-      elementsByTags(element, "links", "link").map(Link::new).toList(),
-      elementsByTags(element, "libs", "lib").map(Dependency::new).toList()
+      elementsByTag(element, "constant").map(Constant::new).toList(),
+      elementsByTag(element, "block").map(Block::new).toList(),
+      elementsByTag(element, "link").map(Link::new).toList(),
+      elementsByTag(element, "lib").map(Dependency::new).toList()
     );
   }
 
   public void saveTo(Element element) {
     element.setAttribute("id", id);
     element.setAttribute("name", name.get());
-    withChildren(element, "constants", "constant", constants, Constant::saveTo);
-    withChildren(element, "blocks", "block", blocks, Block::saveTo);
-    withChildren(element, "links", "link", links, Link::saveTo);
-    withChildren(element, "libs", "lib", dependencies, Dependency::saveTo);
+    withChildren(element, "constant", constants, Constant::saveTo);
+    withChildren(element, "block", blocks, Block::saveTo);
+    withChildren(element, "link", links, Link::saveTo);
+    withChildren(element, "lib", dependencies, Dependency::saveTo);
   }
 
   private Observable[] observables() {
