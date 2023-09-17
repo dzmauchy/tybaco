@@ -1,4 +1,4 @@
-package org.tybaco.runtime;
+package org.tybaco.runtime.exception;
 
 /*-
  * #%L

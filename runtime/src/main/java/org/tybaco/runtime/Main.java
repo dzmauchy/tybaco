@@ -24,6 +24,7 @@ package org.tybaco.runtime;
 import org.tybaco.runtime.application.tasks.*;
 import org.tybaco.runtime.application.tasks.LogConfigurer;
 import org.tybaco.runtime.application.tasks.PluginLoader;
+import org.tybaco.runtime.exception.BootstrapException;
 
 public final class Main {
 

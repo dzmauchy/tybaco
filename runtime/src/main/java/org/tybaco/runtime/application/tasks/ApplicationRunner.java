@@ -33,8 +33,8 @@ import static java.lang.Runtime.getRuntime;
 import static java.lang.System.identityHashCode;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.locks.LockSupport.parkNanos;
-import static org.tybaco.runtime.application.ApplicationHelper.booleanSetting;
-import static org.tybaco.runtime.application.ApplicationHelper.longSetting;
+import static org.tybaco.runtime.util.Settings.booleanSetting;
+import static org.tybaco.runtime.util.Settings.longSetting;
 
 public class ApplicationRunner implements ApplicationTask {
 

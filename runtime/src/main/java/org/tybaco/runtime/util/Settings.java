@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application;
+package org.tybaco.runtime.util;
 
 /*-
  * #%L
@@ -26,7 +26,7 @@ import java.util.*;
 import static java.util.regex.Pattern.compile;
 import static java.util.stream.Collectors.joining;
 
-public interface ApplicationHelper {
+public interface Settings {
 
   static Optional<String> setting(String name) {
     var propName = compile("_").splitAsStream(name).map(String::toLowerCase).collect(joining("."));
