@@ -21,13 +21,16 @@ package org.tybaco.runtime.plugins;
  * #L%
  */
 
+import org.tybaco.runtime.application.ApplicationContext;
+import org.tybaco.runtime.application.ApplicationTask;
+
 import java.util.Comparator;
 import java.util.ServiceLoader;
 
-public final class PluginLoader implements Runnable {
+public final class PluginLoader implements ApplicationTask {
 
   @Override
-  public void run() {
+  public void run(ApplicationContext context) {
     var loader = ServiceLoader.load(Plugin.class);
     try (var pluginProviderStream = loader.stream()) {
       pluginProviderStream

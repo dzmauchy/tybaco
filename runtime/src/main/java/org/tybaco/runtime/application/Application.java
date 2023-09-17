@@ -28,16 +28,9 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.util.List;
 
-import static java.util.Objects.requireNonNull;
 import static org.tybaco.runtime.util.Xml.elementsByTag;
 
 public record Application(String id, List<ApplicationConstant> constants, List<ApplicationBlock> blocks, List<ApplicationLink> links) {
-
-  static final ThreadLocal<Application> CURRENT_APPLICATION = new ThreadLocal<>();
-
-  public static Application activeApplication() {
-    return requireNonNull(CURRENT_APPLICATION.get(), "No active application found");
-  }
 
   public Application(Element element) {
     this(

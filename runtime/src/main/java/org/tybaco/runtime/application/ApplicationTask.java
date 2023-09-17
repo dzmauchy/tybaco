@@ -1,4 +1,4 @@
-package org.tybaco.runtime.logging;
+package org.tybaco.runtime.application;
 
 /*-
  * #%L
@@ -21,15 +21,6 @@ package org.tybaco.runtime.logging;
  * #L%
  */
 
-import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.tybaco.runtime.application.ApplicationContext;
-import org.tybaco.runtime.application.ApplicationTask;
-
-public final class LogConfigurer implements ApplicationTask {
-
-  @Override
-  public void run(ApplicationContext context) {
-    System.setProperty("java.util.logging.manager", LoggingManager.class.getName());
-    SLF4JBridgeHandler.install();
-  }
+public interface ApplicationTask {
+  void run(ApplicationContext context) throws Exception;
 }

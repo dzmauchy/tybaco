@@ -21,23 +21,23 @@ package org.tybaco.runtime;
  * #L%
  */
 
-import org.tybaco.runtime.application.ApplicationLoader;
-import org.tybaco.runtime.application.ApplicationRunner;
+import org.tybaco.runtime.application.*;
 import org.tybaco.runtime.logging.LogConfigurer;
 import org.tybaco.runtime.plugins.PluginLoader;
 
 public final class Main {
 
   public static void main(String... args)  {
-    execute("initLogging", new LogConfigurer());
-    execute("loadPlugins", new PluginLoader());
-    execute("loadApplication", new ApplicationLoader(args));
-    execute("runApplication", new ApplicationRunner());
+    var context = new ApplicationContext();
+    execute("initLogging", context, new LogConfigurer());
+    execute("loadPlugins", context, new PluginLoader());
+    execute("loadApplication", context, new ApplicationLoader(args));
+    execute("runApplication", context, new ApplicationRunner());
   }
 
-  private static void execute(String step, Runnable task) {
+  private static void execute(String step, ApplicationContext context, ApplicationTask task) {
     try {
-      task.run();
+      task.run(context);
     } catch (Throwable e) {
       throw new BootstrapException(step, e);
     }

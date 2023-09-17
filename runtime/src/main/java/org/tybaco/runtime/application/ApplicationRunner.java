@@ -31,21 +31,21 @@ import static java.lang.Runtime.getRuntime;
 import static java.lang.System.identityHashCode;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.locks.LockSupport.parkNanos;
-import static org.tybaco.runtime.application.Application.activeApplication;
 import static org.tybaco.runtime.application.ApplicationHelper.booleanSetting;
 import static org.tybaco.runtime.application.ApplicationHelper.longSetting;
 
-public class ApplicationRunner implements Runnable {
+public class ApplicationRunner implements ApplicationTask {
 
   @Override
-  public void run() {
+  public void run(ApplicationContext context) {
+    requireNonNull(context.application, "Application is not loaded");
     var latch = new CountDownLatch(1);
     var watchdog = new Thread(() -> watch(latch), "application-watchdog");
     watchdog.setDaemon(true);
     watchdog.start();
     try {
       //noinspection resource
-      var runtimeApp = runtimeApp(activeApplication());
+      var runtimeApp = runtimeApp(context.application);
       getRuntime().addShutdownHook(new Thread(runtimeApp::close));
       runtimeApp.run();
     } finally {
@@ -81,8 +81,6 @@ public class ApplicationRunner implements Runnable {
         e.addSuppressed(x);
       }
       throw e;
-    } finally {
-      Application.CURRENT_APPLICATION.remove();
     }
   }
 
