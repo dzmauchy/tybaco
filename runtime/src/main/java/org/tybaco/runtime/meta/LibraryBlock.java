@@ -21,5 +21,20 @@ package org.tybaco.runtime.meta;
  * #L%
  */
 
-public class LibraryBlock {
+import org.w3c.dom.Element;
+
+import java.util.List;
+
+import static org.tybaco.runtime.util.Xml.elementsByTag;
+
+public record LibraryBlock(Meta meta, String factory, String method, List<LibraryBlockParam> params) {
+
+  public LibraryBlock(Element element) {
+    this(
+      new Meta(element),
+      element.getAttribute("factory"),
+      element.getAttribute("method"),
+      elementsByTag(element, "param").map(LibraryBlockParam::new).toList()
+    );
+  }
 }

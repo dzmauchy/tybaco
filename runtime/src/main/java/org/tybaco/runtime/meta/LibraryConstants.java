@@ -27,14 +27,9 @@ import java.util.List;
 
 import static org.tybaco.runtime.util.Xml.elementsByTag;
 
-public record Library(Meta meta, List<LibraryBlocks> blocks, List<LibraryConstants> constants, List<LibraryType> types) {
+public record LibraryConstants(Meta meta, List<LibraryConstant> constants) {
 
-  public Library(Element element) {
-    this(
-      new Meta(element),
-      elementsByTag(element, "blocks").map(LibraryBlocks::new).toList(),
-      elementsByTag(element, "constants").map(LibraryConstants::new).toList(),
-      elementsByTag(element, "type").map(LibraryType::new).toList()
-    );
+  public LibraryConstants(Element element) {
+    this(new Meta(element), elementsByTag(element, "constant").map(LibraryConstant::new).toList());
   }
 }

@@ -26,8 +26,6 @@
     <constant name="URL" icon="mdi2l-link-box" factory="java.net.URL"/>
     <constant name="NetworkInterface" icon="mdi2n-network-outline" factory="java.net.NetworkInterface"/>
   </constants>
-  <types>
-    <type name="java.lang.String" icon="mdi2t-text-box" description="A text"/>
-    <type name="int" icon="mdi2n-numeric" description="An integer number"/>
-  </types>
+  <type name="java.lang.String" icon="mdi2t-text-box" description="A text"/>
+  <type name="int" icon="mdi2n-numeric" description="An integer number"/>
 </library>

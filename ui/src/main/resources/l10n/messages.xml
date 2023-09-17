@@ -20,5 +20,5 @@
   #L%
   -->
 
-<localization>
+<localization xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="l10n.xsd">
 </localization>
