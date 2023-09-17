@@ -21,10 +21,11 @@ package org.tybaco.runtime.meta;
  * #L%
  */
 
-import org.tybaco.runtime.util.Xml;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
-import java.net.URL;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.util.List;
 
 import static org.tybaco.runtime.util.Xml.elementsByTag;
@@ -40,7 +41,13 @@ public record Library(Meta meta, List<LibraryBlocks> blocks, List<LibraryConstan
     );
   }
 
-  public static Library load(URL url) {
-    return Xml.load(url, Library::new);
+  public static Schema schema() {
+    var schemaFactory = SchemaFactory.newDefaultInstance();
+    var classLoader = Thread.currentThread().getContextClassLoader();
+    try {
+      return schemaFactory.newSchema(classLoader.getResource("tybaco/library/library.xsd"));
+    } catch (SAXException e) {
+      throw new IllegalStateException(e);
+    }
   }
 }

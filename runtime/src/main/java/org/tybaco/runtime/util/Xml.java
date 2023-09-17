@@ -10,12 +10,12 @@ package org.tybaco.runtime.util;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -27,9 +27,10 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.*;
+import javax.xml.validation.Schema;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -50,40 +51,36 @@ public interface Xml {
     return elementsByTag(element, tag).findFirst();
   }
 
-  static <T> T load(URL url, Function<Element, T> supplier) {
-    try {
-      var connection = url.openConnection();
+  static <T> T load(URL url, Schema schema, Function<Element, T> supplier) throws SAXException, IOException {
+    var connection = url.openConnection();
+    if (connection instanceof HttpURLConnection c) {
+      c.setUseCaches(false);
+      c.setReadTimeout(10_000);
+      c.setConnectTimeout(10_000);
+    }
+    connection.connect();
+    try (var is = connection.getInputStream()) {
+      var inputSource = new InputSource(is);
+      inputSource.setEncoding("UTF-8");
+      inputSource.setSystemId(url.toExternalForm());
+      return load(inputSource, schema, supplier);
+    } finally {
       if (connection instanceof HttpURLConnection c) {
-        c.setUseCaches(false);
-        c.setReadTimeout(10_000);
-        c.setConnectTimeout(10_000);
+        c.disconnect();
       }
-      connection.connect();
-      try (var is = connection.getInputStream()) {
-        var inputSource = new InputSource(is);
-        inputSource.setEncoding("UTF-8");
-        inputSource.setSystemId(url.toExternalForm());
-        return load(inputSource, supplier);
-      } finally {
-        if (connection instanceof HttpURLConnection c) {
-          c.disconnect();
-        }
-      }
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
     }
   }
 
-  static <T> T load(InputSource inputSource, Function<Element, T> supplier) {
+  static <T> T load(InputSource inputSource, Schema schema, Function<Element, T> supplier) throws SAXException, IOException {
     try {
       var documentBuilderFactory = DocumentBuilderFactory.newDefaultInstance();
+      documentBuilderFactory.setSchema(schema);
       var documentBuilder = documentBuilderFactory.newDocumentBuilder();
+      documentBuilder.setErrorHandler(new XmlErrorHandler());
       var document = documentBuilder.parse(inputSource);
       return supplier.apply(document.getDocumentElement());
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    } catch (ParserConfigurationException | SAXException e) {
-      throw new IllegalStateException(e);
+    } catch (ParserConfigurationException e) {
+      throw new IOException(e);
     }
   }
 }

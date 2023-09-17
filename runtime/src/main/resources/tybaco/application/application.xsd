@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="project">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="constant" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:attribute name="id" type="xs:int" use="required"/>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+            <xs:attribute name="factory" type="xs:string" use="required"/>
+            <xs:attribute name="value" type="xs:string" use="required"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="block" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:attribute name="id" type="xs:int" use="required"/>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+            <xs:attribute name="factory" type="xs:string" use="required"/>
+            <xs:attribute name="method" type="xs:string" use="required"/>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="link" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="out">
+                <xs:complexType>
+                  <xs:attribute name="block" type="xs:int" use="required"/>
+                  <xs:attribute name="spot" type="xs:string" use="required"/>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="in">
+                <xs:complexType>
+                  <xs:attribute name="block" type="xs:int" use="required"/>
+                  <xs:attribute name="spot" type="xs:string" use="required"/>
+                  <xs:attribute name="index" type="xs:int" default="-1"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="required"/>
+      <xs:anyAttribute/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

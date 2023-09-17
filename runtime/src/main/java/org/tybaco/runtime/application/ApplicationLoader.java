@@ -22,7 +22,10 @@ package org.tybaco.runtime.application;
  */
 
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.*;
 import java.util.Arrays;
 
@@ -46,15 +49,19 @@ public class ApplicationLoader implements Runnable {
     try {
       if (args.length > 0) {
         var url = new URI(args[0]).toURL();
-        return load(url, Application::new);
+        return load(url, Application.schema(), Application::new);
       } else {
         var inputSource = new InputSource(System.in);
         inputSource.setEncoding("UTF-8");
         inputSource.setPublicId("stdin");
-        return load(inputSource, Application::new);
+        return load(inputSource, Application.schema(), Application::new);
       }
     } catch (URISyntaxException | MalformedURLException e) {
       throw new IllegalStateException("Invalid URL: " + Arrays.asList(args));
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    } catch (SAXException e) {
+      throw new IllegalStateException(e);
     }
   }
 }

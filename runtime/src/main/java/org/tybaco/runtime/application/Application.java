@@ -22,7 +22,10 @@ package org.tybaco.runtime.application;
  */
 
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
@@ -50,5 +53,15 @@ public record Application(String id, List<ApplicationConstant> constants, List<A
       constants.stream().mapToInt(ApplicationConstant::id).max().orElse(0),
       blocks.stream().mapToInt(ApplicationBlock::id).max().orElse(0)
     );
+  }
+
+  public static Schema schema() {
+    var schemaFactory = SchemaFactory.newDefaultInstance();
+    var classLoader = Thread.currentThread().getContextClassLoader();
+    try {
+      return schemaFactory.newSchema(classLoader.getResource("tybaco/application/application.xsd"));
+    } catch (SAXException e) {
+      throw new IllegalStateException(e);
+    }
   }
 }
