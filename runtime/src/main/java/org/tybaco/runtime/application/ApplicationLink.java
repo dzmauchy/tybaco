@@ -31,8 +31,12 @@ public record ApplicationLink(ApplicationConnector out, ApplicationConnector in)
 
   public ApplicationLink(Element element) {
     this(
-      elementByTag(element, "out").map(ApplicationConnector::new).orElseThrow(() -> new NoSuchElementException("out")),
-      elementByTag(element, "in").map(ApplicationConnector::new).orElseThrow(() -> new NoSuchElementException("in"))
+      elementByTag(element, "out")
+        .map(ApplicationConnector::new)
+        .orElseThrow(() -> new NoSuchElementException("out")),
+      elementByTag(element, "in")
+        .map(ApplicationConnector::new)
+        .orElseThrow(() -> new NoSuchElementException("in"))
     );
   }
 }
