@@ -26,7 +26,6 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import java.util.List;
 
 import static org.tybaco.runtime.util.Xml.elementsByTag;
