@@ -1,4 +1,4 @@
-package org.tybaco.runtime.plugins;
+package org.tybaco.runtime.application.tasks;
 
 /*-
  * #%L
@@ -21,8 +21,10 @@ package org.tybaco.runtime.plugins;
  * #L%
  */
 
-import org.tybaco.runtime.application.ApplicationContext;
-import org.tybaco.runtime.application.ApplicationTask;
+import org.tybaco.runtime.application.tasks.ApplicationContext;
+import org.tybaco.runtime.application.tasks.ApplicationTask;
+import org.tybaco.runtime.plugins.Plugin;
+import org.tybaco.runtime.plugins.PluginException;
 
 import java.util.Comparator;
 import java.util.ServiceLoader;

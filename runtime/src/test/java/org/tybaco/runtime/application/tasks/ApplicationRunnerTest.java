@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application;
+package org.tybaco.runtime.application.tasks;
 
 /*-
  * #%L
@@ -22,6 +22,7 @@ package org.tybaco.runtime.application;
  */
 
 import org.junit.jupiter.api.Test;
+import org.tybaco.runtime.application.*;
 import org.tybaco.runtime.application.beans.SampleBeanA;
 import org.tybaco.runtime.application.beans.SampleBeanB;
 

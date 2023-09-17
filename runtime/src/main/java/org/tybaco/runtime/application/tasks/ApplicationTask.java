@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application;
+package org.tybaco.runtime.application.tasks;
 
 /*-
  * #%L

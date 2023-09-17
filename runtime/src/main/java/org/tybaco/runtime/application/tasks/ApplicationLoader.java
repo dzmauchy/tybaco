@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application;
+package org.tybaco.runtime.application.tasks;
 
 /*-
  * #%L
@@ -21,6 +21,7 @@ package org.tybaco.runtime.application;
  * #L%
  */
 
+import org.tybaco.runtime.application.Application;
 import org.xml.sax.InputSource;
 
 import java.net.URI;

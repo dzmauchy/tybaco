@@ -21,9 +21,9 @@ package org.tybaco.runtime;
  * #L%
  */
 
-import org.tybaco.runtime.application.*;
-import org.tybaco.runtime.logging.LogConfigurer;
-import org.tybaco.runtime.plugins.PluginLoader;
+import org.tybaco.runtime.application.tasks.*;
+import org.tybaco.runtime.application.tasks.LogConfigurer;
+import org.tybaco.runtime.application.tasks.PluginLoader;
 
 public final class Main {
 

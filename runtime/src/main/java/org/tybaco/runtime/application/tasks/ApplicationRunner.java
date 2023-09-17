@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application;
+package org.tybaco.runtime.application.tasks;
 
 /*-
  * #%L
@@ -20,6 +20,8 @@ package org.tybaco.runtime.application;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
+
+import org.tybaco.runtime.application.*;
 
 import java.lang.reflect.*;
 import java.util.*;
