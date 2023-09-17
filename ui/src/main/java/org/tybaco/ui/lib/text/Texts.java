@@ -26,7 +26,6 @@ import javafx.beans.Observable;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
-import org.tybaco.xml.Xml;
 
 import java.text.MessageFormat;
 import java.util.*;
@@ -40,6 +39,7 @@ import static java.util.logging.Level.*;
 import static java.util.stream.Stream.concat;
 import static javafx.beans.binding.Bindings.createStringBinding;
 import static org.tybaco.ui.lib.logging.Logging.LOG;
+import static org.tybaco.xml.Xml.*;
 
 public final class Texts {
 
@@ -161,10 +161,10 @@ public final class Texts {
       LOG.log(SEVERE, "No {0} found", file);
       return Map.of();
     }
-    var crudeMap = Xml.loadFrom(url, root -> Xml.elementsByTag(root, "key")
+    var crudeMap = loadFrom(url, schema("l10n/l10n.xsd"), root -> elementsByTag(root, "key")
       .flatMap(key -> {
         var k = key.getAttribute("value");
-        return Xml.elementsByTag(key, "val")
+        return elementsByTag(key, "val")
           .map(v -> {
             var lang = v.getAttribute("lang");
             var val = v.getTextContent();
