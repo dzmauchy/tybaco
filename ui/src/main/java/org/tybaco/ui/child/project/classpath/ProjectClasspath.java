@@ -26,6 +26,7 @@ import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.SimpleObjectProperty;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.repo.ArtifactClassPath;
 import org.tybaco.ui.lib.repo.ArtifactResolver;
@@ -33,11 +34,13 @@ import org.tybaco.ui.model.Dependency;
 import org.tybaco.ui.model.Project;
 
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.*;
 import static org.tybaco.ui.lib.logging.Logging.LOG;
 
+@Lazy(false)
 @Component
 public final class ProjectClasspath implements AutoCloseable {
 
@@ -46,6 +49,7 @@ public final class ProjectClasspath implements AutoCloseable {
   private final ArtifactResolver artifactResolver;
   private final InvalidationListener libsInvalidationListener;
   private volatile Set<Dependency> libs;
+  private final ConcurrentLinkedQueue<Thread> threads = new ConcurrentLinkedQueue<>();
 
   public ProjectClasspath(Project project, ArtifactResolver artifactResolver) {
     this.project = project;
@@ -66,7 +70,7 @@ public final class ProjectClasspath implements AutoCloseable {
     }
     libs = newLibs;
     var thread = new Thread(project.threadGroup, this::update, "classpath");
-    thread.setDaemon(true);
+    threads.offer(thread);
     thread.start();
   }
 
@@ -76,12 +80,22 @@ public final class ProjectClasspath implements AutoCloseable {
       Platform.runLater(() -> classPath.set(cp));
     } catch (Throwable e) {
       LOG.log(WARNING, "Unable to set classpath", e);
+    } finally {
+      threads.remove(Thread.currentThread());
     }
   }
 
   @Override
   public void close() {
     try (var cp = classPath.get()) {
+      threads.removeIf(thread -> {
+        try {
+          thread.join();
+        } catch (Throwable e) {
+          LOG.log(WARNING, "Unable to close the thread", e);
+        }
+        return true;
+      });
       if (cp != null) {
         LOG.log(INFO, "Closing classpath {0}", cp.classLoader.getName());
       }

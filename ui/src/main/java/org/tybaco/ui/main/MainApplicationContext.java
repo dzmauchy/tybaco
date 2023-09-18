@@ -48,7 +48,7 @@ public final class MainApplicationContext extends AnnotationConfigApplicationCon
   @Override
   protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
     beanFactory.addBeanPostProcessor(new SplashBeanPostProcessor());
-    beanFactory.addBeanPostProcessor(new LogBeanPostProcessor(this));
+    beanFactory.addBeanPostProcessor(new LogBeanPostProcessor("root"));
     super.prepareBeanFactory(beanFactory);
   }
 

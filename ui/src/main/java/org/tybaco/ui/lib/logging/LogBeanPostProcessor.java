@@ -22,7 +22,6 @@ package org.tybaco.ui.lib.logging;
  */
 
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
-import org.springframework.context.support.GenericApplicationContext;
 
 import java.util.logging.LogManager;
 
@@ -30,8 +29,8 @@ public final class LogBeanPostProcessor implements DestructionAwareBeanPostProce
 
   private final String id;
 
-  public LogBeanPostProcessor(GenericApplicationContext context) {
-    id = context.getId();
+  public LogBeanPostProcessor(String id) {
+    this.id = id;
   }
 
   @Override
@@ -51,7 +50,7 @@ public final class LogBeanPostProcessor implements DestructionAwareBeanPostProce
     info("Destructing {0}", beanName);
   }
 
-  private void info(String message, Object... args) {
+  public void info(String message, Object... args) {
     var info = Logging.info(message, args);
     info.setSourceClassName(null);
     info.setLoggerName(id);

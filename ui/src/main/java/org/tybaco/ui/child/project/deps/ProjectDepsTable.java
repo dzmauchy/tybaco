@@ -21,6 +21,7 @@ package org.tybaco.ui.child.project.deps;
  * #L%
  */
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.springframework.stereotype.Component;
@@ -36,13 +37,13 @@ public final class ProjectDepsTable extends TableView<Dependency> {
   public ProjectDepsTable(Project project) {
     setItems(project.dependencies);
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
-    setTableMenuButtonVisible(true);
     getColumns().addAll(List.of(groupColumn(), artifactColumn(), versionColumn()));
     Tables.initColumnWidths(this, 100, 150, 100);
   }
 
   private TableColumn<Dependency, String> groupColumn() {
     var col = new TableColumn<Dependency, String>("groupId");
+    col.setCellValueFactory(f -> new SimpleStringProperty(f.getValue().group()));
     col.setReorderable(false);
     col.setSortable(true);
     return col;
@@ -50,6 +51,7 @@ public final class ProjectDepsTable extends TableView<Dependency> {
 
   private TableColumn<Dependency, String> artifactColumn() {
     var col = new TableColumn<Dependency, String>("artifactId");
+    col.setCellValueFactory(f -> new SimpleStringProperty(f.getValue().artifact()));
     col.setReorderable(false);
     col.setSortable(true);
     return col;
@@ -57,6 +59,7 @@ public final class ProjectDepsTable extends TableView<Dependency> {
 
   private TableColumn<Dependency, String> versionColumn() {
     var col = new TableColumn<Dependency, String>("version");
+    col.setCellValueFactory(f -> new SimpleStringProperty(f.getValue().version()));
     col.setReorderable(false);
     col.setSortable(true);
     return col;

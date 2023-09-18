@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
-import java.util.Collection;
 
 import static java.nio.file.Files.isDirectory;
 
@@ -53,8 +52,9 @@ public final class ArtifactResolver {
     Message.setDefaultLogger(new ArtifactMessageLogger());
   }
 
-  public ArtifactClassPath resolve(String name, Collection<? extends Dependency> libs) throws IOException {
-    if (libs.isEmpty()) {
+  public ArtifactClassPath resolve(String name, Iterable<? extends Dependency> deps) throws IOException {
+    var depsIterator = deps.iterator();
+    if (!depsIterator.hasNext()) {
       return new ArtifactClassPath(null, name);
     }
     var ivySettings = new IvySettings();
@@ -77,14 +77,14 @@ public final class ArtifactResolver {
         var pmr = ModuleRevisionId.newInstance("org.montoni", "tybaco-project", "working");
         var md = DefaultModuleDescriptor.newDefaultInstance(pmr);
         md.setDefaultConf("default");
-        for (var lib : libs) {
-          var mr = ModuleRevisionId.newInstance(lib.group(), lib.artifact(), lib.version());
+        depsIterator.forEachRemaining(dep -> {
+          var mr = ModuleRevisionId.newInstance(dep.group(), dep.artifact(), dep.version());
           var dd = new DefaultDependencyDescriptor(md, mr, false, false, true);
           dd.addDependencyConfiguration("default", "master");
           dd.addDependencyConfiguration("default", "compile");
           dd.addDependencyConfiguration("default", "runtime");
           md.addDependency(dd);
-        }
+        });
 
         var resolveReport = ivy.resolve(md, resolveOptions());
         if (resolveReport.hasError()) {

@@ -26,6 +26,8 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.*;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.ContextStoppedEvent;
 import org.tybaco.ui.lib.logging.LogBeanPostProcessor;
 
 import java.util.function.Function;
@@ -35,37 +37,54 @@ import static java.util.Objects.requireNonNull;
 public final class ChildContext extends AnnotationConfigApplicationContext {
 
   private final AnnotationConfigApplicationContext parent;
-  private final ApplicationListener<?> parentEventListener = event -> {
-    if (event instanceof Propagated || event instanceof PayloadApplicationEvent<?>) {
-      publishEvent(event);
-    }
-  };
+  private final ApplicationListener<?> parentEventListener;
+  private final LogBeanPostProcessor logBeanPostProcessor;
 
   public ChildContext(String id, String name, AnnotationConfigApplicationContext parent) {
     this.parent = parent;
-    requireNonNull(getDefaultListableBeanFactory()).setParentBeanFactory(parent.getDefaultListableBeanFactory());
+    this.parentEventListener = event -> {
+      if (event instanceof Propagated || event instanceof PayloadApplicationEvent<?>) {
+        publishEvent(event);
+      } else if (event instanceof ContextClosedEvent) {
+        parent.removeApplicationListener(ChildContext.this.parentEventListener);
+        close();
+      } else if (event instanceof ContextStoppedEvent) {
+        stop();
+      }
+    };
+    this.logBeanPostProcessor = new LogBeanPostProcessor(id);
+    getDefaultListableBeanFactory().setParentBeanFactory(parent.getDefaultListableBeanFactory());
     setId(id);
     setDisplayName(name);
-    requireNonNull(getEnvironment()).merge(parent.getEnvironment());
+    getEnvironment().merge(parent.getEnvironment());
     setAllowBeanDefinitionOverriding(false);
     setAllowCircularReferences(false);
     parent.addApplicationListener(parentEventListener);
+    addApplicationListener(ev -> logBeanPostProcessor.info("{0}", ev));
   }
 
   @Override
   protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-    beanFactory.addBeanPostProcessor(new LogBeanPostProcessor(this));
+    beanFactory.addBeanPostProcessor(logBeanPostProcessor);
     super.prepareBeanFactory(beanFactory);
   }
 
   @Override
   protected void onClose() {
+    logBeanPostProcessor.info("Closing");
     parent.removeApplicationListener(parentEventListener);
   }
 
   @Override
   protected void onRefresh() throws BeansException {
+    logBeanPostProcessor.info("Refreshing");
     Propagated.installErrorHandler(this);
+  }
+
+  @Override
+  public void stop() {
+    logBeanPostProcessor.info("Stopping");
+    super.stop();
   }
 
   @Override

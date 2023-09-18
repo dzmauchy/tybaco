@@ -28,6 +28,9 @@ import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static java.util.logging.Level.INFO;
+import static org.tybaco.ui.lib.logging.Logging.LOG;
+
 public class ArtifactClassPath implements Closeable {
 
   final Path directory;
@@ -56,9 +59,12 @@ public class ArtifactClassPath implements Closeable {
 
   @Override
   public void close() throws IOException {
-    var closeable = new PathCloseable(directory);
-    try (closeable) {
+    try (var closeable = new PathCloseable(directory)) {
+      LOG.log(INFO, "Deleting {0}", closeable.path());
       classLoader.close();
+      if (Files.notExists(directory)) {
+        LOG.log(INFO, "{0} deleted successfully", closeable.path());
+      }
     }
   }
 }
