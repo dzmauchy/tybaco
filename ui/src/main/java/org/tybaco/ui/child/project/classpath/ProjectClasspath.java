@@ -87,15 +87,15 @@ public final class ProjectClasspath implements AutoCloseable {
 
   @Override
   public void close() {
+    threads.removeIf(thread -> {
+      try {
+        thread.join();
+      } catch (Throwable e) {
+        LOG.log(WARNING, "Unable to close the thread", e);
+      }
+      return true;
+    });
     try (var cp = classPath.get()) {
-      threads.removeIf(thread -> {
-        try {
-          thread.join();
-        } catch (Throwable e) {
-          LOG.log(WARNING, "Unable to close the thread", e);
-        }
-        return true;
-      });
       if (cp != null) {
         LOG.log(INFO, "Closing classpath {0}", cp.classLoader.getName());
       }
