@@ -62,9 +62,9 @@ public class ArtifactClassPath implements Closeable {
     try (var closeable = new PathCloseable(directory)) {
       LOG.log(INFO, "Deleting {0}", closeable.path());
       classLoader.close();
-      if (Files.notExists(directory)) {
-        LOG.log(INFO, "{0} deleted successfully", closeable.path());
-      }
+    }
+    if (Files.notExists(directory)) {
+      LOG.log(INFO, "{0} deleted successfully", directory);
     }
   }
 }

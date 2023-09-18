@@ -34,9 +34,11 @@ import org.tybaco.ui.model.Dependency;
 import org.tybaco.ui.model.Project;
 
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.logging.Level.*;
 import static org.tybaco.ui.lib.logging.Logging.LOG;
 
@@ -48,14 +50,18 @@ public final class ProjectClasspath implements AutoCloseable {
   final Project project;
   private final ArtifactResolver artifactResolver;
   private final InvalidationListener libsInvalidationListener;
-  private volatile Set<Dependency> libs;
-  private final ConcurrentLinkedQueue<Thread> threads = new ConcurrentLinkedQueue<>();
+  private final ThreadPoolExecutor threads;
+
+  private Set<Dependency> libs;
+  private volatile ArtifactClassPath currentClassPath;
 
   public ProjectClasspath(Project project, ArtifactResolver artifactResolver) {
     this.project = project;
     this.artifactResolver = artifactResolver;
     this.libsInvalidationListener = this::onChangeLibs;
     this.libs = Set.copyOf(project.dependencies);
+    this.threads = new ThreadPoolExecutor(1, 1, 1L, MINUTES, new LinkedTransferQueue<>());
+    this.threads.allowCoreThreadTimeOut(true);
   }
 
   @PostConstruct
@@ -69,37 +75,29 @@ public final class ProjectClasspath implements AutoCloseable {
       return;
     }
     libs = newLibs;
-    var thread = new Thread(project.threadGroup, this::update, "classpath");
-    threads.offer(thread);
-    thread.start();
+    threads.execute(this::update);
   }
 
   private void update() {
     try {
       var cp = requireNonNull(artifactResolver.resolve(project.id, project.dependencies));
+      currentClassPath = cp;
       Platform.runLater(() -> classPath.set(cp));
     } catch (Throwable e) {
       LOG.log(WARNING, "Unable to set classpath", e);
-    } finally {
-      threads.remove(Thread.currentThread());
     }
   }
 
   @Override
   public void close() {
-    threads.removeIf(thread -> {
-      try {
-        thread.join();
-      } catch (Throwable e) {
-        LOG.log(WARNING, "Unable to close the thread", e);
-      }
-      return true;
-    });
-    try (var cp = classPath.get()) {
+    project.dependencies.removeListener(libsInvalidationListener);
+    try (threads) {
+      LOG.log(INFO, "Closing threads {0}", threads.getActiveCount());
+    }
+    try (var cp = currentClassPath) {
       if (cp != null) {
         LOG.log(INFO, "Closing classpath {0}", cp.classLoader.getName());
       }
-      project.dependencies.removeListener(libsInvalidationListener);
     } catch (Throwable e) {
       LOG.log(SEVERE, "Unable to close classpath " + project.id, e);
     }
