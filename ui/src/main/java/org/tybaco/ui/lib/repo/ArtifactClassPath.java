@@ -22,6 +22,7 @@ package org.tybaco.ui.lib.repo;
  */
 
 import org.tybaco.io.PathCloseable;
+import org.tybaco.ui.lib.logging.Logging;
 
 import java.io.*;
 import java.net.*;
@@ -46,11 +47,18 @@ public class ArtifactClassPath implements Closeable {
       return new URLClassLoader(new URL[0], ClassLoader.getPlatformClassLoader());
     }
     try (var ds = Files.walk(directory)) {
-      var uris = ds.filter(f -> f.getFileName().toString().endsWith(".jar")).map(Path::toUri).toArray(URI[]::new);
-      var urls = new URL[uris.length];
-      for (int i = 0; i < urls.length; i++) {
-        urls[i] = uris[i].toURL();
-      }
+      var urls = ds
+        .filter(f -> f.getFileName().toString().endsWith(".jar"))
+        .map(Path::toUri)
+        .peek(uri -> LOG.log(INFO, "Adding {0} to the classpath", uri))
+        .map(uri -> {
+          try {
+            return uri.toURL();
+          } catch (IOException e) {
+            throw new UncheckedIOException(e);
+          }
+        })
+        .toArray(URL[]::new);
       return new URLClassLoader(name, urls, ClassLoader.getPlatformClassLoader());
     } catch (IOException e) {
       throw new UncheckedIOException(e);
