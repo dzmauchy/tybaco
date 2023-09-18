@@ -45,8 +45,8 @@ public final class Texts {
 
   private static final Preferences PREFERENCES = Preferences.userNodeForPackage(Texts.class);
   private static final SimpleObjectProperty<Locale> LOCALE = new SimpleObjectProperty<>(Texts.class, "locale", defaultLocale());
-  private static final Map<Locale, Map<String, String>> TEXTS = loadData("l10n/texts.xml");
-  private static final Map<Locale, Map<String, String>> MESSAGES = loadData("l10n/messages.xml");
+  private static final TreeMap<Locale, Map<String, String>> TEXTS = loadData("l10n/texts.xml");
+  private static final TreeMap<Locale, Map<String, String>> MESSAGES = loadData("l10n/messages.xml");
 
   static {
     PREFERENCES.addPreferenceChangeListener(ev -> {
@@ -68,11 +68,11 @@ public final class Texts {
     return Locale.getDefault();
   }
 
-  private static String key(String key, Map<Locale, Map<String, String>> bundles) {
+  private static String key(String key, TreeMap<Locale, Map<String, String>> bundles) {
     return key(LOCALE.get(), key, bundles);
   }
 
-  private static String key(Locale locale, String key, Map<Locale, Map<String, String>> bundles) {
+  private static String key(Locale locale, String key, TreeMap<Locale, Map<String, String>> bundles) {
     if (key == null) {
       return null;
     }
@@ -155,11 +155,10 @@ public final class Texts {
     return stream(args).map(a -> a instanceof ObservableValue<?> o ? o.getValue() : a).toArray();
   }
 
-  private static Map<Locale, Map<String, String>> loadData(String file) {
+  private static TreeMap<Locale, Map<String, String>> loadData(String file) {
     var url = Thread.currentThread().getContextClassLoader().getResource(file);
     if (url == null) {
-      LOG.log(SEVERE, "No {0} found", file);
-      return Map.of();
+      throw new NoSuchElementException(file);
     }
     var crudeMap = loadFrom(url, schema("l10n/l10n.xsd"), root -> elementsByTag(root, "key")
       .flatMap(key -> {

@@ -26,6 +26,7 @@ import org.tybaco.ui.lib.repo.ArtifactResolver;
 
 @ComponentScan(lazyInit = true)
 @Configuration(proxyBeanMethods = false)
+@PropertySource(name = "ui", value = "classpath:ui.properties", encoding = "UTF-8")
 public class MainConfiguration {
 
   @Bean

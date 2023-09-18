@@ -13,6 +13,7 @@
   <properties>
     <main.class>org.tybaco.ui.Main</main.class>
     <ikonli.version>12.3.1</ikonli.version>
+    <ui.version>${project.version}</ui.version>
   </properties>
 
   <dependencyManagement>
@@ -154,6 +155,27 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>write-props</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>write-project-properties</goal>
+            </goals>
+            <configuration>
+              <outputFile>${project.build.outputDirectory}/ui.properties</outputFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
   <profiles>
     <profile>
