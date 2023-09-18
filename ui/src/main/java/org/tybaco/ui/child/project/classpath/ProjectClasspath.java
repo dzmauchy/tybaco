@@ -39,8 +39,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.logging.Level.*;
-import static org.tybaco.ui.lib.logging.Logging.LOG;
+import static org.tybaco.logging.Log.error;
+import static org.tybaco.logging.Log.warn;
 
 @Lazy(false)
 @Component
@@ -84,7 +84,7 @@ public final class ProjectClasspath implements AutoCloseable {
       currentClassPath = cp;
       Platform.runLater(() -> classPath.set(cp));
     } catch (Throwable e) {
-      LOG.log(WARNING, "Unable to set classpath", e);
+      warn(getClass(), "Unable to set classpath", e);
     }
   }
 
@@ -92,14 +92,14 @@ public final class ProjectClasspath implements AutoCloseable {
   public void close() {
     project.dependencies.removeListener(libsInvalidationListener);
     try (threads) {
-      LOG.log(INFO, "Closing threads {0}", threads.getActiveCount());
+      warn(getClass(), "Closing threads {0}", threads.getActiveCount());
     }
     try (var cp = currentClassPath) {
       if (cp != null) {
-        LOG.log(INFO, "Closing classpath {0}", cp.classLoader.getName());
+        warn(getClass(), "Closing classpath {0}", cp.classLoader.getName());
       }
     } catch (Throwable e) {
-      LOG.log(SEVERE, "Unable to close classpath " + project.id, e);
+      error(getClass(), "Unable to close classpath " + project.id, e);
     }
   }
 }

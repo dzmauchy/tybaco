@@ -29,10 +29,7 @@ import org.springframework.stereotype.Component;
 import org.tybaco.ui.model.Dependency;
 import org.tybaco.ui.model.Project;
 
-import java.util.ArrayList;
-
-import static java.util.logging.Level.INFO;
-import static org.tybaco.ui.lib.logging.Logging.LOG;
+import static org.tybaco.logging.Log.info;
 
 @Lazy(false)
 @Component
@@ -47,7 +44,7 @@ public final class ProjectBeanInitializer {
   @Autowired
   public void init(Environment environment) {
     var version = environment.getProperty("ui.version");
-    LOG.log(INFO, "Init dependencies for {0}", version);
+    info(getClass(), "Init dependencies for {0}", version);
     Platform.runLater(() -> {
       project.dependencies.removeIf(d -> "org.montoni".equals(d.group()) && "tybaco-runtime".equals(d.artifact()));
       project.dependencies.add(new Dependency("org.montoni", "tybaco-runtime", version));

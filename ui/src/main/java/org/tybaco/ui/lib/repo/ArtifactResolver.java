@@ -53,10 +53,6 @@ public final class ArtifactResolver {
   }
 
   public ArtifactClassPath resolve(String name, Iterable<? extends Dependency> deps) throws IOException {
-    var depsIterator = deps.iterator();
-    if (!depsIterator.hasNext()) {
-      return new ArtifactClassPath(null, name);
-    }
     var ivySettings = new IvySettings();
     var tempDirectory = Files.createTempDirectory("tybaco-repo-");
     var cacheDir = tempDirectory.resolve("cache");
@@ -77,7 +73,7 @@ public final class ArtifactResolver {
         var pmr = ModuleRevisionId.newInstance("org.montoni", "tybaco-project", "working");
         var md = DefaultModuleDescriptor.newDefaultInstance(pmr);
         md.setDefaultConf("default");
-        depsIterator.forEachRemaining(dep -> {
+        deps.forEach(dep -> {
           var mr = ModuleRevisionId.newInstance(dep.group(), dep.artifact(), dep.version());
           var dd = new DefaultDependencyDescriptor(md, mr, false, false, true);
           dd.addDependencyConfiguration("default", "master");

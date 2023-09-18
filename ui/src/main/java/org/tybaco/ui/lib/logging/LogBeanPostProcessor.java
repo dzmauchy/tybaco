@@ -22,8 +22,9 @@ package org.tybaco.ui.lib.logging;
  */
 
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
+import org.tybaco.logging.Log;
 
-import java.util.logging.LogManager;
+import java.util.logging.Level;
 
 public final class LogBeanPostProcessor implements DestructionAwareBeanPostProcessor {
 
@@ -51,9 +52,6 @@ public final class LogBeanPostProcessor implements DestructionAwareBeanPostProce
   }
 
   public void info(String message, Object... args) {
-    var info = Logging.info(message, args);
-    info.setSourceClassName(null);
-    info.setLoggerName(id);
-    LogManager.getLogManager().getLogger("").log(info);
+    Log.log(id, Level.INFO, message, args);
   }
 }

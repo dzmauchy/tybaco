@@ -49,14 +49,8 @@ public class FastConsoleHandler extends Handler {
     DATE_TIME_FORMATTER.formatTo(record.getInstant().atZone(UTC), buffer);
     buffer
       .append(' ').append(level(record.getLevel()))
-      .append(" [").append(record.getLongThreadID()).append("] ");
-    var method = record.getSourceMethodName();
-    var className = record.getSourceClassName();
-    if (method != null && className != null) {
-      buffer.append(className).append('.').append(method).append(' ');
-    } else {
-      buffer.append(record.getLoggerName()).append(' ');
-    }
+      .append(" [").append(record.getLongThreadID()).append("] ")
+      .append(record.getLoggerName()).append(' ');
     var params = record.getParameters();
     if (params == null || params.length == 0) {
       buffer.append(record.getMessage());

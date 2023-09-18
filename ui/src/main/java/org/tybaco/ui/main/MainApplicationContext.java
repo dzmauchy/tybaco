@@ -31,8 +31,7 @@ import org.tybaco.ui.lib.context.Propagated;
 import org.tybaco.ui.lib.logging.LogBeanPostProcessor;
 import org.tybaco.ui.splash.SplashBeanPostProcessor;
 
-import static java.util.logging.Level.INFO;
-import static java.util.logging.LogManager.getLogManager;
+import static org.tybaco.logging.Log.info;
 
 public final class MainApplicationContext extends AnnotationConfigApplicationContext {
 
@@ -54,7 +53,7 @@ public final class MainApplicationContext extends AnnotationConfigApplicationCon
 
   @Override
   protected void publishEvent(@Nonnull Object event, ResolvableType typeHint) {
-    getLogManager().getLogger("").log(INFO, "{0}", event);
+    info(getClass(), "{0}", event);
     super.publishEvent(event, typeHint);
   }
 

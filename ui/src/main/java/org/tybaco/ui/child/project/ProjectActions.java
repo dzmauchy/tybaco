@@ -29,8 +29,7 @@ import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.action.Action;
 import org.tybaco.ui.model.Project;
 
-import static java.util.logging.Level.INFO;
-import static org.tybaco.ui.lib.logging.Logging.LOG;
+import static org.tybaco.logging.Log.info;
 
 @Component
 public class ProjectActions {
@@ -43,7 +42,7 @@ public class ProjectActions {
       var factory = "com.example.factory";
       var method = "method";
       var block = project.newBlock(project.guessBlockName(), factory, method, 0d, 0d);
-      LOG.log(INFO, "Block {0} created", block.id);
+      info(getClass(), "Block {0} created", block.id);
     }).separatorGroup("block");
   }
 

@@ -22,9 +22,10 @@ package org.tybaco.ui.lib.repo;
  */
 
 import org.apache.ivy.util.AbstractMessageLogger;
+import org.tybaco.logging.Log;
 
+import static java.util.logging.Level.*;
 import static org.apache.ivy.util.Message.*;
-import static org.tybaco.ui.lib.logging.Logging.LOG;
 
 public final class ArtifactMessageLogger extends AbstractMessageLogger {
 
@@ -39,22 +40,16 @@ public final class ArtifactMessageLogger extends AbstractMessageLogger {
   @Override
   public void log(String msg, int level) {
     switch (level) {
-      case MSG_INFO -> LOG.info(msg);
-      case MSG_VERBOSE -> LOG.fine(msg);
-      case MSG_DEBUG -> LOG.finer(msg);
-      case MSG_WARN -> LOG.warning(msg);
-      case MSG_ERR -> LOG.severe(msg);
+      case MSG_INFO -> Log.log(getClass(), INFO, msg);
+      case MSG_VERBOSE -> Log.log(getClass(), FINE, msg);
+      case MSG_DEBUG -> Log.log(getClass(), FINER, msg);
+      case MSG_WARN -> Log.log(getClass(), WARNING, msg);
+      case MSG_ERR -> Log.log(getClass(), SEVERE, msg);
     }
   }
 
   @Override
   public void rawlog(String msg, int level) {
-    switch (level) {
-      case MSG_INFO -> LOG.info(msg);
-      case MSG_VERBOSE -> LOG.fine(msg);
-      case MSG_DEBUG -> LOG.finer(msg);
-      case MSG_WARN -> LOG.warning(msg);
-      case MSG_ERR -> LOG.severe(msg);
-    }
+    log(msg, level);
   }
 }

@@ -35,10 +35,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
-import static java.util.logging.Level.*;
 import static java.util.stream.Stream.concat;
 import static javafx.beans.binding.Bindings.createStringBinding;
-import static org.tybaco.ui.lib.logging.Logging.LOG;
+import static org.tybaco.logging.Log.info;
+import static org.tybaco.logging.Log.warn;
 import static org.tybaco.xml.Xml.*;
 
 public final class Texts {
@@ -90,7 +90,7 @@ public final class Texts {
       var v = map.get(key);
       return v == null ? key : v;
     } catch (RuntimeException e) {
-      LOG.log(WARNING, "Unable to get " + key, e);
+      warn(Texts.class, "Unable to get " + key, e);
       return key;
     }
   }
@@ -102,7 +102,7 @@ public final class Texts {
     try {
       return key(key, TEXTS).formatted(args.get());
     } catch (RuntimeException e) {
-      LOG.log(WARNING, "Unable to format " + key, e);
+      warn(Texts.class, "Unable to format " + key, e);
       return key;
     }
   }
@@ -114,7 +114,7 @@ public final class Texts {
     try {
       return MessageFormat.format(key(key, MESSAGES), args.get());
     } catch (RuntimeException e) {
-      LOG.log(WARNING, "Unable to format " + key, e);
+      warn(Texts.class, "Unable to format " + key, e);
       return key;
     }
   }
@@ -182,7 +182,7 @@ public final class Texts {
         .thenComparing(Locale::getVariant)
       )
     ));
-    LOG.log(INFO, "Loaded {0}: locales = {1}", new Object[] {file, result.keySet()});
+    info(Texts.class, "Loaded {0}: locales = {1}", file, result.keySet());
     return result;
   }
 }

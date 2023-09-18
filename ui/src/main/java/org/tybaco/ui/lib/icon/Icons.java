@@ -31,8 +31,7 @@ import org.kordamp.ikonli.javafx.IkonResolver;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import static java.util.logging.Level.WARNING;
-import static org.tybaco.ui.lib.logging.Logging.LOG;
+import static org.tybaco.logging.Log.warn;
 
 public final class Icons {
 
@@ -54,7 +53,7 @@ public final class Icons {
         var icon = handler.resolve(key);
         return icon == null ? null : icon(icon, size);
       } catch (RuntimeException ignore) {
-        LOG.log(WARNING, "Unable to resolve {0}", key);
+        warn(Icons.class, "Unable to resolve {0}", key);
         return null;
       }
     }

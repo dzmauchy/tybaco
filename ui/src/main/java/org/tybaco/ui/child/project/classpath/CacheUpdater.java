@@ -32,8 +32,7 @@ import java.util.concurrent.*;
 import java.util.jar.JarInputStream;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static java.util.logging.Level.SEVERE;
-import static org.tybaco.ui.lib.logging.Logging.LOG;
+import static org.tybaco.logging.Log.error;
 
 @Component
 public final class CacheUpdater implements AutoCloseable {
@@ -73,7 +72,7 @@ public final class CacheUpdater implements AutoCloseable {
           try (var jis = new JarInputStream(url.openStream())) {
             processUrl(jis, classLoader);
           } catch (Throwable e) {
-            LOG.log(SEVERE, "Unable to process " + url, e);
+            error(getClass(), "Unable to process " + url, e);
           }
         });
       }
@@ -115,7 +114,7 @@ public final class CacheUpdater implements AutoCloseable {
             }
           }
         } catch (Throwable x) {
-          LOG.log(SEVERE, "Unable to load " + name, x);
+          error(getClass(), "Unable to load {0}", x, name);
         }
       }
     }
