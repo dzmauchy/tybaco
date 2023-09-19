@@ -51,6 +51,7 @@ public final class Action {
   private final SimpleObjectProperty<KeyCombination> accelerator = new SimpleObjectProperty<>(this, "accelerator");
   private final SimpleObjectProperty<String> icon = new SimpleObjectProperty<>(this, "icon");
   private final SimpleBooleanProperty selected = new SimpleBooleanProperty(this, "selected");
+  private final SimpleBooleanProperty disabled = new SimpleBooleanProperty(this, "disabled");
   private final SimpleListProperty<Action> actions = new SimpleListProperty<>(this, "actions");
   private final SimpleStringProperty group = new SimpleStringProperty(this, "group");
 
@@ -172,6 +173,11 @@ public final class Action {
     return this;
   }
 
+  public Action disabled(ObservableValue<Boolean> disabled) {
+    this.disabled.bind(disabled);
+    return this;
+  }
+
   public Action actions(ObservableValue<ObservableList<Action>> actions) {
     this.actions.bind(actions);
     return this;
@@ -196,11 +202,6 @@ public final class Action {
 
   public Action group(String group) {
     return group(new SimpleStringProperty(group));
-  }
-
-  public Action selected(boolean selected) {
-    this.selected.set(selected);
-    return this;
   }
 
   public Action separatorGroup(String group) {
@@ -240,6 +241,10 @@ public final class Action {
     return selectionEnabled;
   }
 
+  public boolean isDisabledBound() {
+    return disabled.isBound();
+  }
+
   public ObjectBinding<Node> graphic(int size) {
     return createObjectBinding(() -> Icons.icon(icon.get(), size), icon);
   }
@@ -255,6 +260,7 @@ public final class Action {
   public final Menu toMenu(Consumer<? super Menu>... consumers) {
     var menu = new Menu();
     menu.textProperty().bind(text);
+    menu.disableProperty().bind(disabled);
     menu.graphicProperty().bind(graphic(20));
     menu.acceleratorProperty().bind(accelerator);
     menu.onActionProperty().bind(handler);
@@ -269,6 +275,7 @@ public final class Action {
   public final MenuItem toMenuItem(Consumer<? super MenuItem>... consumers) {
     var menuItem = new MenuItem();
     menuItem.textProperty().bind(text);
+    menuItem.disableProperty().bind(disabled);
     menuItem.graphicProperty().bind(graphic(20));
     menuItem.acceleratorProperty().bind(accelerator);
     menuItem.onActionProperty().bind(handler);
@@ -283,6 +290,7 @@ public final class Action {
   public final CheckMenuItem toCheckMenuItem(Consumer<? super CheckMenuItem>... consumers) {
     var menuItem = new CheckMenuItem();
     menuItem.textProperty().bind(text);
+    menuItem.disableProperty().bind(disabled);
     menuItem.graphicProperty().bind(graphic(20));
     menuItem.acceleratorProperty().bind(accelerator);
     menuItem.onActionProperty().bind(handler);
@@ -298,6 +306,7 @@ public final class Action {
   public final RadioMenuItem toRadioMenuItem(Consumer<? super RadioMenuItem>... consumers) {
     var menuItem = new RadioMenuItem();
     menuItem.textProperty().bind(text);
+    menuItem.disableProperty().bind(disabled);
     menuItem.graphicProperty().bind(graphic(20));
     menuItem.acceleratorProperty().bind(accelerator);
     menuItem.onActionProperty().bind(handler);
@@ -313,6 +322,7 @@ public final class Action {
   public final Button toButton(Consumer<? super Button>... consumers) {
     var button = new Button();
     button.textProperty().bind(text);
+    button.disableProperty().bind(disabled);
     button.graphicProperty().bind(graphic(24));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
@@ -328,6 +338,7 @@ public final class Action {
     var button = new ToggleButton();
     button.selectedProperty().bindBidirectional(selected);
     button.textProperty().bind(text);
+    button.disableProperty().bind(disabled);
     button.graphicProperty().bind(graphic(24));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
@@ -342,6 +353,7 @@ public final class Action {
   public final RadioButton toRadioButton(Consumer<? super RadioButton>... consumers) {
     var button = new RadioButton();
     button.selectedProperty().bindBidirectional(selected);
+    button.disableProperty().bind(disabled);
     button.textProperty().bind(text);
     button.graphicProperty().bind(graphic(24));
     button.onActionProperty().bind(handler);
@@ -357,6 +369,7 @@ public final class Action {
   public final MenuButton toMenuButton(Consumer<? super MenuButton>... consumers) {
     var button = new MenuButton();
     button.textProperty().bind(text);
+    button.disableProperty().bind(disabled);
     button.graphicProperty().bind(graphic(24));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
@@ -371,6 +384,7 @@ public final class Action {
   public final Tab toTab(Consumer<? super Tab>... consumers) {
     var tab = new Tab();
     tab.textProperty().bind(text);
+    tab.disableProperty().bind(disabled);
     tab.graphicProperty().bind(graphic(20));
     tab.tooltipProperty().bind(tooltip());
     tab.setUserData(new ActionUserData(this));
