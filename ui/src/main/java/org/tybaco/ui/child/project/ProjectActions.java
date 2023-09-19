@@ -48,6 +48,15 @@ public class ProjectActions {
 
   @Bean
   @Qualifier("projectAction")
+  @Order(2)
+  public Action newConstantAction(Project project) {
+    return new Action(null, MaterialDesignB.BULLSEYE, "New constant", ev -> {
+
+    }).separatorGroup("constant");
+  }
+
+  @Bean
+  @Qualifier("projectAction")
   @Order(1001)
   public Action accordionVisibleAction(ProjectAccordion accordion) {
     return new Action(null, MaterialDesignB.BOOK_OPEN, "Accordion visibility")
