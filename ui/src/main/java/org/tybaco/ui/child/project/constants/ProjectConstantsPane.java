@@ -1,4 +1,4 @@
-package org.tybaco.ui.child.project;
+package org.tybaco.ui.child.project.constants;
 
 /*-
  * #%L
@@ -23,12 +23,11 @@ package org.tybaco.ui.child.project;
 
 import javafx.scene.layout.BorderPane;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.model.Project;
 
 @Component
 public class ProjectConstantsPane extends BorderPane {
 
-  public ProjectConstantsPane(Project project) {
-
+  public ProjectConstantsPane(ProjectConstantsTable constantsTable) {
+    super(constantsTable);
   }
 }

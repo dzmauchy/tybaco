@@ -169,7 +169,7 @@
               <goal>write-project-properties</goal>
             </goals>
             <configuration>
-              <outputFile>${project.build.outputDirectory}/ui.properties</outputFile>
+              <outputFile>${project.build.outputDirectory}/tybaco/ui.properties</outputFile>
             </configuration>
           </execution>
         </executions>

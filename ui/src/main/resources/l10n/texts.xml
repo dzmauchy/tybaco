@@ -51,4 +51,19 @@
   <key value="Constants">
     <val lang="es">Constantes</val>
   </key>
+  <key value="Name">
+    <val lang="es">Nombre</val>
+  </key>
+  <key value="Factory">
+    <val lang="es">Fábrica</val>
+  </key>
+  <key value="Value">
+    <val lang="es">Valor</val>
+  </key>
+  <key value="Icons">
+    <val lang="es">Iconos</val>
+  </key>
+  <key value="Viewer">
+    <val lang="es">Visionador</val>
+  </key>
 </localization>

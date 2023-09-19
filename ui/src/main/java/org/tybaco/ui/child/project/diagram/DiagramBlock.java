@@ -30,7 +30,7 @@ public class DiagramBlock extends AbstractDiagramBlock {
   public DiagramBlock(Block block) {
     this.block = block;
     factory.setText(block.factory);
-    value.setText(block.value);
+    value.setText(block.method);
     title.textProperty().bind(block.name);
     block.x.bindBidirectional(layoutXProperty());
     block.y.bindBidirectional(layoutYProperty());

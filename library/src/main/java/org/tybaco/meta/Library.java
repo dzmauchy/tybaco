@@ -23,10 +23,7 @@ package org.tybaco.meta;
 
 import org.tybaco.xml.Xml;
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import java.util.List;
 
 public record Library(Meta meta, List<LibraryBlocks> blocks, List<LibraryConstants> constants, List<LibraryType> types) {
@@ -38,15 +35,5 @@ public record Library(Meta meta, List<LibraryBlocks> blocks, List<LibraryConstan
       Xml.elementsByTag(element, "constants").map(LibraryConstants::new).toList(),
       Xml.elementsByTag(element, "type").map(LibraryType::new).toList()
     );
-  }
-
-  public static Schema schema() {
-    var schemaFactory = SchemaFactory.newDefaultInstance();
-    var classLoader = Thread.currentThread().getContextClassLoader();
-    try {
-      return schemaFactory.newSchema(classLoader.getResource("tybaco/library/library.xsd"));
-    } catch (SAXException e) {
-      throw new IllegalStateException(e);
-    }
   }
 }
