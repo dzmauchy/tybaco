@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.tybaco.ui.child.project.classpath.ProjectClasspath;
 import org.tybaco.ui.lib.action.Action;
 import org.tybaco.ui.model.Project;
 
@@ -37,22 +38,22 @@ public class ProjectActions {
   @Bean
   @Qualifier("projectAction")
   @Order(1)
-  public Action newBlockAction(Project project) {
+  public Action newBlockAction(Project project, ProjectClasspath classpath) {
     return new Action(null, MaterialDesignB.BABY_BOTTLE, "New block", ev -> {
       var factory = "com.example.factory";
       var method = "method";
       var block = project.newBlock(project.guessBlockName(), factory, method, 0d, 0d);
       info(getClass(), "Block {0} created", block.id);
-    }).separatorGroup("block");
+    }).separatorGroup("block").disabled(classpath.classPathIsNotSet);
   }
 
   @Bean
   @Qualifier("projectAction")
   @Order(2)
-  public Action newConstantAction(Project project) {
+  public Action newConstantAction(Project project, ProjectClasspath classpath) {
     return new Action(null, MaterialDesignB.BULLSEYE, "New constant", ev -> {
 
-    }).separatorGroup("constant");
+    }).separatorGroup("constant").disabled(classpath.classPathIsNotSet);
   }
 
   @Bean

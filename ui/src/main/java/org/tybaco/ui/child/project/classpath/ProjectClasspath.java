@@ -25,8 +25,8 @@ import jakarta.annotation.PostConstruct;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleObjectProperty;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.repo.ArtifactClassPath;
 import org.tybaco.ui.lib.repo.ArtifactResolver;
@@ -42,11 +42,11 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.tybaco.logging.Log.error;
 import static org.tybaco.logging.Log.warn;
 
-@Lazy(false)
 @Component
 public final class ProjectClasspath implements AutoCloseable {
 
   public final SimpleObjectProperty<ArtifactClassPath> classPath = new SimpleObjectProperty<>(this, "classPath");
+  public final BooleanBinding classPathIsNotSet = classPath.isNull();
   final Project project;
   private final ArtifactResolver artifactResolver;
   private final InvalidationListener libsInvalidationListener;
