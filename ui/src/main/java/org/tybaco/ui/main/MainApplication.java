@@ -21,14 +21,20 @@ package org.tybaco.ui.main;
  * #L%
  */
 
+import com.sun.javafx.PlatformUtil;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.EventHandler;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import org.tybaco.ui.Main;
 import org.tybaco.ui.lib.logging.UILogHandler;
+
+import static org.tybaco.logging.Log.info;
 
 public class MainApplication extends Application {
 
@@ -79,8 +85,24 @@ public class MainApplication extends Application {
       updateSplash();
       stage.setScene(new Scene(mainPane, 1024, 768, Color.BLACK));
       stage.setMaximized(true);
+      if (PlatformUtil.isLinux()) {
+        stage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<>() {
+          @Override
+          public void handle(WindowEvent windowEvent) {
+            stage.removeEventHandler(WindowEvent.WINDOW_SHOWN, this);
+            Platform.runLater(() -> {
+              var bounds = new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+              info(MainApplication.class, "Window {0}", bounds);
+              stage.setMaximized(false);
+              stage.setX(bounds.getMinX());
+              stage.setY(bounds.getMinY());
+              stage.setWidth(bounds.getWidth());
+              stage.setHeight(bounds.getHeight());
+            });
+          }
+        });
+      }
       stage.show();
-      updateSplash();
       updateSplash();
       context.start();
       updateSplash();

@@ -24,6 +24,7 @@ package org.tybaco.ui.child.project.constants;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.TextFieldTableCell;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.lib.control.Tables;
 import org.tybaco.ui.lib.text.Texts;
@@ -40,7 +41,7 @@ public class ProjectConstantsTable extends TableView<Constant> {
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     setEditable(true);
     getColumns().addAll(List.of(idColumn(), nameColumn(), factoryColumn(), valueColumn()));
-    Tables.initColumnWidths(this, 40, 150, 150, 200);
+    Tables.initColumnWidths(this, 40, 100, 200, 200);
   }
 
   private TableColumn<Constant, Number> idColumn() {
@@ -54,6 +55,7 @@ public class ProjectConstantsTable extends TableView<Constant> {
     var col = new TableColumn<Constant, String>();
     col.textProperty().bind(Texts.text("Name"));
     col.setEditable(true);
+    col.setCellFactory(TextFieldTableCell.forTableColumn());
     col.setCellValueFactory(c -> c.getValue().name);
     return col;
   }
@@ -70,6 +72,7 @@ public class ProjectConstantsTable extends TableView<Constant> {
     var col = new TableColumn<Constant, String>();
     col.textProperty().bind(Texts.text("Value"));
     col.setEditable(true);
+    col.setCellFactory(TextFieldTableCell.forTableColumn());
     col.setCellValueFactory(c -> c.getValue().value);
     return col;
   }

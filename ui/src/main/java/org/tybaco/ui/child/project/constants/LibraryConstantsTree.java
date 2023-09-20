@@ -21,13 +21,12 @@ package org.tybaco.ui.child.project.constants;
  * #L%
  */
 
-import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.stage.*;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -40,7 +39,6 @@ import org.tybaco.ui.model.Project;
 import java.util.List;
 
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
-import static org.tybaco.logging.Log.info;
 import static org.tybaco.ui.lib.icon.Icons.icon;
 import static org.tybaco.ui.lib.text.Texts.text;
 
@@ -49,31 +47,25 @@ import static org.tybaco.ui.lib.text.Texts.text;
 public final class LibraryConstantsTree extends TreeTableView<MetaContainer> {
 
   public LibraryConstantsTree(LibraryFinder finder) {
-    setPrefSize(1024, 600);
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     setShowRoot(false);
-    setPadding(Insets.EMPTY);
     setRoot(new TreeItem<>(new Meta("", "", "")));
     getColumns().addAll(List.of(nameColumn(), descriptionColumn()));
     Tables.initColumnWidth(this, 300, 500);
-    var thread = new Thread(() -> finder.libraries().forEachOrdered(lib -> {
-      info(getClass(), "Loading constants definitions");
+    finder.libraries().forEachOrdered(lib -> {
       var libElem = new TreeItem<MetaContainer>(lib, icon(lib.meta().icon(), 20));
-      Platform.runLater(() -> getRoot().getChildren().add(libElem));
+      getRoot().getChildren().add(libElem);
       lib.constants().forEach(consts -> {
         var constsElem = new TreeItem<MetaContainer>(consts, icon(consts.meta().icon(), 20));
-        Platform.runLater(() -> libElem.getChildren().add(constsElem));
+        libElem.getChildren().add(constsElem);
         consts.constants().forEach(c -> {
           var cElem = new TreeItem<MetaContainer>(c, icon(c.meta().icon(), 20));
-          Platform.runLater(() -> constsElem.getChildren().add(cElem));
+          constsElem.getChildren().add(cElem);
         });
-        Platform.runLater(() -> constsElem.setExpanded(true));
+        constsElem.setExpanded(true);
+        libElem.setExpanded(true);
       });
-      Platform.runLater(() -> libElem.setExpanded(true));
-      info(getClass(), "Constants definitions loaded");
-    }));
-    thread.setDaemon(true);
-    thread.start();
+    });
   }
 
   private TreeTableColumn<MetaContainer, String> nameColumn() {
@@ -95,29 +87,38 @@ public final class LibraryConstantsTree extends TreeTableView<MetaContainer> {
   public final class Win extends Dialog<Constant> {
 
     public Win(@Autowired(required = false) Stage primaryStage, Project project) {
-      initModality(Modality.NONE);
+      setWidth(1024);
+      setHeight(768);
+      initModality(Modality.APPLICATION_MODAL);
+      initOwner(primaryStage);
       setResizable(true);
       var textArea = new TextArea();
       var titledPane = new TitledPane(null, textArea);
       titledPane.textProperty().bind(text("Value").map(v -> v + ":"));
       var splitPane = new SplitPane(LibraryConstantsTree.this, titledPane);
+      splitPane.setPadding(Insets.EMPTY);
       splitPane.setOrientation(Orientation.VERTICAL);
       splitPane.setDividerPosition(0, 0.7);
       getDialogPane().setContent(splitPane);
       headerTextProperty().bind(text("Select a constant").map(v -> v + ":"));
       titleProperty().bind(text("Constants"));
       getDialogPane().getButtonTypes().addAll(ButtonType.APPLY, ButtonType.CLOSE);
+      var applyButton = getDialogPane().lookupButton(ButtonType.APPLY);
+      applyButton.setDisable(true);
+      getSelectionModel().selectedItemProperty().addListener((o, ov, nv) ->
+        applyButton.setDisable(nv == null || !(nv.getValue() instanceof LibraryConstant))
+      );
       setResultConverter(t -> switch (t.getButtonData()) {
-        case APPLY -> getSelectionModel().getSelectedItems().stream()
-          .findFirst()
-          .map(TreeItem::getValue)
-          .filter(LibraryConstant.class::isInstance)
-          .map(LibraryConstant.class::cast)
-          .map(c -> project.newConstant(c.meta().name(), c.factory(), textArea.getText()))
-          .orElse(null);
+        case APPLY -> {
+          var item = getSelectionModel().getSelectedItem();
+          if (item != null && item.getValue() instanceof LibraryConstant c) {
+            yield project.newConstant(c.meta().name(), c.factory(), textArea.getText());
+          } else {
+            yield null;
+          }
+        }
         default -> null;
       });
-      initOwner(primaryStage);
     }
   }
 }
