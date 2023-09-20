@@ -32,11 +32,13 @@ import org.springframework.stereotype.Component;
 import org.tybaco.meta.*;
 import org.tybaco.ui.child.project.classpath.LibraryFinder;
 import org.tybaco.ui.lib.control.Tables;
+import org.tybaco.ui.lib.icon.Icons;
 
 import java.util.List;
 
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 import static org.tybaco.logging.Log.info;
+import static org.tybaco.ui.lib.icon.Icons.icon;
 import static org.tybaco.ui.lib.text.Texts.text;
 
 @Scope(SCOPE_PROTOTYPE)
@@ -53,13 +55,13 @@ public final class LibraryConstantsTree extends TreeTableView<MetaContainer> {
     Tables.initColumnWidth(this, 300, 500);
     var thread = new Thread(() -> finder.libraries().forEachOrdered(lib -> {
       info(getClass(), "Loading constants definitions");
-      var libElem = new TreeItem<MetaContainer>(lib);
+      var libElem = new TreeItem<MetaContainer>(lib, icon(lib.meta().icon(), 20));
       Platform.runLater(() -> getRoot().getChildren().add(libElem));
       lib.constants().forEach(consts -> {
-        var constsElem = new TreeItem<MetaContainer>(consts);
+        var constsElem = new TreeItem<MetaContainer>(consts, icon(consts.meta().icon(), 20));
         Platform.runLater(() -> libElem.getChildren().add(constsElem));
         consts.constants().forEach(c -> {
-          var cElem = new TreeItem<MetaContainer>(c);
+          var cElem = new TreeItem<MetaContainer>(c, icon(c.meta().icon(), 20));
           Platform.runLater(() -> constsElem.getChildren().add(cElem));
         });
         Platform.runLater(() -> constsElem.setExpanded(true));
