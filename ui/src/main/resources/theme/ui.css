@@ -23,6 +23,11 @@
     -fx-base: #313532;
     -fx-background: -fx-base;
     -fx-control-inner-background: derive(-fx-base,20%);
+    -fx-control-inner-background-alt: derive(-fx-base,15%);
+}
+
+.tree-table-row-cell:odd {
+    -fx-background: -fx-control-inner-background-alt;
 }
 
 .diagram-block {

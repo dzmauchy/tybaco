@@ -32,7 +32,6 @@ import org.springframework.stereotype.Component;
 import org.tybaco.meta.*;
 import org.tybaco.ui.child.project.classpath.LibraryFinder;
 import org.tybaco.ui.lib.control.Tables;
-import org.tybaco.ui.lib.icon.Icons;
 
 import java.util.List;
 
