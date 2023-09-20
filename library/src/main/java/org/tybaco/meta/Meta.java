@@ -23,7 +23,7 @@ package org.tybaco.meta;
 
 import org.w3c.dom.Element;
 
-public record Meta(String name, String icon, String description) {
+public record Meta(String name, String icon, String description) implements MetaContainer {
 
   public Meta(Element element) {
     this(
@@ -31,5 +31,10 @@ public record Meta(String name, String icon, String description) {
       element.getAttribute("icon"),
       element.getAttribute("description")
     );
+  }
+
+  @Override
+  public Meta meta() {
+    return this;
   }
 }

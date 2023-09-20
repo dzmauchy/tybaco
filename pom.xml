@@ -44,7 +44,7 @@
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <javafx.version>21-ea+31</javafx.version>
+    <javafx.version>21</javafx.version>
     <slf4j.version>2.0.9</slf4j.version>
     <junit.version>5.10.0</junit.version>
 

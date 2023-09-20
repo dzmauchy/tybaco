@@ -22,11 +22,13 @@ package org.tybaco.ui.child.project;
  */
 
 import org.kordamp.ikonli.materialdesign2.MaterialDesignB;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.child.project.classpath.ProjectClasspath;
+import org.tybaco.ui.child.project.constants.LibraryConstantsTree;
 import org.tybaco.ui.lib.action.Action;
 import org.tybaco.ui.model.Project;
 
@@ -50,9 +52,9 @@ public class ProjectActions {
   @Bean
   @Qualifier("projectAction")
   @Order(2)
-  public Action newConstantAction(Project project, ProjectClasspath classpath) {
+  public Action newConstantAction(ObjectProvider<LibraryConstantsTree> tree, ProjectClasspath classpath) {
     return new Action(null, MaterialDesignB.BULLSEYE, "New constant", ev -> {
-
+      tree.getIfAvailable();
     }).separatorGroup("constant").disabled(classpath.classPathIsNotSet);
   }
 

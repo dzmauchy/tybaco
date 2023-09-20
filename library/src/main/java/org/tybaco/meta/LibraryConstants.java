@@ -26,7 +26,7 @@ import org.w3c.dom.Element;
 
 import java.util.List;
 
-public record LibraryConstants(Meta meta, List<LibraryConstant> constants) {
+public record LibraryConstants(Meta meta, List<LibraryConstant> constants) implements MetaContainer {
 
   public LibraryConstants(Element element) {
     this(new Meta(element), Xml.elementsByTag(element, "constant").map(LibraryConstant::new).toList());

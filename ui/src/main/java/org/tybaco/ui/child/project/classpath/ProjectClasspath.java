@@ -39,15 +39,14 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.tybaco.logging.Log.error;
-import static org.tybaco.logging.Log.warn;
+import static org.tybaco.logging.Log.*;
 
 @Component
 public final class ProjectClasspath implements AutoCloseable {
 
   public final SimpleObjectProperty<ArtifactClassPath> classPath = new SimpleObjectProperty<>(this, "classPath");
   public final BooleanBinding classPathIsNotSet = classPath.isNull();
-  final Project project;
+  private final Project project;
   private final ArtifactResolver artifactResolver;
   private final InvalidationListener libsInvalidationListener;
   private final ThreadPoolExecutor threads;
@@ -75,6 +74,14 @@ public final class ProjectClasspath implements AutoCloseable {
       return;
     }
     libs = newLibs;
+    try (var old = classPath.get()) {
+      if (old != null) {
+        info(getClass(), "Closing old classpath");
+      }
+      classPath.set(null);
+    } catch (Throwable e) {
+      warn(getClass(), "Unable to close the old classpath");
+    }
     threads.execute(this::update);
   }
 

@@ -23,7 +23,7 @@ package org.tybaco.meta;
 
 import org.w3c.dom.Element;
 
-public record LibraryBlockParam(Meta meta) {
+public record LibraryBlockParam(Meta meta) implements MetaContainer {
 
   public LibraryBlockParam(Element element) {
     this(new Meta(element));

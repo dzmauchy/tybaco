@@ -23,7 +23,7 @@ package org.tybaco.meta;
 
 import org.w3c.dom.Element;
 
-public record LibraryTypeOutput(Meta meta) {
+public record LibraryTypeOutput(Meta meta) implements MetaContainer {
 
   public LibraryTypeOutput(Element element) {
     this(new Meta(element));

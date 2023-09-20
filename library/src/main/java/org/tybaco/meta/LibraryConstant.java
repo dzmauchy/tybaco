@@ -23,7 +23,7 @@ package org.tybaco.meta;
 
 import org.w3c.dom.Element;
 
-public record LibraryConstant(Meta meta, String factory) {
+public record LibraryConstant(Meta meta, String factory) implements MetaContainer {
 
   public LibraryConstant(Element element) {
     this(new Meta(element), element.getAttribute("factory"));

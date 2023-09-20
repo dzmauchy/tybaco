@@ -26,7 +26,7 @@ import org.w3c.dom.Element;
 
 import java.util.List;
 
-public record Library(Meta meta, List<LibraryBlocks> blocks, List<LibraryConstants> constants, List<LibraryType> types) {
+public record Library(Meta meta, List<LibraryBlocks> blocks, List<LibraryConstants> constants, List<LibraryType> types) implements MetaContainer {
 
   public Library(Element element) {
     this(

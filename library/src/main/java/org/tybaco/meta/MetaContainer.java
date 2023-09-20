@@ -2,7 +2,7 @@ package org.tybaco.meta;
 
 /*-
  * #%L
- * runtime
+ * library
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,11 +21,6 @@ package org.tybaco.meta;
  * #L%
  */
 
-import org.w3c.dom.Element;
-
-public record LibraryTypeInput(Meta meta) implements MetaContainer {
-
-  public LibraryTypeInput(Element element) {
-    this(new Meta(element));
-  }
+public interface MetaContainer {
+  Meta meta();
 }

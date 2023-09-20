@@ -26,7 +26,7 @@ import org.w3c.dom.Element;
 
 import java.util.List;
 
-public record LibraryBlocks(Meta meta, List<LibraryBlock> blocks) {
+public record LibraryBlocks(Meta meta, List<LibraryBlock> blocks) implements MetaContainer {
 
   public LibraryBlocks(Element element) {
     this(new Meta(element), Xml.elementsByTag(element, "block").map(LibraryBlock::new).toList());

@@ -133,6 +133,10 @@ public class Xml {
   public static Schema schema(String resource) {
     var classLoader = Thread.currentThread().getContextClassLoader();
     var url = classLoader.getResource(resource);
+    return schema(url);
+  }
+
+  public static Schema schema(URL url) {
     var schemaFactory = SchemaFactory.newDefaultInstance();
     try {
       return schemaFactory.newSchema(url);

@@ -22,6 +22,7 @@ package org.tybaco.ui.lib.control;
  */
 
 import javafx.scene.control.TableView;
+import javafx.scene.control.TreeTableView;
 
 public interface Tables {
 
@@ -30,6 +31,17 @@ public interface Tables {
     for (int i = 0; i < widths.length; i++) {
       var column = columns.get(i);
       var width = widths[i];
+      column.setMinWidth(width * 0.9);
+      column.setPrefWidth(width);
+      column.setMaxWidth(width * 5);
+    }
+  }
+
+  static void initColumnWidth(TreeTableView<?> table, int... widths) {
+    var columns = table.getColumns();
+    for (int i = 0; i < widths.length; i++) {
+      var width = widths[i];
+      var column = columns.get(i);
       column.setMinWidth(width * 0.9);
       column.setPrefWidth(width);
       column.setMaxWidth(width * 5);

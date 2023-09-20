@@ -26,7 +26,7 @@ import org.w3c.dom.Element;
 
 import java.util.List;
 
-public record LibraryType(Meta meta, List<LibraryTypeInput> inputs, List<LibraryTypeOutput> outputs) {
+public record LibraryType(Meta meta, List<LibraryTypeInput> inputs, List<LibraryTypeOutput> outputs) implements MetaContainer {
 
   public LibraryType(Element element) {
     this(
