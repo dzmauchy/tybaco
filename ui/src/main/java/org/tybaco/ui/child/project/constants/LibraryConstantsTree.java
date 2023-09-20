@@ -23,6 +23,7 @@ package org.tybaco.ui.child.project.constants;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.stage.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,20 +32,22 @@ import org.springframework.stereotype.Component;
 import org.tybaco.meta.*;
 import org.tybaco.ui.child.project.classpath.LibraryFinder;
 import org.tybaco.ui.lib.control.Tables;
-import org.tybaco.ui.lib.text.Texts;
 
 import java.util.List;
 
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 import static org.tybaco.logging.Log.info;
+import static org.tybaco.ui.lib.text.Texts.text;
 
 @Scope(SCOPE_PROTOTYPE)
 @Component
 public final class LibraryConstantsTree extends TreeTableView<MetaContainer> {
 
   public LibraryConstantsTree(LibraryFinder finder) {
+    setPrefSize(1024, 768);
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     setShowRoot(false);
+    setPadding(Insets.EMPTY);
     setRoot(new TreeItem<>(new Meta("", "", "")));
     getColumns().addAll(List.of(nameColumn(), descriptionColumn()));
     Tables.initColumnWidth(this, 300, 500);
@@ -59,7 +62,9 @@ public final class LibraryConstantsTree extends TreeTableView<MetaContainer> {
           var cElem = new TreeItem<MetaContainer>(c);
           Platform.runLater(() -> constsElem.getChildren().add(cElem));
         });
+        Platform.runLater(() -> constsElem.setExpanded(true));
       });
+      Platform.runLater(() -> libElem.setExpanded(true));
       info(getClass(), "Constants definitions loaded");
     }));
     thread.setDaemon(true);
@@ -68,14 +73,14 @@ public final class LibraryConstantsTree extends TreeTableView<MetaContainer> {
 
   private TreeTableColumn<MetaContainer, String> nameColumn() {
     var col = new TreeTableColumn<MetaContainer, String>();
-    col.textProperty().bind(Texts.text("Name"));
+    col.textProperty().bind(text("Name"));
     col.setCellValueFactory(f -> new SimpleStringProperty(f.getValue().getValue().meta().name()));
     return col;
   }
 
   private TreeTableColumn<MetaContainer, String> descriptionColumn() {
     var col = new TreeTableColumn<MetaContainer, String>();
-    col.textProperty().bind(Texts.text("Description"));
+    col.textProperty().bind(text("Description"));
     col.setCellValueFactory(f -> new SimpleStringProperty(f.getValue().getValue().meta().description()));
     return col;
   }
@@ -83,10 +88,14 @@ public final class LibraryConstantsTree extends TreeTableView<MetaContainer> {
   @Autowired(required = false)
   public void showDialog(Stage primaryStage) {
     var dialog = new Dialog<LibraryConstant>();
+    dialog.initStyle(StageStyle.DECORATED);
     dialog.initOwner(primaryStage);
     dialog.initModality(Modality.NONE);
-    dialog.initStyle(StageStyle.DECORATED);
+    dialog.setResizable(true);
     dialog.getDialogPane().setContent(this);
+    dialog.headerTextProperty().bind(text("Select a constant").map(v -> v + ":"));
+    dialog.titleProperty().bind(text("Constants"));
+    dialog.getDialogPane().getButtonTypes().addAll(ButtonType.APPLY, ButtonType.CLOSE);
     dialog.show();
   }
 }

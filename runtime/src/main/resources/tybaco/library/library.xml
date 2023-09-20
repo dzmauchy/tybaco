@@ -22,9 +22,9 @@
 
 <library xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="library.xsd" name="Basic library" icon="eli-delicious">
   <constants name="Network constants" icon="mdi2n-network" description="Network-specific constants like URI, URL, NetworkInterface">
-    <constant name="URI" icon="mdi2l-link" factory="java.net.URI"/>
-    <constant name="URL" icon="mdi2l-link-box" factory="java.net.URL"/>
-    <constant name="NetworkInterface" icon="mdi2n-network-outline" factory="java.net.NetworkInterface"/>
+    <constant name="URI" icon="mdi2l-link" factory="java.net.URI" description="An URI"/>
+    <constant name="URL" icon="mdi2l-link-box" factory="java.net.URL" description="An URL"/>
+    <constant name="NetworkInterface" icon="mdi2n-network-outline" factory="java.net.NetworkInterface" description="A local network interface"/>
   </constants>
   <type name="java.lang.String" icon="mdi2t-text-box" description="A text"/>
   <type name="int" icon="mdi2n-numeric" description="An integer number"/>

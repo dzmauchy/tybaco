@@ -21,6 +21,8 @@
 
 .root {
     -fx-base: #313532;
+    -fx-background: -fx-base;
+    -fx-control-inner-background: derive(-fx-base,20%);
 }
 
 .diagram-block {
