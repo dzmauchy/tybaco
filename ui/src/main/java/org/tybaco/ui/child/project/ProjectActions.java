@@ -52,9 +52,10 @@ public class ProjectActions {
   @Bean
   @Qualifier("projectAction")
   @Order(2)
-  public Action newConstantAction(ObjectProvider<LibraryConstantsTree> tree, ProjectClasspath classpath) {
+  public Action newConstantAction(ObjectProvider<LibraryConstantsTree.Win> win, ProjectClasspath classpath) {
     return new Action(null, MaterialDesignB.BULLSEYE, "New constant", ev -> {
-      tree.getIfAvailable();
+      var window = win.getObject();
+      window.show();
     }).separatorGroup("constant").disabled(classpath.classPathIsNotSet);
   }
 

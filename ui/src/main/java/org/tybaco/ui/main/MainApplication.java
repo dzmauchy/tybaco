@@ -25,6 +25,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.tybaco.ui.Main;
 import org.tybaco.ui.lib.logging.UILogHandler;
@@ -76,7 +77,7 @@ public class MainApplication extends Application {
       updateSplash();
       var mainPane = context.getBean(MainPane.class);
       updateSplash();
-      stage.setScene(new Scene(mainPane, 1024, 768));
+      stage.setScene(new Scene(mainPane, 1024, 768, Color.BLACK));
       stage.setMaximized(true);
       stage.show();
       updateSplash();

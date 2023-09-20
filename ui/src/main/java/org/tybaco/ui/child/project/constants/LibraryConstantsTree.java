@@ -24,7 +24,9 @@ package org.tybaco.ui.child.project.constants;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -32,6 +34,8 @@ import org.springframework.stereotype.Component;
 import org.tybaco.meta.*;
 import org.tybaco.ui.child.project.classpath.LibraryFinder;
 import org.tybaco.ui.lib.control.Tables;
+import org.tybaco.ui.model.Constant;
+import org.tybaco.ui.model.Project;
 
 import java.util.List;
 
@@ -45,7 +49,7 @@ import static org.tybaco.ui.lib.text.Texts.text;
 public final class LibraryConstantsTree extends TreeTableView<MetaContainer> {
 
   public LibraryConstantsTree(LibraryFinder finder) {
-    setPrefSize(1024, 768);
+    setPrefSize(1024, 600);
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     setShowRoot(false);
     setPadding(Insets.EMPTY);
@@ -86,17 +90,34 @@ public final class LibraryConstantsTree extends TreeTableView<MetaContainer> {
     return col;
   }
 
-  @Autowired(required = false)
-  public void showDialog(Stage primaryStage) {
-    var dialog = new Dialog<LibraryConstant>();
-    dialog.initStyle(StageStyle.DECORATED);
-    dialog.initOwner(primaryStage);
-    dialog.initModality(Modality.NONE);
-    dialog.setResizable(true);
-    dialog.getDialogPane().setContent(this);
-    dialog.headerTextProperty().bind(text("Select a constant").map(v -> v + ":"));
-    dialog.titleProperty().bind(text("Constants"));
-    dialog.getDialogPane().getButtonTypes().addAll(ButtonType.APPLY, ButtonType.CLOSE);
-    dialog.show();
+  @Scope(SCOPE_PROTOTYPE)
+  @Component
+  public final class Win extends Dialog<Constant> {
+
+    public Win(@Autowired(required = false) Stage primaryStage, Project project) {
+      initModality(Modality.NONE);
+      setResizable(true);
+      var textArea = new TextArea();
+      var titledPane = new TitledPane(null, textArea);
+      titledPane.textProperty().bind(text("Value").map(v -> v + ":"));
+      var splitPane = new SplitPane(LibraryConstantsTree.this, titledPane);
+      splitPane.setOrientation(Orientation.VERTICAL);
+      splitPane.setDividerPosition(0, 0.7);
+      getDialogPane().setContent(splitPane);
+      headerTextProperty().bind(text("Select a constant").map(v -> v + ":"));
+      titleProperty().bind(text("Constants"));
+      getDialogPane().getButtonTypes().addAll(ButtonType.APPLY, ButtonType.CLOSE);
+      setResultConverter(t -> switch (t.getButtonData()) {
+        case APPLY -> getSelectionModel().getSelectedItems().stream()
+          .findFirst()
+          .map(TreeItem::getValue)
+          .filter(LibraryConstant.class::isInstance)
+          .map(LibraryConstant.class::cast)
+          .map(c -> project.newConstant(c.meta().name(), c.factory(), textArea.getText()))
+          .orElse(null);
+        default -> null;
+      });
+      initOwner(primaryStage);
+    }
   }
 }
