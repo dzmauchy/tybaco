@@ -21,6 +21,7 @@ package org.tybaco.util;
  * #L%
  */
 
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 public interface ArrayOps {
@@ -47,6 +48,46 @@ public interface ArrayOps {
     for (var e : array) {
       if (predicate.test(e)) {
         return true;
+      }
+    }
+    return false;
+  }
+
+  static <E> boolean all(E[] a1, E[] a2, BiPredicate<E, E> predicate) {
+    int l1 = a1.length, l2 = a2.length;
+    if (l1 == l2) {
+      for (int i = 0; i < l1; i++) {
+        if (!predicate.test(a1[i], a2[i])) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static <E> boolean none(E[] a1, E[] a2, BiPredicate<E, E> predicate) {
+    int l1 = a1.length, l2 = a2.length;
+    if (l1 == l2) {
+      for (int i = 0; i < l1; i++) {
+        if (predicate.test(a1[i], a2[i])) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static <E> boolean any(E[] a1, E[] a2, BiPredicate<E, E> predicate) {
+    int l1 = a1.length, l2 = a2.length;
+    if (l1 == l2) {
+      for (int i = 0; i < l1; i++) {
+        if (predicate.test(a1[i], a2[i])) {
+          return true;
+        }
       }
     }
     return false;

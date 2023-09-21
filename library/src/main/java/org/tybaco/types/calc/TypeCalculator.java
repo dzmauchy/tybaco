@@ -35,6 +35,7 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.stream;
 import static org.tybaco.types.calc.Types.*;
+import static org.tybaco.util.ArrayOps.all;
 
 @SuppressWarnings("DuplicatedCode")
 public final class TypeCalculator {
@@ -166,24 +167,20 @@ public final class TypeCalculator {
   }
 
   private static boolean v(Type from, WildcardType t, TypeVars visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+    var result = false;
     for (var b : t.getUpperBounds()) {
       if (visit(from, b, visited, covariant, consumer)) {
-        return true;
+        result = true;
       }
     }
     for (var b : t.getLowerBounds()) {
       visit(from, b, visited, covariant, consumer);
     }
-    return false;
+    return result;
   }
 
   private static boolean v(Type from, UnionType t, TypeVars visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
-    for (var b : t.types()) {
-      if (!visit(from, b, visited, covariant, consumer)) {
-        return false;
-      }
-    }
-    return true;
+    return t.types().stream().allMatch(b -> visit(from, b, visited, covariant, consumer));
   }
 
   private static boolean v(Class<?> f, Type to, Boolean covariant) {
@@ -283,16 +280,7 @@ public final class TypeCalculator {
           return false;
         }
       } else {
-        var ta = t.getActualTypeArguments();
-        if (ta.length != fa.length) {
-          return false;
-        }
-        for (int i = 0; i < fa.length; i++) {
-          if (!visit(fa[i], ta[i], visited, null, consumer)) {
-            return false;
-          }
-        }
-        return true;
+        return all(fa, t.getActualTypeArguments(), (e1, e2) -> visit(e1, e2, visited, null, consumer));
       }
     } else if (to instanceof Class<?> c) {
       var fc = (Class<?>) f.getRawType();
