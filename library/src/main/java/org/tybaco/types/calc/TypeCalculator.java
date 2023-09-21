@@ -36,6 +36,7 @@ import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.stream;
 import static org.tybaco.types.calc.Types.*;
 import static org.tybaco.util.ArrayOps.all;
+import static org.tybaco.util.MiscOps.cast;
 
 @SuppressWarnings("DuplicatedCode")
 public final class TypeCalculator {
@@ -254,28 +255,19 @@ public final class TypeCalculator {
         final TypeToken<?> token;
         if (covariant) {
           if (fc.isAssignableFrom(tc)) {
-            token = TypeToken.of(to).getSupertype(MiscOps.cast(fc));
+            token = TypeToken.of(to).getSupertype(cast(fc));
           } else {
             return false;
           }
         } else {
           if (tc.isAssignableFrom(fc)) {
-            token = TypeToken.of(to).getSubtype(MiscOps.cast(fc));
+            token = TypeToken.of(to).getSubtype(cast(fc));
           } else {
             return false;
           }
         }
         if (token.getType() instanceof ParameterizedType p) {
-          var ta = p.getActualTypeArguments();
-          if (ta.length != fa.length) {
-            return false;
-          }
-          for (int i = 0; i < fa.length; i++) {
-            if (!visit(fa[i], ta[i], visited, null, consumer)) {
-              return false;
-            }
-          }
-          return true;
+          return all(fa, p.getActualTypeArguments(), (e1, e2) -> visit(e1, e2, visited, null, consumer));
         } else {
           return false;
         }
@@ -289,7 +281,7 @@ public final class TypeCalculator {
       }
       if (covariant) {
         if (fc.isAssignableFrom(c)) {
-          var token = TypeToken.of(c).getSupertype(MiscOps.cast(fc));
+          var token = TypeToken.of(c).getSupertype(cast(fc));
           if (token.getType() instanceof ParameterizedType t) {
             var ta = t.getActualTypeArguments();
             if (fa.length != ta.length) {
