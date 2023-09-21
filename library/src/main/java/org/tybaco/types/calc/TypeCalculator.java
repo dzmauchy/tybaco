@@ -24,6 +24,7 @@ package org.tybaco.types.calc;
 import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
+import org.tybaco.util.MiscOps;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -256,13 +257,13 @@ public final class TypeCalculator {
         final TypeToken<?> token;
         if (covariant) {
           if (fc.isAssignableFrom(tc)) {
-            token = TypeToken.of(to).getSupertype(cast(fc));
+            token = TypeToken.of(to).getSupertype(MiscOps.cast(fc));
           } else {
             return false;
           }
         } else {
           if (tc.isAssignableFrom(fc)) {
-            token = TypeToken.of(to).getSubtype(cast(fc));
+            token = TypeToken.of(to).getSubtype(MiscOps.cast(fc));
           } else {
             return false;
           }
@@ -300,7 +301,7 @@ public final class TypeCalculator {
       }
       if (covariant) {
         if (fc.isAssignableFrom(c)) {
-          var token = TypeToken.of(c).getSupertype(cast(fc));
+          var token = TypeToken.of(c).getSupertype(MiscOps.cast(fc));
           if (token.getType() instanceof ParameterizedType t) {
             var ta = t.getActualTypeArguments();
             if (fa.length != ta.length) {
