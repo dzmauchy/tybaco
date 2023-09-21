@@ -359,23 +359,19 @@ public final class TypeCalculator {
   private static boolean visit(Type from, Type to, TypeVars visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
     if (from.equals(to)) {
       return true;
-    } else if (to instanceof WildcardType t) {
-      return v(from, t, visited, covariant, consumer);
-    } else if (to instanceof UnionType t) {
-      return v(from, t, visited, covariant, consumer);
-    } else if (from instanceof Class<?> f) {
-      return v(f, to, covariant);
-    } else if (from instanceof GenericArrayType f) {
-      return v(f, to, visited, covariant, consumer);
-    } else if (from instanceof ParameterizedType f) {
-      return v(f, to, visited, covariant, consumer);
-    } else if (from instanceof WildcardType f) {
-      return v(f, to, visited, consumer);
-    } else if (from instanceof TypeVariable<?> f) {
-      return v(f, to, visited, consumer);
-    } else {
-      return false;
     }
+    return switch (to) {
+      case WildcardType t -> v(from, t, visited, covariant, consumer);
+      case UnionType t -> v(from, t, visited, covariant, consumer);
+      default -> switch (from) {
+        case Class<?> f -> v(f, to, covariant);
+        case GenericArrayType f -> v(f, to, visited, covariant, consumer);
+        case ParameterizedType f -> v(f, to, visited, covariant, consumer);
+        case WildcardType f -> v(f, to, visited, consumer);
+        case TypeVariable<?> f -> v(f, to, visited, consumer);
+        default -> false;
+      };
+    };
   }
 
   private static Stream<Type> flatten(Type type) {
