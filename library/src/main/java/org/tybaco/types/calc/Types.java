@@ -10,18 +10,16 @@ package org.tybaco.types.calc;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
-import org.checkerframework.checker.units.qual.C;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -47,26 +45,30 @@ public final class Types {
   }
 
   private static void vars(Type type, HashMap<TypeVariable<?>, Boolean> vars) {
-    if (type instanceof TypeVariable<?> v) {
-      if (vars.putIfAbsent(v, Boolean.TRUE) == null) {
-        for (var b : v.getBounds()) {
+    switch (type) {
+      case TypeVariable<?> v -> {
+        if (vars.putIfAbsent(v, Boolean.TRUE) == null) {
+          for (var b : v.getBounds()) {
+            vars(b, vars);
+          }
+        }
+      }
+      case GenericArrayType a -> vars(a.getGenericComponentType(), vars);
+      case ParameterizedType p -> {
+        vars(p.getOwnerType(), vars);
+        for (var a : p.getActualTypeArguments()) {
+          vars(a, vars);
+        }
+      }
+      case WildcardType w -> {
+        for (var b : w.getLowerBounds()) {
+          vars(b, vars);
+        }
+        for (var b : w.getUpperBounds()) {
           vars(b, vars);
         }
       }
-    } else if (type instanceof GenericArrayType a) {
-      vars(a.getGenericComponentType(), vars);
-    } else if (type instanceof ParameterizedType p) {
-      vars(p.getOwnerType(), vars);
-      for (var a : p.getActualTypeArguments()) {
-        vars(a, vars);
-      }
-    } else if (type instanceof WildcardType w) {
-      for (var b : w.getLowerBounds()) {
-        vars(b, vars);
-      }
-      for (var b : w.getUpperBounds()) {
-        vars(b, vars);
-      }
+      default -> {}
     }
   }
 
@@ -273,7 +275,7 @@ public final class Types {
 
   private record W(Type[] lb, Type[] ub) implements WildcardType {
 
-    public static final W ANY = new W(EMPTY_TYPES, new Type[] {Object.class});
+    public static final W ANY = new W(EMPTY_TYPES, new Type[]{Object.class});
 
     @Override
     public Type[] getUpperBounds() {
