@@ -75,10 +75,10 @@ public final class Types {
   }
 
   public static Type ground(Type type) {
-    return ground(type, List.of());
+    return ground(type, null);
   }
 
-  private static Type ground(Type type, List<TypeVariable<?>> vars) {
+  private static Type ground(Type type, TypeVars vars) {
     return switch (type) {
       case GenericArrayType a -> {
         var ct = a.getGenericComponentType();
@@ -100,10 +100,10 @@ public final class Types {
         yield o == go && args == gArgs ? type : new P(go, p.getRawType(), gArgs);
       }
       case TypeVariable<?> v -> {
-        if (vars.contains(v)) {
+        if (vars != null && vars.contains(v)) {
           yield W.ANY;
         } else {
-          var nvars = add(vars, v);
+          var nvars = new TypeVars(v, vars);
           var bounds = new LinkedHashSet<Type>();
           for (var b : ground(v.getBounds(), nvars)) {
             boundsForVar(ground(b, nvars), bounds);
@@ -128,7 +128,7 @@ public final class Types {
     }
   }
 
-  private static Type[] ground(Type[] types, List<TypeVariable<?>> vars) {
+  private static Type[] ground(Type[] types, TypeVars vars) {
     var replaced = false;
     var newTypes = new Type[types.length];
     for (int i = 0; i < types.length; i++) {
@@ -149,23 +149,6 @@ public final class Types {
       case GenericArrayType a -> isGround(a.getGenericComponentType());
       case WildcardType w -> all(w.getLowerBounds(), Types::isGround) && all(w.getUpperBounds(), Types::isGround);
       default -> true;
-    };
-  }
-
-  @SuppressWarnings("unchecked")
-  static <E> List<E> add(List<E> l, E e) {
-    return switch (l.size()) {
-      case 0 -> List.of(e);
-      case 1 -> List.of(l.get(0), e);
-      default -> {
-        var array = new Object[l.size() + 1];
-        var len = l.size();
-        for (int i = 0; i < len; i++) {
-          array[i] = l.get(i);
-        }
-        array[len] = e;
-        yield (List<E>) Arrays.asList(array);
-      }
     };
   }
 

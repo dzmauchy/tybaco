@@ -161,10 +161,10 @@ public final class TypeCalculator {
         formal = wu(lb);
       }
     }
-    return visit(formal, actual, List.of(), TRUE, consumer);
+    return visit(formal, actual, null, TRUE, consumer);
   }
 
-  private static boolean v(Type from, WildcardType t, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+  private static boolean v(Type from, WildcardType t, TypeVars visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
     for (var b : t.getUpperBounds()) {
       if (visit(from, b, visited, covariant, consumer)) {
         return true;
@@ -176,7 +176,7 @@ public final class TypeCalculator {
     return false;
   }
 
-  private static boolean v(Type from, UnionType t, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+  private static boolean v(Type from, UnionType t, TypeVars visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
     for (var b : t.types()) {
       if (!visit(from, b, visited, covariant, consumer)) {
         return false;
@@ -229,7 +229,7 @@ public final class TypeCalculator {
     }
   }
 
-  private static boolean v(GenericArrayType f, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+  private static boolean v(GenericArrayType f, Type to, TypeVars visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
     if (to instanceof GenericArrayType t) {
       return visit(f.getGenericComponentType(), t.getGenericComponentType(), visited, covariant, consumer);
     } else if (to instanceof Class<?> c) {
@@ -244,7 +244,7 @@ public final class TypeCalculator {
     }
   }
 
-  private static boolean v(ParameterizedType f, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+  private static boolean v(ParameterizedType f, Type to, TypeVars visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
     var fa = f.getActualTypeArguments();
     if (to instanceof ParameterizedType t) {
       if (f.getRawType() != t.getRawType()) {
@@ -324,7 +324,7 @@ public final class TypeCalculator {
     }
   }
 
-  private static boolean v(WildcardType f, Type to, List<TypeVariable<?>> visited, BiConsumer<TypeVariable<?>, Type> consumer) {
+  private static boolean v(WildcardType f, Type to, TypeVars visited, BiConsumer<TypeVariable<?>, Type> consumer) {
     var lbs = flatten(f.getLowerBounds());
     for (var b : lbs) {
       if (!visit(b, to, visited, FALSE, consumer)) {
@@ -341,11 +341,11 @@ public final class TypeCalculator {
     return true;
   }
 
-  private static boolean v(TypeVariable<?> f, Type to, List<TypeVariable<?>> visited, BiConsumer<TypeVariable<?>, Type> consumer) {
-    if (visited.contains(f)) {
+  private static boolean v(TypeVariable<?> f, Type to, TypeVars visited, BiConsumer<TypeVariable<?>, Type> consumer) {
+    if (visited != null && visited.contains(f)) {
       return true;
     }
-    var newVisited = add(visited, f);
+    var newVisited = new TypeVars(f, visited);
     for (var b : f.getBounds()) {
       if (!visit(b, to, newVisited, TRUE, consumer)) {
         return false;
@@ -355,7 +355,7 @@ public final class TypeCalculator {
     return true;
   }
 
-  private static boolean visit(Type from, Type to, List<TypeVariable<?>> visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
+  private static boolean visit(Type from, Type to, TypeVars visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
     if (from.equals(to)) {
       return true;
     } else if (to instanceof WildcardType t) {
