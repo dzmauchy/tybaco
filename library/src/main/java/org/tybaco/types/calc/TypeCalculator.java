@@ -318,13 +318,12 @@ public final class TypeCalculator {
       return true;
     }
     var newVisited = new TypeVars(f, visited);
-    for (var b : f.getBounds()) {
-      if (!visit(b, to, newVisited, TRUE, consumer)) {
-        return false;
-      }
+    if (all(f.getBounds(), b -> visit(b, to, newVisited, TRUE, consumer))) {
+      consumer.accept(f, to);
+      return true;
+    } else {
+      return false;
     }
-    consumer.accept(f, to);
-    return true;
   }
 
   private static boolean visit(Type from, Type to, TypeVars visited, Boolean covariant, BiConsumer<TypeVariable<?>, Type> consumer) {
