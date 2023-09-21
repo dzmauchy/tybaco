@@ -21,47 +21,47 @@
   -->
 
 <localization xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="l10n.xsd">
-  <key value="Project">
-    <val lang="es">Proyecto</val>
-  </key>
-  <key value="Languages">
-    <val lang="es">Idiomas</val>
-  </key>
-  <key value="Set to system default">
-    <val lang="es">Usar un idioma por defecto</val>
-  </key>
-  <key value="New project">
-    <val lang="es">Nuevo proyecto</val>
-  </key>
-  <key value="Save all projects">
-    <val lang="es">Guardar todos los proyectos</val>
-  </key>
-  <key value="New block">
-    <val lang="es">Nuevo bloco</val>
-  </key>
-  <key value="Right pane visibility">
-    <val lang="es">Visibilidad de la pestaña derecha</val>
-  </key>
   <key value="Add a dependency">
     <val lang="es">Añadir una dependencia</val>
-  </key>
-  <key value="Dependencies">
-    <val lang="es">Dependencias</val>
   </key>
   <key value="Constants">
     <val lang="es">Constantes</val>
   </key>
-  <key value="Name">
-    <val lang="es">Nombre</val>
+  <key value="Dependencies">
+    <val lang="es">Dependencias</val>
   </key>
   <key value="Factory">
     <val lang="es">Fábrica</val>
   </key>
-  <key value="Value">
-    <val lang="es">Valor</val>
-  </key>
   <key value="Icons">
     <val lang="es">Iconos</val>
+  </key>
+  <key value="Languages">
+    <val lang="es">Idiomas</val>
+  </key>
+  <key value="Name">
+    <val lang="es">Nombre</val>
+  </key>
+  <key value="New block">
+    <val lang="es">Nuevo bloco</val>
+  </key>
+  <key value="New project">
+    <val lang="es">Nuevo proyecto</val>
+  </key>
+  <key value="Project">
+    <val lang="es">Proyecto</val>
+  </key>
+  <key value="Right pane visibility">
+    <val lang="es">Visibilidad de la pestaña derecha</val>
+  </key>
+  <key value="Save all projects">
+    <val lang="es">Guardar todos los proyectos</val>
+  </key>
+  <key value="Set to system default">
+    <val lang="es">Usar un idioma por defecto</val>
+  </key>
+  <key value="Value">
+    <val lang="es">Valor</val>
   </key>
   <key value="Viewer">
     <val lang="es">Visionador</val>
