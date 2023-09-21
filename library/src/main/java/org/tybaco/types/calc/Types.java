@@ -77,39 +77,41 @@ public final class Types {
   }
 
   private static Type ground(Type type, List<TypeVariable<?>> vars) {
-    if (type instanceof Class<?>) {
-      return type;
-    } else if (type instanceof GenericArrayType a) {
-      var ct = a.getGenericComponentType();
-      var gct = ground(ct, vars);
-      return ct == gct ? type : new A(gct);
-    } else if (type instanceof WildcardType w) {
-      var ub = w.getUpperBounds();
-      var lb = w.getLowerBounds();
-      var gub = ground(ub, vars);
-      var glb = ground(lb, vars);
-      return gub == ub && glb == lb ? type : new W(glb, gub);
-    } else if (type instanceof ParameterizedType p) {
-      var o = p.getOwnerType();
-      var go = ground(o, vars);
-      var args = p.getActualTypeArguments();
-      var gArgs = ground(args, vars);
-      return o == go && args == gArgs ? type : new P(go, p.getRawType(), gArgs);
-    } else if (type instanceof TypeVariable<?> v) {
-      if (vars.contains(v)) {
-        return W.ANY;
-      } else {
-        var nvars = add(vars, v);
-        var bounds = new LinkedHashSet<Type>();
-        for (var b : ground(v.getBounds(), nvars)) {
-          boundsForVar(ground(b, nvars), bounds);
-        }
-        var ub = bounds.toArray(Type[]::new);
-        return ub.length == 0 ? W.ANY : new W(EMPTY_TYPES, ub);
+    return switch (type) {
+      case GenericArrayType a -> {
+        var ct = a.getGenericComponentType();
+        var gct = ground(ct, vars);
+        yield ct == gct ? type : new A(gct);
       }
-    } else {
-      return type;
-    }
+      case WildcardType w -> {
+        var ub = w.getUpperBounds();
+        var lb = w.getLowerBounds();
+        var gub = ground(ub, vars);
+        var glb = ground(lb, vars);
+        yield gub == ub && glb == lb ? type : new W(glb, gub);
+      }
+      case ParameterizedType p -> {
+        var o = p.getOwnerType();
+        var go = ground(o, vars);
+        var args = p.getActualTypeArguments();
+        var gArgs = ground(args, vars);
+        yield o == go && args == gArgs ? type : new P(go, p.getRawType(), gArgs);
+      }
+      case TypeVariable<?> v -> {
+        if (vars.contains(v)) {
+          yield W.ANY;
+        } else {
+          var nvars = add(vars, v);
+          var bounds = new LinkedHashSet<Type>();
+          for (var b : ground(v.getBounds(), nvars)) {
+            boundsForVar(ground(b, nvars), bounds);
+          }
+          var ub = bounds.toArray(Type[]::new);
+          yield ub.length == 0 ? W.ANY : new W(EMPTY_TYPES, ub);
+        }
+      }
+      default -> type;
+    };
   }
 
   private static void boundsForVar(Type t, LinkedHashSet<Type> bounds) {
