@@ -283,16 +283,7 @@ public final class TypeCalculator {
         if (fc.isAssignableFrom(c)) {
           var token = TypeToken.of(c).getSupertype(cast(fc));
           if (token.getType() instanceof ParameterizedType t) {
-            var ta = t.getActualTypeArguments();
-            if (fa.length != ta.length) {
-              return false;
-            }
-            for (int i = 0; i < fa.length; i++) {
-              if (!visit(fa[i], ta[i], visited, null, consumer)) {
-                return false;
-              }
-            }
-            return true;
+            return all(fa, t.getActualTypeArguments(), (e1, e2) -> visit(e1, e2, visited, null, consumer));
           }
           return false;
         }
