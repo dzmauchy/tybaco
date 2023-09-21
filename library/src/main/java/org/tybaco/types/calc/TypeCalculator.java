@@ -24,7 +24,6 @@ package org.tybaco.types.calc;
 import com.google.common.primitives.Primitives;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
-import org.tybaco.util.MiscOps;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -38,7 +37,6 @@ import static org.tybaco.types.calc.Types.*;
 import static org.tybaco.util.ArrayOps.all;
 import static org.tybaco.util.MiscOps.cast;
 
-@SuppressWarnings("DuplicatedCode")
 public final class TypeCalculator {
 
   private final HashMap<TypeVariable<?>, LinkedHashMap<Type, Boolean>> resolved;
@@ -54,12 +52,9 @@ public final class TypeCalculator {
       if (type != null) {
         var formal = param.getParameterizedType();
         if (param.isVarArgs()) {
-          var ct = param.getParameterizedType() instanceof GenericArrayType a
-            ? a.getGenericComponentType()
-            : param.getType().getComponentType();
+          var ct = formal instanceof GenericArrayType a ? a.getGenericComponentType() : param.getType().getComponentType();
           if (type instanceof VarArgs va) {
-            var r = va.types().stream().allMatch(a -> isCompatible(ct, a, this::onMatch));
-            compatible.put(param.getName(), r);
+            compatible.put(param.getName(), va.types().stream().allMatch(a -> isCompatible(ct, a, this::onMatch)));
           } else {
             compatible.put(param.getName(), isCompatible(ct, type, this::onMatch));
           }
@@ -72,8 +67,9 @@ public final class TypeCalculator {
   }
 
   private void onMatch(TypeVariable<?> v, Type t) {
-    var map = resolved.computeIfAbsent(v, k -> new LinkedHashMap<>(2, 0.5f));
-    map.put(t, TRUE);
+    resolved
+      .computeIfAbsent(v, k -> new LinkedHashMap<>(2, 0.5f))
+      .put(t, TRUE);
   }
 
   public Stream<Method> methods() {
@@ -247,11 +243,8 @@ public final class TypeCalculator {
     var fa = f.getActualTypeArguments();
     if (to instanceof ParameterizedType t) {
       if (f.getRawType() != t.getRawType()) {
-        if (covariant == null) {
-          return false;
-        }
-        var fc = (Class<?>) f.getRawType();
-        var tc = (Class<?>) t.getRawType();
+        if (covariant == null) return false;
+        final Class<?> fc = (Class<?>) f.getRawType(), tc = (Class<?>) t.getRawType();
         final TypeToken<?> token;
         if (covariant) {
           if (fc.isAssignableFrom(tc)) {
@@ -276,9 +269,7 @@ public final class TypeCalculator {
       }
     } else if (to instanceof Class<?> c) {
       var fc = (Class<?>) f.getRawType();
-      if (fc == c || covariant == null) {
-        return false;
-      }
+      if (fc == c || covariant == null) return false;
       if (covariant) {
         if (fc.isAssignableFrom(c)) {
           var token = TypeToken.of(c).getSupertype(cast(fc));
