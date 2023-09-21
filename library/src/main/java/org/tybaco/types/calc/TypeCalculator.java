@@ -298,19 +298,10 @@ public final class TypeCalculator {
 
   private static boolean v(WildcardType f, Type to, TypeVars visited, BiConsumer<TypeVariable<?>, Type> consumer) {
     var lbs = flatten(f.getLowerBounds());
-    for (var b : lbs) {
-      if (!visit(b, to, visited, FALSE, consumer)) {
-        return false;
-      }
+    if (lbs.length > 0) {
+      return all(lbs, b -> visit(b, to, visited, FALSE, consumer));
     }
-    for (var b : flatten(f.getUpperBounds())) {
-      if (!visit(b, to, visited, TRUE, consumer)) {
-        if (lbs.length == 0) {
-          return false;
-        }
-      }
-    }
-    return true;
+    return all(flatten(f.getUpperBounds()), b -> visit(b, to, visited, TRUE, consumer));
   }
 
   private static boolean v(TypeVariable<?> f, Type to, TypeVars visited, BiConsumer<TypeVariable<?>, Type> consumer) {
