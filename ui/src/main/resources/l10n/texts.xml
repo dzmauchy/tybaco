@@ -30,6 +30,9 @@
   <key value="Dependencies">
     <val lang="es">Dependencias</val>
   </key>
+  <key value="Description">
+    <val lang="es">Descripción</val>
+  </key>
   <key value="Factory">
     <val lang="es">Fábrica</val>
   </key>
@@ -56,6 +59,9 @@
   </key>
   <key value="Save all projects">
     <val lang="es">Guardar todos los proyectos</val>
+  </key>
+  <key value="Select a constant">
+    <val lang="es">Elija una constante</val>
   </key>
   <key value="Set to system default">
     <val lang="es">Usar un idioma por defecto</val>
