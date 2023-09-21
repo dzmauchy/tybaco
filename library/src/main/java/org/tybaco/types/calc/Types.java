@@ -25,6 +25,8 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.tybaco.util.ArrayOps.all;
+
 public final class Types {
 
   private static final Type[] EMPTY_TYPES = new Type[0];
@@ -141,40 +143,13 @@ public final class Types {
   }
 
   public static boolean isGround(Type type) {
-    if (type instanceof TypeVariable<?>) {
-      return false;
-    } else if (type instanceof Class<?>) {
-      return true;
-    } else if (type instanceof ParameterizedType pt) {
-      if (!isGround(pt.getOwnerType())) {
-        return false;
-      }
-      if (!isGround(pt.getRawType())) {
-        return false;
-      }
-      for (var t : pt.getActualTypeArguments()) {
-        if (!isGround(t)) {
-          return false;
-        }
-      }
-      return true;
-    } else if (type instanceof GenericArrayType a) {
-      return isGround(a.getGenericComponentType());
-    } else if (type instanceof WildcardType w) {
-      for (var t : w.getLowerBounds()) {
-        if (!isGround(t)) {
-          return false;
-        }
-      }
-      for (var t : w.getUpperBounds()) {
-        if (!isGround(t)) {
-          return false;
-        }
-      }
-      return true;
-    } else {
-      return true;
-    }
+    return switch (type) {
+      case TypeVariable<?> ignored -> false;
+      case ParameterizedType p -> isGround(p.getOwnerType()) && all(p.getActualTypeArguments(), Types::isGround);
+      case GenericArrayType a -> isGround(a.getGenericComponentType());
+      case WildcardType w -> all(w.getLowerBounds(), Types::isGround) && all(w.getUpperBounds(), Types::isGround);
+      default -> true;
+    };
   }
 
   @SuppressWarnings("unchecked")
@@ -357,7 +332,6 @@ public final class Types {
   }
 
   public record VarArgs(Set<? extends Type> types) implements Type {
-
   }
 
   @SuppressWarnings("unchecked")
