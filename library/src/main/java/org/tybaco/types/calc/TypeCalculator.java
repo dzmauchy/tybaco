@@ -27,6 +27,7 @@ import com.google.common.reflect.TypeToken;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -87,14 +88,13 @@ public final class TypeCalculator {
   private TypeResolver prepareResolver() {
     var resolver = new TypeResolver();
     for (var e : resolved.entrySet()) {
-      var var = e.getKey();
       var map = e.getValue();
       var t = switch (map.size()) {
         case 0 -> void.class;
         case 1 -> map.keySet().iterator().next();
         default -> new UnionTypeImpl(map.keySet());
       };
-      resolver = resolver.where(var, t);
+      resolver = resolver.where(e.getKey(), t);
     }
     return resolver;
   }
