@@ -125,8 +125,7 @@ public final class TypeCalculator {
       .map(m -> TypeToken.of(method.getGenericReturnType()).method(m))
       .map(i -> {
         var resolver = prepareResolver();
-        var rt = i.getReturnType();
-        var t = resolver.resolveType(rt.getType());
+        var t = resolver.resolveType(i.getReturnType().getType());
         return ground(t);
       });
   }

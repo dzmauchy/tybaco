@@ -79,6 +79,7 @@ public final class Types {
 
   private static Type ground(Type type, TypeVars vars) {
     return switch (type) {
+      case null -> null;
       case GenericArrayType a -> {
         var ct = a.getGenericComponentType();
         var gct = ground(ct, vars);
