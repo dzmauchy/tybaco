@@ -21,17 +21,19 @@ package org.tybaco.runtime.basic.source;
  * #L%
  */
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class SyncSourceTest {
 
   @Test
   void syncSourceWithoutLoad() {
-    var warmupCount = 100;
-    var count = 100;
+    var warmupCount = 10;
+    var count = 10;
     var source = (Source<String>) c -> {
       for (int i = 0; i < warmupCount; i++) {
         c.accept("warmup");
@@ -50,6 +52,36 @@ class SyncSourceTest {
     });
     for (int i = 1; i < times.length; i++) {
       var dt = times[i] - times[i - 1];
+      assertThat(dt).isGreaterThanOrEqualTo(10_000_000L);
+      assertThat(dt).isLessThan(11_000_000L);
+    }
+  }
+
+  @Test
+  void syncSourceWithLoad() {
+    var warmupCount = 10;
+    var count = 10;
+    var source = (Source<String>) c -> {
+      for (int i = 0; i < warmupCount; i++) {
+        c.accept("warmup");
+      }
+      for (int i = 0; i < count; i++) {
+        c.accept(null);
+      }
+    };
+    var times = new long[count];
+    var counter = new AtomicInteger();
+    var syncSource = new SyncSource<>(source, 10_000_000L);
+    syncSource.apply(v -> {
+      if (v == null) {
+        times[counter.getAndIncrement()] = System.nanoTime();
+        LockSupport.parkNanos(5_000_000L);
+      }
+    });
+    for (int i = 1; i < times.length; i++) {
+      var dt = times[i] - times[i - 1];
+      assertThat(dt).isGreaterThanOrEqualTo(10_000_000L);
+      assertThat(dt).isLessThan(11_000_000L);
     }
   }
 }

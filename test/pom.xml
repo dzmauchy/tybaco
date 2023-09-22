@@ -38,13 +38,9 @@
 
     <dependency>
       <groupId>org.assertj</groupId>
-      <artifactId>assertj-guava</artifactId>
+      <artifactId>assertj-core</artifactId>
       <version>3.24.2</version>
       <exclusions>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
         <exclusion>
           <groupId>org.opentest4j</groupId>
           <artifactId>*</artifactId>
