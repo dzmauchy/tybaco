@@ -21,5 +21,29 @@ package org.tybaco.runtime.basic.source;
  * #L%
  */
 
-public class ForkedSource {
+public final class SequentialSink<E> {
+
+  public final Thread thread;
+  public final Source<E> source;
+
+  public SequentialSink(ThreadGroup threadGroup, String name, Source<E> source) {
+    this.thread = new Thread(threadGroup, this::run, name);
+    this.source = source;
+  }
+
+  public void daemon(boolean daemon) {
+    thread.setDaemon(daemon);
+  }
+
+  public boolean daemon() {
+    return thread.isDaemon();
+  }
+
+  public boolean alive() {
+    return thread.isAlive();
+  }
+
+  private void run() {
+
+  }
 }
