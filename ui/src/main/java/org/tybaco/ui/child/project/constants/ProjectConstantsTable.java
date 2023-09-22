@@ -40,15 +40,8 @@ public class ProjectConstantsTable extends TableView<Constant> {
     super(project.constants);
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     setEditable(true);
-    getColumns().addAll(List.of(idColumn(), nameColumn(), factoryColumn(), valueColumn()));
-    Tables.initColumnWidths(this, 40, 100, 200, 200);
-  }
-
-  private TableColumn<Constant, Number> idColumn() {
-    var col = new TableColumn<Constant, Number>("Id");
-    col.setEditable(false);
-    col.setCellValueFactory(c -> new SimpleIntegerProperty(c.getValue().id));
-    return col;
+    getColumns().addAll(List.of(nameColumn(), factoryColumn(), valueColumn()));
+    Tables.initColumnWidths(this, 150, 200, 200);
   }
 
   private TableColumn<Constant, String> nameColumn() {
