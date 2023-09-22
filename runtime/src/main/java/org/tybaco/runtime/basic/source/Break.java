@@ -21,11 +21,11 @@ package org.tybaco.runtime.basic.source;
  * #L%
  */
 
-public final class Return extends RuntimeException {
+public final class Break extends RuntimeException {
 
-  public static final Return RETURN = new Return();
+  public static final Break BREAK = new Break();
 
-  private Return() {
+  private Break() {
     super("RETURN", null, false, false);
   }
 }

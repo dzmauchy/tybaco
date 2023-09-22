@@ -22,6 +22,7 @@ package org.tybaco.runtime.application.tasks;
  */
 
 import org.tybaco.runtime.application.*;
+import org.tybaco.runtime.basic.Starteable;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -58,7 +59,7 @@ public class ApplicationRunner implements ApplicationTask {
   RuntimeApp runtimeApp(Application app) {
     var resolver = new ApplicationResolver(app);
     var closeables = resolver.closeables;
-    var tasks = new LinkedList<Ref<Runnable>>();
+    var tasks = new LinkedList<Ref<Starteable>>();
     var runtime = new RuntimeApp(tasks, closeables);
     try {
       for (var constant : app.constants()) {
@@ -68,7 +69,7 @@ public class ApplicationRunner implements ApplicationTask {
         var bean = resolver.resolveBlock(block, new BitSet());
         if (bean instanceof Thread t) {
           tasks.add(new Ref<>(t::start, block.id()));
-        } else if (bean instanceof Runnable r) {
+        } else if (bean instanceof Starteable r) {
           tasks.add(new Ref<>(r, block.id()));
         }
       }
@@ -310,32 +311,30 @@ public class ApplicationRunner implements ApplicationTask {
     }
   }
 
-  record RuntimeApp(LinkedList<Ref<Runnable>> tasks, LinkedList<Ref<AutoCloseable>> closeables) implements AutoCloseable {
+  record RuntimeApp(LinkedList<Ref<Starteable>> tasks, LinkedList<Ref<AutoCloseable>> closeables) implements AutoCloseable {
 
     void run() {
-      for (var it = tasks.listIterator(0); it.hasNext(); ) {
-        var task = it.next();
+      while (true) {
+        var ref = tasks.pollFirst();
+        if (ref == null) break;
         try {
-          task.ref.run();
+          ref.ref.start();
         } catch (Throwable e) {
-          throw new IllegalStateException("Unable to run %d".formatted(task.id), e);
-        } finally {
-          it.remove();
+          throw new IllegalStateException("Unable to run %d".formatted(ref.id), e);
         }
       }
     }
 
     @Override
     public void close() {
-      var exception = new IllegalStateException("Close application runtime error");
-      for (var it = closeables.listIterator(closeables.size()); it.hasPrevious(); ) {
-        var closeable = it.previous();
+      var exception = new IllegalStateException("Application close error");
+      while (true) {
+        var closeable = closeables.pollLast();
+        if (closeable == null) break;
         try {
           closeable.ref.close();
         } catch (Throwable e) {
           exception.addSuppressed(new IllegalStateException("Unable to close %d".formatted(closeable.id), e));
-        } finally {
-          it.remove();
         }
       }
       if (exception.getSuppressed().length > 0) {

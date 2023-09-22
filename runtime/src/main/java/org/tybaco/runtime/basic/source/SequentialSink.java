@@ -21,14 +21,22 @@ package org.tybaco.runtime.basic.source;
  * #L%
  */
 
-public final class SequentialSink<E> {
+import org.tybaco.runtime.basic.Starteable;
 
-  public final Thread thread;
-  public final Source<E> source;
+import java.util.function.Consumer;
 
-  public SequentialSink(ThreadGroup threadGroup, String name, Source<E> source) {
+import static org.tybaco.runtime.basic.source.Break.BREAK;
+
+public final class SequentialSink<E> implements Starteable, AutoCloseable {
+
+  private final Thread thread;
+  private final Source<E> source;
+  private final Consumer<? super E> consumer;
+
+  public SequentialSink(ThreadGroup threadGroup, String name, Source<E> source, Consumer<? super E> consumer) {
     this.thread = new Thread(threadGroup, this::run, name);
     this.source = source;
+    this.consumer = consumer;
   }
 
   public void daemon(boolean daemon) {
@@ -43,7 +51,29 @@ public final class SequentialSink<E> {
     return thread.isAlive();
   }
 
-  private void run() {
+  private void consume(E element) {
+    consumer.accept(element);
+    if (thread.isInterrupted()) {
+      throw BREAK;
+    }
+  }
 
+  private void run() {
+    source.apply(this::consume);
+  }
+
+  @Override
+  public void start() {
+    thread.start();
+  }
+
+  @Override
+  public void close() throws Exception {
+    if (thread.isAlive()) {
+      if (!thread.isInterrupted()) {
+        thread.interrupt();
+      }
+      thread.join();
+    }
   }
 }

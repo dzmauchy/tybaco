@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application.beans;
+package org.tybaco.runtime.basic;
 
 /*-
  * #%L
@@ -21,29 +21,6 @@ package org.tybaco.runtime.application.beans;
  * #L%
  */
 
-import org.tybaco.runtime.basic.Starteable;
-
-public class SampleBeanA implements Starteable, AutoCloseable {
-
-  public static boolean started;
-  public static boolean closed;
-
-  private SampleBeanA() {
-    started = false;
-    closed = false;
-  }
-
-  @Override
-  public void close() {
-    closed = true;
-  }
-
-  @Override
-  public void start() {
-    started = true;
-  }
-
-  public static SampleBeanA sampleBeanA() {
-    return new SampleBeanA();
-  }
+public interface Starteable {
+  void start();
 }
