@@ -86,51 +86,12 @@
     </dependencies>
   </dependencyManagement>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.jetbrains</groupId>
-      <artifactId>annotations</artifactId>
-      <version>24.0.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>jakarta.annotation</groupId>
-      <artifactId>jakarta.annotation-api</artifactId>
-      <version>2.1.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-params</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss.logmanager</groupId>
-      <artifactId>jboss-logmanager</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.openjdk.jol</groupId>
-      <artifactId>jol-core</artifactId>
-      <version>0.17</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-
   <modules>
     <module>library</module>
     <module>runtime</module>
     <module>ui</module>
     <module>ide</module>
+    <module>test</module>
   </modules>
 
   <build>
@@ -321,7 +282,8 @@
             <runOrder>alphabetical</runOrder>
             <excludedGroups>slow,manual</excludedGroups>
             <systemPropertyVariables>
-              <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+              <java.util.logging.manager>org.tybaco.testing.logging.LoggingManager</java.util.logging.manager>
+              <java.util.logging.config.class>org.tybaco.testing.logging.LoggingInitializer</java.util.logging.config.class>
             </systemPropertyVariables>
           </configuration>
           <dependencies>
@@ -343,7 +305,8 @@
             <parallel>none</parallel>
             <runOrder>alphabetical</runOrder>
             <systemPropertyVariables>
-              <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+              <java.util.logging.manager>org.tybaco.testing.logging.LoggingManager</java.util.logging.manager>
+              <java.util.logging.config.class>org.tybaco.testing.logging.LoggingInitializer</java.util.logging.config.class>
             </systemPropertyVariables>
           </configuration>
           <dependencies>
