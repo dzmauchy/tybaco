@@ -92,7 +92,7 @@ public final class TypeCalculator {
       var t = switch (map.size()) {
         case 0 -> void.class;
         case 1 -> map.keySet().iterator().next();
-        default -> u(map.keySet());
+        default -> new UnionTypeImpl(map.keySet());
       };
       resolver = resolver.where(var, t);
     }
