@@ -50,7 +50,7 @@ public class FastConsoleHandler extends Handler {
     buffer
       .append(' ').append(level(record.getLevel()))
       .append(" [").append(record.getLongThreadID()).append("] ")
-      .append(record.getLoggerName()).append(' ');
+      .append(loggerName(record)).append(' ');
     var params = record.getParameters();
     if (params == null || params.length == 0) {
       buffer.append(record.getMessage());
@@ -92,5 +92,17 @@ public class FastConsoleHandler extends Handler {
       case 300 -> 'F';
       default -> 'U';
     };
+  }
+
+  private static String loggerName(LogRecord record) {
+    var loggerName = record.getLoggerName();
+    if (loggerName == null) {
+      return "";
+    }
+    var idx = loggerName.lastIndexOf('.');
+    if (idx >= 0) {
+      return loggerName.substring(idx + 1);
+    }
+    return loggerName;
   }
 }
