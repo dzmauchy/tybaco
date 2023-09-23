@@ -31,18 +31,25 @@ import java.util.NoSuchElementException;
 import static org.tybaco.xml.Xml.elementByTag;
 import static org.tybaco.xml.Xml.withChild;
 
-public record Link(Connector out, Connector in) {
+public record Link(Connector out, Connector in, boolean arg) {
 
   public Link(Element element) {
     this(
       new Connector(elementByTag(element, "out").orElseThrow(() -> new NoSuchElementException("out"))),
-      new Connector(elementByTag(element, "in").orElseThrow(() -> new NoSuchElementException("in")))
+      new Connector(elementByTag(element, "in").orElseThrow(() -> new NoSuchElementException("in"))),
+      switch (element.getAttribute("arg")) {
+        case "", "true" -> true;
+        default -> false;
+      }
     );
   }
 
   public void saveTo(Element element) {
     withChild(element, "out", out::saveTo);
     withChild(element, "in", in::saveTo);
+    if (!arg) {
+      element.setAttribute("arg", "false");
+    }
   }
 
   public static ObservableList<Link> newList(Collection<Link> links) {

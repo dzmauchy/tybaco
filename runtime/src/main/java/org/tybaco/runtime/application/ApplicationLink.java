@@ -27,16 +27,24 @@ import java.util.NoSuchElementException;
 
 import static org.tybaco.runtime.util.Xml.elementByTag;
 
-public record ApplicationLink(ApplicationConnector out, ApplicationConnector in) {
+public record ApplicationLink(ApplicationConnector out, ApplicationConnector in, boolean arg) {
+
+  public ApplicationLink(ApplicationConnector out, ApplicationConnector in) {
+    this(out, in, true);
+  }
 
   public ApplicationLink(Element element) {
-    this(
-      elementByTag(element, "out")
-        .map(ApplicationConnector::new)
-        .orElseThrow(() -> new NoSuchElementException("out")),
-      elementByTag(element, "in")
-        .map(ApplicationConnector::new)
-        .orElseThrow(() -> new NoSuchElementException("in"))
-    );
+    this(conn(element, "out"), conn(element, "in"), arg(element));
+  }
+
+  private static ApplicationConnector conn(Element e, String tag) {
+    return elementByTag(e, tag).map(ApplicationConnector::new).orElseThrow(() -> new NoSuchElementException(tag));
+  }
+
+  private static boolean arg(Element e) {
+    return switch (e.getAttribute("arg")) {
+      case "", "true" -> true;
+      default -> false;
+    };
   }
 }
