@@ -75,7 +75,7 @@ public class ApplicationRunner implements ApplicationTask {
     private final ClassInfoCache classInfoCache = new ClassInfoCache();
     private final ConstantInfoCache constantInfoCache = new ConstantInfoCache();
     private final IdentityHashMap<ResolvableObject, Object> beans;
-    private final IdentityHashMap<ApplicationBlock, LinkedList<Link>> args;
+    private final IdentityHashMap<ApplicationBlock, HashMap<String, TreeMap<Integer, Link>>> args;
     private final IdentityHashMap<ApplicationBlock, HashMap<String, TreeMap<Integer, Link>>> inputs;
     private final IdentityHashMap<ResolvableObject, HashMap<String, Object>> outValues;
     private final Resolvables objectMap;
@@ -91,17 +91,12 @@ public class ApplicationRunner implements ApplicationTask {
       app.links().forEach(l -> {
         var out = requireNonNull(objectMap.get(l.out().block()), () -> "Object %d doesn't exist".formatted(l.out().block()));
         var inBlock = requireNonNull(objectMap.get(l.in().block()), () -> "Object %d doesn't exist".formatted(l.in().block()));
+        var m = l.arg() ? args : inputs;
         if (inBlock instanceof ApplicationBlock in) {
-          if (l.arg()) {
-            args
-              .computeIfAbsent(in, b -> new LinkedList<>())
-              .addLast(new Link(out, l.out().spot(), in, l.in().spot(), l.in().index()));
-          } else {
-            inputs
-              .computeIfAbsent(in, b -> new HashMap<>(16))
-              .computeIfAbsent(l.in().spot(), k -> new TreeMap<>())
-              .put(l.in().index(), new Link(out, l.out().spot(), in, l.in().spot(), l.in().index()));
-          }
+          m
+            .computeIfAbsent(in, b -> new HashMap<>(16, 0.75f))
+            .computeIfAbsent(l.in().spot(), k -> new TreeMap<>())
+            .put(l.in().index(), new Link(out, l.out().spot(), in));
         } else {
           throw new IllegalArgumentException("Invalid link " + l);
         }
@@ -129,9 +124,9 @@ public class ApplicationRunner implements ApplicationTask {
       if (passed.get(b.id())) throw new IllegalStateException("Circular reference of blocks: %s".formatted(passed));
       passed.set(b.id());
       try {
-        var resolvedMethod = method(b, passed);
+        var m = method(b, passed);
         var argLinks = this.args.get(b);
-        var bean = resolvedMethod.invoke(argLinks == null ? Map.of() : blockArgs(passed, argLinks));
+        var bean = m.invoke(argLinks == null ? Map.of() : blockArgs(passed, argLinks, m));
         switch (bean) {
           case null -> throw new IllegalArgumentException("Null bean " + b);
           case AutoCloseable c -> closeables.addLast(new Ref<>(c, b.id()));
@@ -144,40 +139,16 @@ public class ApplicationRunner implements ApplicationTask {
       }
     }
 
-    private HashMap<String, Object> blockArgs(BitSet passed, LinkedList<Link> argLinks) {
-      var args = new HashMap<String, Object>(argLinks.size());
-      for (var link : argLinks) {
-        args.compute(link.in(), (k, o) -> {
-          if (link.index() >= 0) {
-            if (o == null) {
-              var arr = new Object[link.index() + 1];
-              arr[link.index()] = resolveOut(link.from(), link.out(), passed);
-              return arr;
-            } else {
-              if (o instanceof Object[] a) {
-                if (link.index() >= a.length) {
-                  a = Arrays.copyOf(a, link.index() + 1, Object[].class);
-                } else {
-                  var old = a[link.index()];
-                  if (old != null) {
-                    throw new IllegalArgumentException("Duplicated link " + link);
-                  }
-                }
-                a[link.index()] = resolveOut(link.from(), link.out(), passed);
-                return a;
-              } else {
-                throw new IllegalArgumentException("Invalid link " + link);
-              }
-            }
-          } else {
-            if (o == null) {
-              return resolveOut(link.from(), link.out(), passed);
-            } else {
-              throw new IllegalArgumentException("Duplicated link " + link);
-            }
-          }
-        });
-      }
+    private HashMap<String, Object> blockArgs(BitSet passed, HashMap<String, TreeMap<Integer, Link>> ls, ResolvedMethod method) {
+      var args = new HashMap<String, Object>(ls.size());
+      ls.forEach((name, m) -> {
+        var p = requireNonNull(method.parameter(name), () -> "No such parameter " + name);
+        try {
+          args.put(name, v(p, m, passed));
+        } catch (Throwable e) {
+          throw new IllegalStateException("Unable to set " + name, e);
+        }
+      });
       return args;
     }
 
@@ -194,7 +165,7 @@ public class ApplicationRunner implements ApplicationTask {
             try {
               var method = requireNonNull(inputs.get(spot), () -> "Unknown input " + spot + " of " + classInfo);
               var param = method.getParameters()[0];
-              method.invoke(bean, v(param, map));
+              method.invoke(bean, v(param, map, new BitSet()));
             } catch (Throwable e) {
               throw new IllegalStateException("Unable to set " + spot + " of " + b, e);
             }
@@ -203,14 +174,14 @@ public class ApplicationRunner implements ApplicationTask {
       });
     }
 
-    private Object v(Parameter param, TreeMap<Integer, Link> map) {
+    private Object v(Parameter param, TreeMap<Integer, Link> map, BitSet passed) {
       if (param.isVarArgs()) {
         var v = Array.newInstance(param.getType().getComponentType(), map.lastKey() + 1);
-        map.forEach((i, l) -> Array.set(v, i, resolveOut(l.from(), l.out(), new BitSet())));
+        map.forEach((i, l) -> Array.set(v, i, resolveOut(l.from(), l.out(), passed)));
         return v;
       } else {
         var l = map.lastEntry().getValue();
-        return resolveOut(l.from(), l.out(), new BitSet());
+        return resolveOut(l.from(), l.out(), passed);
       }
     }
 

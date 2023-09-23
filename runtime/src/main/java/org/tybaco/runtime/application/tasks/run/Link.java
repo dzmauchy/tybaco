@@ -24,5 +24,5 @@ package org.tybaco.runtime.application.tasks.run;
 import org.tybaco.runtime.application.ApplicationBlock;
 import org.tybaco.runtime.application.ResolvableObject;
 
-public record Link(ResolvableObject from, String out, ApplicationBlock to, String in, int index) {
+public record Link(ResolvableObject from, String out, ApplicationBlock to) {
 }
