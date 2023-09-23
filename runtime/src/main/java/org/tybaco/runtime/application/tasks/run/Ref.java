@@ -1,4 +1,4 @@
-package org.tybaco.runtime.util;
+package org.tybaco.runtime.application.tasks.run;
 
 /*-
  * #%L
@@ -21,24 +21,5 @@ package org.tybaco.runtime.util;
  * #L%
  */
 
-import org.tybaco.runtime.application.ResolvableObject;
-
-import static java.lang.System.identityHashCode;
-
-public record Conn(ResolvableObject block, String spot) {
-
-  @Override
-  public boolean equals(Object obj) {
-    return obj instanceof Conn c && block == c.block && spot.equals(c.spot);
-  }
-
-  @Override
-  public int hashCode() {
-    return identityHashCode(block) ^ spot.hashCode();
-  }
-
-  @Override
-  public String toString() {
-    return block.id() + "(" + spot + ")";
-  }
+public record Ref<T>(T ref, int id) {
 }

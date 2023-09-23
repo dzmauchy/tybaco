@@ -22,17 +22,17 @@ package org.tybaco.runtime.application.tasks;
  */
 
 import org.tybaco.runtime.application.*;
+import org.tybaco.runtime.application.tasks.run.*;
 import org.tybaco.runtime.basic.CanBeStarted;
 import org.tybaco.runtime.reflect.ClassInfoCache;
 import org.tybaco.runtime.reflect.ConstantInfoCache;
-import org.tybaco.runtime.util.*;
 
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.concurrent.ScheduledFuture;
 
 import static java.lang.Thread.currentThread;
 import static java.util.Objects.requireNonNull;
+import static org.tybaco.runtime.reflect.FactoryInfo.defaultValue;
 
 public class ApplicationRunner implements ApplicationTask {
 
@@ -81,7 +81,7 @@ public class ApplicationRunner implements ApplicationTask {
     private final HashMap<Conn, Conns> args;
     private final HashMap<Conn, Conns> inputs;
     private final HashMap<Conn, Object> outValues;
-    private final ResolvableObjectMap objectMap;
+    private final Resolvables objectMap;
     private final LinkedList<Ref<AutoCloseable>> closeables = new LinkedList<>();
 
     private ApplicationResolver(Application app) {
@@ -89,7 +89,7 @@ public class ApplicationRunner implements ApplicationTask {
       this.args = new HashMap<>(app.links().size());
       this.inputs = new HashMap<>(app.links().size());
       this.outValues = new HashMap<>(app.links().size());
-      this.objectMap = new ResolvableObjectMap(app.maxInternalId() + 1);
+      this.objectMap = new Resolvables(app.maxInternalId() + 1);
 
       app.blocks().forEach(b -> objectMap.put(b.id(), b));
       app.constants().forEach(c -> objectMap.put(c.id(), c));
@@ -123,7 +123,7 @@ public class ApplicationRunner implements ApplicationTask {
       passed.set(b.id());
       try {
         var resolvedMethod = method(b, passed);
-        var params = resolvedMethod.method.getParameters();
+        var params = resolvedMethod.getParameters();
         var resolvedParams = new Object[params.length];
         for (int i = 0; i < params.length; i++) {
           var param = params[i];
@@ -144,7 +144,7 @@ public class ApplicationRunner implements ApplicationTask {
             resolvedParams[i] = resolveOut(conn, bean);
           }
         }
-        var bean = resolvedMethod.method.invoke(resolvedMethod.bean, resolvedParams);
+        var bean = resolvedMethod.invoke(resolvedParams);
         if (bean instanceof AutoCloseable c) {
           closeables.addLast(new Ref<>(c, b.id()));
         }
@@ -198,18 +198,6 @@ public class ApplicationRunner implements ApplicationTask {
       return new ResolvedMethod(method, type);
     }
 
-    private record ResolvedMethod(Method method, Object bean) {}
-
-    private static Object defaultValue(Parameter parameter) {
-      if (parameter.getType().isPrimitive()) {
-        return Array.get(Array.newInstance(parameter.getType(), 1), 0);
-      } else if (parameter.isVarArgs()) {
-        return Array.newInstance(parameter.getType().getComponentType(), 0);
-      } else {
-        return null;
-      }
-    }
-
     private Object resolveOut(Conn out, Object bean) {
       if ("*".equals(out.spot())) return bean;
       else if (outValues.containsKey(out)) return outValues.get(out);
@@ -225,43 +213,4 @@ public class ApplicationRunner implements ApplicationTask {
       }
     }
   }
-
-  record RuntimeApp(LinkedList<Ref<CanBeStarted>> tasks, LinkedList<Ref<AutoCloseable>> closeables) implements AutoCloseable {
-
-    void run() {
-      while (true) {
-        var ref = tasks.pollFirst();
-        if (ref == null) break;
-        try {
-          ref.ref.start();
-        } catch (Throwable e) {
-          try {
-            close();
-          } catch (Throwable x) {
-            e.addSuppressed(x);
-          }
-          throw new IllegalStateException("Unable to run %d".formatted(ref.id), e);
-        }
-      }
-    }
-
-    @Override
-    public void close() {
-      var exception = new IllegalStateException("Application close error");
-      while (true) {
-        var closeable = closeables.pollLast();
-        if (closeable == null) break;
-        try {
-          closeable.ref.close();
-        } catch (Throwable e) {
-          exception.addSuppressed(new IllegalStateException("Unable to close %d".formatted(closeable.id), e));
-        }
-      }
-      if (exception.getSuppressed().length > 0) {
-        throw exception;
-      }
-    }
-  }
-
-  private record Ref<T>(T ref, int id) {}
 }

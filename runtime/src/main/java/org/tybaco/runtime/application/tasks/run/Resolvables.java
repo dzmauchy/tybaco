@@ -1,4 +1,4 @@
-package org.tybaco.runtime.util;
+package org.tybaco.runtime.application.tasks.run;
 
 /*-
  * #%L
@@ -10,12 +10,12 @@ package org.tybaco.runtime.util;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -25,13 +25,13 @@ import org.tybaco.runtime.application.ResolvableObject;
 
 import java.util.TreeMap;
 
-public final class ResolvableObjectMap {
+public final class Resolvables {
 
   private static final int BUCKET_SIZE = 64;
 
   private final ResolvableObject[][] buckets;
 
-  public ResolvableObjectMap(int size) {
+  public Resolvables(int size) {
     buckets = new ResolvableObject[Math.ceilDiv(size, BUCKET_SIZE)][];
   }
 

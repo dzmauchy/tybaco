@@ -29,27 +29,26 @@ public final class ClassInfoCache extends ClassValue<ClassInfo> {
 
   @Override
   protected ClassInfo computeValue(Class<?> type) {
-    var inputs = new HashMap<String, Method>();
-    var outputs = new HashMap<String, Method>();
-    var factories = new HashMap<String, FactoryInfo>();
+    var methods = type.getMethods();
+    var inputs = new HashMap<String, Method>(methods.length);
+    var outputs = new HashMap<String, Method>(methods.length);
+    var factories = new HashMap<String, FactoryInfo>(methods.length);
     for (var c : type.getConstructors()) {
       factories.compute("new", (k, o) -> merge(o, c));
     }
-    for (var m : type.getMethods()) {
-      if (Modifier.isStatic(m.getModifiers())) {
-        if (m.getReturnType() != void.class) {
-          factories.compute(m.getName(), (k, o) -> merge(o, m));
+    for (var m : methods) {
+      if (!m.trySetAccessible()) {
+        continue;
+      }
+      if (!Modifier.isStatic(m.getModifiers())) {
+        if (m.getReturnType() == void.class && m.getParameterCount() == 1) {
+          inputs.put(m.getName(), m);
+        } else if (m.getReturnType() != void.class && m.getParameterCount() == 0) {
+          outputs.put(m.getName(), m);
         }
-      } else {
-        if (m.getParameterCount() == 1) {
-          if (m.getReturnType() == void.class) {
-            inputs.put(m.getName(), m);
-          }
-        } else if (m.getParameterCount() == 0) {
-          if (m.getReturnType() != void.class) {
-            outputs.put(m.getName(), m);
-          }
-        }
+      }
+      if (m.getReturnType() != void.class) {
+        factories.compute(m.getName(), (k, o) -> merge(o, m));
       }
     }
     return new ClassInfo(Map.copyOf(inputs), Map.copyOf(outputs), Map.copyOf(factories));

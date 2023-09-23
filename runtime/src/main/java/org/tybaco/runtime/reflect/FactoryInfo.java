@@ -63,4 +63,14 @@ public final class FactoryInfo {
       case Method m -> m.invoke(bean, args);
     }
   }
+
+  public static Object defaultValue(Parameter parameter) {
+    if (parameter.getType().isPrimitive()) {
+      return Array.get(Array.newInstance(parameter.getType(), 1), 0);
+    } else if (parameter.isVarArgs()) {
+      return Array.newInstance(parameter.getType().getComponentType(), 0);
+    } else {
+      return null;
+    }
+  }
 }
