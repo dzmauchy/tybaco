@@ -31,8 +31,6 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 
-import static java.lang.Long.parseLong;
-import static java.lang.System.identityHashCode;
 import static java.lang.Thread.currentThread;
 import static java.util.Objects.requireNonNull;
 
