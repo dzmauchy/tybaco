@@ -23,7 +23,7 @@ package org.tybaco.runtime.application.tasks.run;
 
 import org.tybaco.runtime.application.ResolvableObject;
 
-import java.util.TreeMap;
+import java.util.*;
 
 public final class Resolvables {
 
@@ -31,11 +31,21 @@ public final class Resolvables {
 
   private final ResolvableObject[][] buckets;
 
-  public Resolvables(int size) {
-    buckets = new ResolvableObject[Math.ceilDiv(size, BUCKET_SIZE)][];
+  @SafeVarargs
+  public Resolvables(List<? extends ResolvableObject>... lists) {
+    var maxId = Arrays.stream(lists)
+      .flatMap(List::stream)
+      .mapToInt(ResolvableObject::id)
+      .max()
+      .orElse(-1);
+    buckets = new ResolvableObject[Math.ceilDiv(maxId + 1, BUCKET_SIZE)][];
+    for (var list : lists) {
+      list.forEach(this::put);
+    }
   }
 
-  public void put(int key, ResolvableObject value) {
+  private void put(ResolvableObject value) {
+    var key = value.id();
     var bucketIndex = key / BUCKET_SIZE;
     var bucket = buckets[bucketIndex];
     if (bucket == null) buckets[bucketIndex] = bucket = new ResolvableObject[BUCKET_SIZE];

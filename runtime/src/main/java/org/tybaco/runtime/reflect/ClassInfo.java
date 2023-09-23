@@ -22,10 +22,29 @@ package org.tybaco.runtime.reflect;
  */
 
 import java.lang.reflect.Method;
-import java.util.Map;
+import java.util.*;
 
-public record ClassInfo(Map<String, Method> inputs, Map<String, Method> outputs, Map<String, FactoryInfo> factories) {
-  public boolean hasFactories() {
-    return !factories.isEmpty();
+public record ClassInfo(
+  Class<?> type,
+  Map<String, Method> inputs,
+  Map<String, Method> outputs,
+  Map<String, FactoryInfo> factories,
+  Map<String, FactoryInfo> staticFactories
+) {
+
+  public Method input(String name) {
+    return Objects.requireNonNull(inputs.get(name), () -> "No such input " + name + " for " + type);
+  }
+
+  public Method output(String name) {
+    return Objects.requireNonNull(outputs.get(name), () -> "No such output " + name + " for " + type);
+  }
+
+  public FactoryInfo factory(String name) {
+    return Objects.requireNonNull(factories.get(name), () -> "No such factory " + name + " for " + type);
+  }
+
+  public FactoryInfo staticFactory(String name) {
+    return Objects.requireNonNull(staticFactories.get(name), () -> "No such static factory " + name + " for " + type);
   }
 }

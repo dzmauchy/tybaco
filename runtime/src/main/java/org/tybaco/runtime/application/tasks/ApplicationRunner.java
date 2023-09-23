@@ -27,12 +27,12 @@ import org.tybaco.runtime.basic.CanBeStarted;
 import org.tybaco.runtime.reflect.ClassInfoCache;
 import org.tybaco.runtime.reflect.ConstantInfoCache;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.Parameter;
 import java.util.*;
 
 import static java.lang.Thread.currentThread;
 import static java.util.Objects.requireNonNull;
-import static org.tybaco.runtime.reflect.FactoryInfo.defaultValue;
 
 public class ApplicationRunner implements ApplicationTask {
 
@@ -41,14 +41,12 @@ public class ApplicationRunner implements ApplicationTask {
     requireNonNull(context.application, "Application is not loaded");
     var runtimeApp = requireNonNull(runtimeApp(context.application));
     context.closeable = runtimeApp::close;
-    runtimeApp.run();
   }
 
   RuntimeApp runtimeApp(Application app) {
     var resolver = new ApplicationResolver(app);
-    var closeables = resolver.closeables;
     var tasks = new LinkedList<Ref<CanBeStarted>>();
-    var runtime = new RuntimeApp(tasks, closeables);
+    var runtime = new RuntimeApp(resolver.closeables);
     try {
       for (var constant : app.constants()) {
         resolver.resolveConstant(constant);
@@ -59,9 +57,8 @@ public class ApplicationRunner implements ApplicationTask {
           tasks.addLast(new Ref<>(s, block.id()));
         }
       }
-      for (var block : app.blocks()) {
-        resolver.invokeInputs(block);
-      }
+      resolver.invokeInputs();
+      runtime.run(tasks);
       return runtime;
     } catch (Throwable e) {
       try {
@@ -78,27 +75,36 @@ public class ApplicationRunner implements ApplicationTask {
     private final ClassInfoCache classInfoCache = new ClassInfoCache();
     private final ConstantInfoCache constantInfoCache = new ConstantInfoCache();
     private final IdentityHashMap<ResolvableObject, Object> beans;
-    private final HashMap<Conn, Conns> args;
-    private final HashMap<Conn, Conns> inputs;
-    private final HashMap<Conn, Object> outValues;
+    private final IdentityHashMap<ApplicationBlock, LinkedList<Link>> args;
+    private final IdentityHashMap<ApplicationBlock, HashMap<String, TreeMap<Integer, Link>>> inputs;
+    private final IdentityHashMap<ResolvableObject, HashMap<String, Object>> outValues;
     private final Resolvables objectMap;
     private final LinkedList<Ref<AutoCloseable>> closeables = new LinkedList<>();
 
     private ApplicationResolver(Application app) {
       this.beans = new IdentityHashMap<>(app.blocks().size());
-      this.args = new HashMap<>(app.links().size());
-      this.inputs = new HashMap<>(app.links().size());
-      this.outValues = new HashMap<>(app.links().size());
-      this.objectMap = new Resolvables(app.maxInternalId() + 1);
-
-      app.blocks().forEach(b -> objectMap.put(b.id(), b));
-      app.constants().forEach(c -> objectMap.put(c.id(), c));
+      this.args = new IdentityHashMap<>(app.blocks().size());
+      this.inputs = new IdentityHashMap<>(app.blocks().size());
+      this.outValues = new IdentityHashMap<>(app.blocks().size() + app.constants().size());
+      this.objectMap = new Resolvables(app.blocks(), app.constants());
 
       app.links().forEach(l -> {
-        var outBlock = requireNonNull(objectMap.get(l.out().block()), () -> "Object %d doesn't exist".formatted(l.out().block()));
+        var out = requireNonNull(objectMap.get(l.out().block()), () -> "Object %d doesn't exist".formatted(l.out().block()));
         var inBlock = requireNonNull(objectMap.get(l.in().block()), () -> "Object %d doesn't exist".formatted(l.in().block()));
-        var m = l.arg() ? args : inputs;
-        m.computeIfAbsent(new Conn(inBlock, l.in().spot()), k -> new Conns()).add(l.in().index(), new Conn(outBlock, l.out().spot()));
+        if (inBlock instanceof ApplicationBlock in) {
+          if (l.arg()) {
+            args
+              .computeIfAbsent(in, b -> new LinkedList<>())
+              .addLast(new Link(out, l.out().spot(), in, l.in().spot(), l.in().index()));
+          } else {
+            inputs
+              .computeIfAbsent(in, b -> new HashMap<>(16))
+              .computeIfAbsent(l.in().spot(), k -> new TreeMap<>())
+              .put(l.in().index(), new Link(out, l.out().spot(), in, l.in().spot(), l.in().index()));
+          }
+        } else {
+          throw new IllegalArgumentException("Invalid link " + l);
+        }
       });
     }
 
@@ -118,35 +124,18 @@ public class ApplicationRunner implements ApplicationTask {
     }
 
     private Object resolveBlock(ApplicationBlock b, BitSet passed) {
-      if (beans.containsKey(b)) return beans.get(b);
+      var existingBean = beans.get(b);
+      if (existingBean != null) return existingBean;
       if (passed.get(b.id())) throw new IllegalStateException("Circular reference of blocks: %s".formatted(passed));
       passed.set(b.id());
       try {
         var resolvedMethod = method(b, passed);
-        var params = resolvedMethod.getParameters();
-        var resolvedParams = new Object[params.length];
-        for (int i = 0; i < params.length; i++) {
-          var param = params[i];
-          var in = new Conn(b, param.getName());
-          var out = args.get(in);
-          if (out == null) {
-            resolvedParams[i] = defaultValue(param);
-          } else if (param.isVarArgs()) {
-            var array = Array.newInstance(param.getType().getComponentType(), out.len());
-            out.forEach((index, conn) -> {
-              var bean = beans.containsKey(conn.block()) ? beans.get(conn.block()) : resolveBlock((ApplicationBlock) conn.block(), passed);
-              Array.set(array, index, resolveOut(conn, bean));
-            });
-            resolvedParams[i] = array;
-          } else {
-            var conn = out.get(0);
-            var bean = beans.containsKey(conn.block()) ? beans.get(conn.block()) : resolveBlock((ApplicationBlock) conn.block(), passed);
-            resolvedParams[i] = resolveOut(conn, bean);
-          }
-        }
-        var bean = resolvedMethod.invoke(resolvedParams);
-        if (bean instanceof AutoCloseable c) {
-          closeables.addLast(new Ref<>(c, b.id()));
+        var argLinks = this.args.get(b);
+        var bean = resolvedMethod.invoke(argLinks == null ? Map.of() : blockArgs(passed, argLinks));
+        switch (bean) {
+          case null -> throw new IllegalArgumentException("Null bean " + b);
+          case AutoCloseable c -> closeables.addLast(new Ref<>(c, b.id()));
+          default -> {}
         }
         beans.put(b, bean);
         return bean;
@@ -155,33 +144,73 @@ public class ApplicationRunner implements ApplicationTask {
       }
     }
 
-    private void invokeInputs(ApplicationBlock b) {
-      var bean = beans.get(b);
-      for (var method : bean.getClass().getMethods()) {
-        if (method.getParameterCount() != 1) continue;
-        if (Modifier.isStatic(method.getModifiers())) continue;
-        var conn = new Conn(b, "+" + method.getName());
-        var out = args.get(conn);
-        if (out != null) {
-          var parameter = method.getParameters()[0];
-          final Object arg;
-          if (parameter.isVarArgs()) {
-            arg = Array.newInstance(parameter.getType().getComponentType(), out.len());
-            out.forEach((i, c) -> {
-              var outBean = beans.get(c.block());
-              Array.set(arg, i, resolveOut(c, outBean));
-            });
+    private HashMap<String, Object> blockArgs(BitSet passed, LinkedList<Link> argLinks) {
+      var args = new HashMap<String, Object>(argLinks.size());
+      for (var link : argLinks) {
+        args.compute(link.in(), (k, o) -> {
+          if (link.index() >= 0) {
+            if (o == null) {
+              var arr = new Object[link.index() + 1];
+              arr[link.index()] = resolveOut(link.from(), link.out(), passed);
+              return arr;
+            } else {
+              if (o instanceof Object[] a) {
+                if (link.index() >= a.length) {
+                  a = Arrays.copyOf(a, link.index() + 1, Object[].class);
+                } else {
+                  var old = a[link.index()];
+                  if (old != null) {
+                    throw new IllegalArgumentException("Duplicated link " + link);
+                  }
+                }
+                a[link.index()] = resolveOut(link.from(), link.out(), passed);
+                return a;
+              } else {
+                throw new IllegalArgumentException("Invalid link " + link);
+              }
+            }
           } else {
-            var outConn = out.get(0);
-            var outBean = beans.get(outConn.block());
-            arg = resolveOut(outConn, outBean);
+            if (o == null) {
+              return resolveOut(link.from(), link.out(), passed);
+            } else {
+              throw new IllegalArgumentException("Duplicated link " + link);
+            }
           }
-          try {
-            method.invoke(bean, arg);
-          } catch (Throwable e) {
-            throw new IllegalStateException("Unable to set %s on %d".formatted(method.getName(), b.id()), e);
+        });
+      }
+      return args;
+    }
+
+    private void invokeInputs() {
+      beans.forEach((b, bean) -> {
+        if (b instanceof ApplicationBlock ab) {
+          var links = this.inputs.get(ab);
+          if (links == null) {
+            return;
           }
+          var classInfo = classInfoCache.get(bean.getClass());
+          var inputs = classInfo.inputs();
+          links.forEach((spot, map) -> {
+            try {
+              var method = requireNonNull(inputs.get(spot), () -> "Unknown input " + spot + " of " + classInfo);
+              var param = method.getParameters()[0];
+              method.invoke(bean, v(param, map));
+            } catch (Throwable e) {
+              throw new IllegalStateException("Unable to set " + spot + " of " + b, e);
+            }
+          });
         }
+      });
+    }
+
+    private Object v(Parameter param, TreeMap<Integer, Link> map) {
+      if (param.isVarArgs()) {
+        var v = Array.newInstance(param.getType().getComponentType(), map.lastKey() + 1);
+        map.forEach((i, l) -> Array.set(v, i, resolveOut(l.from(), l.out(), new BitSet())));
+        return v;
+      } else {
+        var l = map.lastEntry().getValue();
+        return resolveOut(l.from(), l.out(), new BitSet());
       }
     }
 
@@ -189,27 +218,40 @@ public class ApplicationRunner implements ApplicationTask {
       if (b.isDependent()) {
         var parentBlockId = b.parentBlockId();
         var parentBlock = requireNonNull(objectMap.get(parentBlockId), () -> "Block %d doesn't exist".formatted(parentBlockId));
-        var bean = beans.containsKey(parentBlock) ? beans.get(parentBlock) : resolveBlock((ApplicationBlock) parentBlock, passed);
-        var method = b.resolveFactoryMethod(bean);
-        return new ResolvedMethod(method, bean);
+        var bean = switch (parentBlock) {
+          case ApplicationBlock ab -> resolveBlock(ab, passed);
+          default -> throw new IllegalArgumentException("Invalid block reference: " + b);
+        };
+        var classInfo = classInfoCache.get(bean.getClass());
+        return new ResolvedMethod(classInfo.factory(b.method()), bean);
+      } else {
+        var type = Class.forName(b.factory(), true, currentThread().getContextClassLoader());
+        var classInfo = classInfoCache.get(type);
+        return new ResolvedMethod(classInfo.staticFactory(b.method()), type);
       }
-      var type = Class.forName(b.factory(), true, currentThread().getContextClassLoader());
-      var method = b.resolveFactoryMethod(type);
-      return new ResolvedMethod(method, type);
     }
 
-    private Object resolveOut(Conn out, Object bean) {
-      if ("*".equals(out.spot())) return bean;
-      else if (outValues.containsKey(out)) return outValues.get(out);
-      else {
-        try {
-          var method = out.getClass().getMethod(out.spot());
-          var value = method.invoke(bean);
-          outValues.put(out, value);
-          return value;
-        } catch (Throwable e) {
-          throw new IllegalStateException("Block %d: error on resolving output %s".formatted(out.block().id(), out.spot()), e);
+    private Object resolveOut(ResolvableObject out, String spot, BitSet passed) {
+      try {
+        var bean = switch (out) {
+          case ApplicationConstant c -> beans.get(c);
+          case ApplicationBlock b -> resolveBlock(b, passed);
+        };
+        if ("*".equals(spot)) return bean;
+        else {
+          var outValues = this.outValues.computeIfAbsent(out, k -> new HashMap<>(16, 0.75f));
+          if (outValues.containsKey(spot)) {
+            return outValues.get(spot);
+          } else {
+            var classInfo = classInfoCache.get(bean.getClass());
+            var output = classInfo.output(spot);
+            var v = output.invoke(bean);
+            outValues.put(spot, v);
+            return v;
+          }
         }
+      } catch (Throwable e) {
+        throw new IllegalStateException("Block %d: error on resolving output %s".formatted(out.id(), spot));
       }
     }
   }

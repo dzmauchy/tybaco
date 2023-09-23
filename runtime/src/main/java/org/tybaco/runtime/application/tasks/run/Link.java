@@ -21,41 +21,8 @@ package org.tybaco.runtime.application.tasks.run;
  * #L%
  */
 
-import java.util.Arrays;
+import org.tybaco.runtime.application.ApplicationBlock;
+import org.tybaco.runtime.application.ResolvableObject;
 
-public final class Conns {
-
-  private Conn[] conns = new Conn[0];
-
-  public int len() {
-    return conns.length;
-  }
-
-  public Conn get(int index) {
-    return conns[index];
-  }
-
-  public void add(int index, Conn conn) {
-    if (index < 0) {
-      conns = new Conn[] {conn};
-    } else {
-      if (index >= conns.length) conns = Arrays.copyOf(conns, index + 1, Conn[].class);
-      conns[index] = conn;
-    }
-  }
-
-  public void forEach(Consumer consumer) {
-    var conns = this.conns;
-    var len = conns.length;
-    for (int i = 0; i < len; i++) {
-      var conn = conns[i];
-      if (conn != null) {
-        consumer.consume(i, conn);
-      }
-    }
-  }
-
-  public interface Consumer {
-    void consume(int index, Conn conn);
-  }
+public record Link(ResolvableObject from, String out, ApplicationBlock to, String in, int index) {
 }

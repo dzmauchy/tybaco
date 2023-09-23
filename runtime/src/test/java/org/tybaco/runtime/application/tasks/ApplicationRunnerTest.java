@@ -30,8 +30,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.tybaco.runtime.application.ApplicationConnector.out;
 
 class ApplicationRunnerTest {
@@ -61,23 +60,23 @@ class ApplicationRunnerTest {
       ApplicationBlock.fromMethod(100, SampleBeanB.class.getMethod("sampleBeanB", Object[].class))
     );
     var links = List.of(
-      new ApplicationLink(out(0), new ApplicationConnector(100, "+v", 1)),
-      new ApplicationLink(out(1), new ApplicationConnector(100, "+v", 3)),
-      new ApplicationLink(out(2), new ApplicationConnector(100, "+v", 4)),
+      new ApplicationLink(out(0), new ApplicationConnector(100, "v", 1), false),
+      new ApplicationLink(out(1), new ApplicationConnector(100, "v", 3), false),
+      new ApplicationLink(out(2), new ApplicationConnector(100, "v", 4), false),
       new ApplicationLink(out(3), new ApplicationConnector(100, "values", 2))
     );
     var app = new Application("app", constants, blocks, links);
     // when
     runApp(app);
     // then
-    assertArrayEquals(new Object[] {null, 12, null, 234L, new URI("http://localhost:80")}, SampleBeanB.values);
     assertArrayEquals(new Object[] {null, null, new BigDecimal("1.2")}, SampleBeanB.constructorValues);
+    assertArrayEquals(new Object[] {null, 12, null, 234L, new URI("http://localhost:80")}, SampleBeanB.values);
   }
 
   private void runApp(Application app) {
     var runner = new ApplicationRunner();
     try (var runtime = runner.runtimeApp(app)) {
-      runtime.run();
+      assertNotNull(runtime);
     }
   }
 }

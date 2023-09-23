@@ -48,20 +48,33 @@ public final class FactoryInfo {
     return parameters.length;
   }
 
-  public void execute(Object bean, Map<String, Object> values) throws ReflectiveOperationException {
+  public Object execute(Object bean, Map<String, Object> values) throws ReflectiveOperationException {
     var args = new Object[parameters.length];
     for (int i = 0; i < args.length; i++) {
       var param = parameters[i];
       var value = values.get(param.getName());
-      if (value == null && param.getType().isPrimitive()) {
-        value = Array.get(Array.newInstance(param.getType(), 1), 0);
+      if (value == null) {
+        if (param.getType().isPrimitive()) {
+          value = Array.get(Array.newInstance(param.getType(), 1), 0);
+        } else if (param.isVarArgs()) {
+          value = Array.newInstance(param.getType().getComponentType(), 0);
+        }
+      } else if (param.isVarArgs()) {
+        if (value instanceof Object[] a) {
+          var array = Array.newInstance(param.getType().getComponentType(), a.length);
+          for (int k = 0; k < a.length; k++) {
+            Array.set(array, k, a[k]);
+          }
+        } else {
+          throw new IllegalArgumentException("Non vararg argument of " + value.getClass());
+        }
       }
       args[i] = value;
     }
-    switch (executable) {
+    return switch (executable) {
       case Constructor<?> c -> c.newInstance(args);
       case Method m -> m.invoke(bean, args);
-    }
+    };
   }
 
   public static Object defaultValue(Parameter parameter) {

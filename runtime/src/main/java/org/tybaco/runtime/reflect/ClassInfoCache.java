@@ -33,6 +33,7 @@ public final class ClassInfoCache extends ClassValue<ClassInfo> {
     var inputs = new HashMap<String, Method>(methods.length);
     var outputs = new HashMap<String, Method>(methods.length);
     var factories = new HashMap<String, FactoryInfo>(methods.length);
+    var staticFactories = new HashMap<String, FactoryInfo>(methods.length);
     for (var c : type.getConstructors()) {
       factories.compute("new", (k, o) -> merge(o, c));
     }
@@ -40,18 +41,22 @@ public final class ClassInfoCache extends ClassValue<ClassInfo> {
       if (!m.trySetAccessible()) {
         continue;
       }
-      if (!Modifier.isStatic(m.getModifiers())) {
+      if (Modifier.isStatic(m.getModifiers())) {
+        if (m.getReturnType() != void.class) {
+          staticFactories.compute(m.getName(), (k, o) -> merge(o, m));
+        }
+      } else {
         if (m.getReturnType() == void.class && m.getParameterCount() == 1) {
           inputs.put(m.getName(), m);
         } else if (m.getReturnType() != void.class && m.getParameterCount() == 0) {
           outputs.put(m.getName(), m);
         }
-      }
-      if (m.getReturnType() != void.class) {
-        factories.compute(m.getName(), (k, o) -> merge(o, m));
+        if (m.getReturnType() != void.class) {
+          factories.compute(m.getName(), (k, o) -> merge(o, m));
+        }
       }
     }
-    return new ClassInfo(Map.copyOf(inputs), Map.copyOf(outputs), Map.copyOf(factories));
+    return new ClassInfo(type, Map.copyOf(inputs), Map.copyOf(outputs), Map.copyOf(factories), Map.copyOf(staticFactories));
   }
 
   private static FactoryInfo merge(FactoryInfo old, Executable e) {

@@ -24,11 +24,8 @@ package org.tybaco.runtime.application;
 import org.w3c.dom.Element;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.NoSuchElementException;
 
 import static java.lang.Integer.parseInt;
-import static java.util.Arrays.stream;
 
 public record ApplicationBlock(int id, String factory, String method) implements ResolvableObject {
 
@@ -46,22 +43,6 @@ public record ApplicationBlock(int id, String factory, String method) implements
 
   public int parentBlockId() {
     return parseInt(factory);
-  }
-
-  public Method resolveFactoryMethod(Object bean) {
-    return stream(bean.getClass().getMethods())
-      .filter(m -> !Modifier.isStatic(m.getModifiers()))
-      .filter(m -> m.getName().equals(method))
-      .findFirst()
-      .orElseThrow(() -> new NoSuchElementException(method + " of " + this + "(" + bean.getClass() + ")"));
-  }
-
-  public Method resolveFactoryMethod(Class<?> type) {
-    return stream(type.getMethods())
-      .filter(m -> Modifier.isStatic(m.getModifiers()))
-      .filter(m -> m.getName().equals(method))
-      .findFirst()
-      .orElseThrow(() -> new NoSuchElementException(method + "of " + this + "(" + type + ")"));
   }
 
   public static ApplicationBlock fromMethod(int id, Method method) {

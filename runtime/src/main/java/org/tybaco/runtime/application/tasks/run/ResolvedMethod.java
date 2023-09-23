@@ -21,20 +21,18 @@ package org.tybaco.runtime.application.tasks.run;
  * #L%
  */
 
-import java.lang.reflect.Method;
+import org.tybaco.runtime.reflect.FactoryInfo;
+
 import java.lang.reflect.Parameter;
+import java.util.Map;
 
-public record ResolvedMethod(Method method, Object bean) {
+public record ResolvedMethod(FactoryInfo factory, Object bean) {
 
-  public int getParameterCount() {
-    return method.getParameterCount();
+  public Object invoke(Map<String, Object> args) throws ReflectiveOperationException {
+    return factory.execute(bean, args);
   }
 
-  public Object invoke(Object[] args) throws ReflectiveOperationException {
-    return method.invoke(bean, args);
-  }
-
-  public Parameter[] getParameters() {
-    return method.getParameters();
+  public Parameter parameter(String name) {
+    return factory.parameter(name);
   }
 }

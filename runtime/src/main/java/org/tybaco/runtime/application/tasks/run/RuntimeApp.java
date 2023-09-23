@@ -25,9 +25,9 @@ import org.tybaco.runtime.basic.CanBeStarted;
 
 import java.util.LinkedList;
 
-public record RuntimeApp(LinkedList<Ref<CanBeStarted>> tasks, LinkedList<Ref<AutoCloseable>> closeables) implements AutoCloseable {
+public record RuntimeApp(LinkedList<Ref<AutoCloseable>> closeables) implements AutoCloseable {
 
-  public void run() {
+  public void run(LinkedList<Ref<CanBeStarted>> tasks) {
     while (true) {
       var ref = tasks.pollFirst();
       if (ref == null) break;
