@@ -25,7 +25,7 @@ import org.tybaco.runtime.application.*;
 import org.tybaco.runtime.basic.Starteable;
 import org.tybaco.runtime.reflect.ClassInfoCache;
 import org.tybaco.runtime.reflect.ConstantInfoCache;
-import org.tybaco.runtime.util.ResolvableObjectMap;
+import org.tybaco.runtime.util.*;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -108,7 +108,7 @@ public class ApplicationRunner implements ApplicationTask {
 
     private void resolveConstant(ApplicationConstant c) {
       try {
-        var v = primitiveConstValue(c);
+        var v = c.primitiveConstValue();
         beans.put(c, v == null ? constValue(c) : v);
       } catch (Throwable e) {
         throw new IllegalStateException("Unable to create " + c);
@@ -136,15 +136,15 @@ public class ApplicationRunner implements ApplicationTask {
           if (out == null) {
             resolvedParams[i] = defaultValue(param);
           } else if (param.isVarArgs()) {
-            var array = Array.newInstance(param.getType().getComponentType(), out.conns.length);
+            var array = Array.newInstance(param.getType().getComponentType(), out.len());
             out.forEach((index, conn) -> {
-              var bean = beans.containsKey(conn.block) ? beans.get(conn.block) : resolveBlock((ApplicationBlock) conn.block, passed);
+              var bean = beans.containsKey(conn.block()) ? beans.get(conn.block()) : resolveBlock((ApplicationBlock) conn.block(), passed);
               Array.set(array, index, resolveOut(conn, bean));
             });
             resolvedParams[i] = array;
           } else {
-            var conn = out.conns[0];
-            var bean = beans.containsKey(conn.block) ? beans.get(conn.block) : resolveBlock((ApplicationBlock) conn.block(), passed);
+            var conn = out.get(0);
+            var bean = beans.containsKey(conn.block()) ? beans.get(conn.block()) : resolveBlock((ApplicationBlock) conn.block(), passed);
             resolvedParams[i] = resolveOut(conn, bean);
           }
         }
@@ -176,14 +176,14 @@ public class ApplicationRunner implements ApplicationTask {
           var parameter = method.getParameters()[0];
           final Object arg;
           if (parameter.isVarArgs()) {
-            arg = Array.newInstance(parameter.getType().getComponentType(), out.conns.length);
+            arg = Array.newInstance(parameter.getType().getComponentType(), out.len());
             out.forEach((i, c) -> {
-              var outBean = beans.get(c.block);
+              var outBean = beans.get(c.block());
               Array.set(arg, i, resolveOut(c, outBean));
             });
           } else {
-            var outConn = out.conns[0];
-            var outBean = beans.get(outConn.block);
+            var outConn = out.get(0);
+            var outBean = beans.get(outConn.block());
             arg = resolveOut(outConn, outBean);
           }
           try {
@@ -208,53 +208,6 @@ public class ApplicationRunner implements ApplicationTask {
       return new ResolvedMethod(method, type);
     }
 
-    private record Conn(ResolvableObject block, String spot) {
-
-      @Override
-      public boolean equals(Object obj) {
-        return obj instanceof Conn c && block == c.block && spot.equals(c.spot);
-      }
-
-      @Override
-      public int hashCode() {
-        return identityHashCode(block) ^ spot.hashCode();
-      }
-
-      @Override
-      public String toString() {
-        return block.id() + "(" + spot + ")";
-      }
-    }
-
-    private static final class Conns {
-
-      private Conn[] conns = new Conn[0];
-
-      private void add(int index, Conn conn) {
-        if (index < 0) {
-          conns = new Conn[] {conn};
-        } else {
-          if (index >= conns.length) conns = Arrays.copyOf(conns, index + 1, Conn[].class);
-          conns[index] = conn;
-        }
-      }
-
-      private void forEach(Consumer consumer) {
-        var conns = this.conns;
-        var len = conns.length;
-        for (int i = 0; i < len; i++) {
-          var conn = conns[i];
-          if (conn != null) {
-            consumer.consume(i, conn);
-          }
-        }
-      }
-
-      private interface Consumer {
-        void consume(int index, Conn conn);
-      }
-    }
-
     private record ResolvedMethod(Method method, Object bean) {}
 
     private static Object defaultValue(Parameter parameter) {
@@ -268,16 +221,16 @@ public class ApplicationRunner implements ApplicationTask {
     }
 
     private Object resolveOut(Conn out, Object bean) {
-      if ("*".equals(out.spot)) return bean;
+      if ("*".equals(out.spot())) return bean;
       else if (outValues.containsKey(out)) return outValues.get(out);
       else {
         try {
-          var method = out.getClass().getMethod(out.spot);
+          var method = out.getClass().getMethod(out.spot());
           var value = method.invoke(bean);
           outValues.put(out, value);
           return value;
         } catch (Throwable e) {
-          throw new IllegalStateException("Block %d: error on resolving output %s".formatted(out.block.id(), out.spot), e);
+          throw new IllegalStateException("Block %d: error on resolving output %s".formatted(out.block().id(), out.spot()), e);
         }
       }
     }
@@ -318,21 +271,6 @@ public class ApplicationRunner implements ApplicationTask {
         throw exception;
       }
     }
-  }
-
-  private static Object primitiveConstValue(ApplicationConstant b) {
-    var v = b.value();
-    return switch (b.factory()) {
-      case "int" -> Integer.parseInt(v);
-      case "long" -> parseLong(v);
-      case "short" -> Short.parseShort(v);
-      case "byte" -> Byte.parseByte(v);
-      case "char" -> v.charAt(0);
-      case "boolean" -> Boolean.parseBoolean(v);
-      case "float" -> Float.parseFloat(v);
-      case "double" -> Double.parseDouble(v);
-      default -> null;
-    };
   }
 
   private record Ref<T>(T ref, int id) {}

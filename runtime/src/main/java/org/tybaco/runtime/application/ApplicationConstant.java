@@ -23,9 +23,8 @@ package org.tybaco.runtime.application;
 
 import org.w3c.dom.Element;
 
-import java.lang.reflect.*;
-
 import static java.lang.Integer.parseInt;
+import static java.lang.Long.parseLong;
 
 public record ApplicationConstant(int id, String factory, String value) implements ResolvableObject {
 
@@ -37,10 +36,17 @@ public record ApplicationConstant(int id, String factory, String value) implemen
     );
   }
 
-  public static boolean isFactoryExecutable(Executable executable) {
-    if (executable.getParameterCount() != 1) return false;
-    else if (executable.getParameterTypes()[0] != String.class) return false;
-    else if (executable instanceof Method m) return Modifier.isStatic(m.getModifiers());
-    else return executable instanceof Constructor<?>;
+  public Object primitiveConstValue() {
+    return switch (factory) {
+      case "int" -> Integer.parseInt(value);
+      case "long" -> parseLong(value);
+      case "short" -> Short.parseShort(value);
+      case "byte" -> Byte.parseByte(value);
+      case "char" -> value.charAt(0);
+      case "boolean" -> Boolean.parseBoolean(value);
+      case "float" -> Float.parseFloat(value);
+      case "double" -> Double.parseDouble(value);
+      default -> null;
+    };
   }
 }
