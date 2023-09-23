@@ -21,13 +21,13 @@ package org.tybaco.runtime.basic.source;
  * #L%
  */
 
-import org.tybaco.runtime.basic.Starteable;
+import org.tybaco.runtime.basic.CanBeStarted;
 
 import java.util.function.Consumer;
 
 import static org.tybaco.runtime.basic.source.Break.BREAK;
 
-public final class SequentialSink<E> implements Starteable, AutoCloseable {
+public final class SequentialSink<E> implements CanBeStarted, AutoCloseable {
 
   private final Thread thread;
   private final Source<E> source;

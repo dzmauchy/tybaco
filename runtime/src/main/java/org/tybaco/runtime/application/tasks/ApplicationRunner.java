@@ -22,7 +22,7 @@ package org.tybaco.runtime.application.tasks;
  */
 
 import org.tybaco.runtime.application.*;
-import org.tybaco.runtime.basic.Starteable;
+import org.tybaco.runtime.basic.CanBeStarted;
 import org.tybaco.runtime.reflect.ClassInfoCache;
 import org.tybaco.runtime.reflect.ConstantInfoCache;
 import org.tybaco.runtime.util.*;
@@ -47,7 +47,7 @@ public class ApplicationRunner implements ApplicationTask {
   RuntimeApp runtimeApp(Application app) {
     var resolver = new ApplicationResolver(app);
     var closeables = resolver.closeables;
-    var tasks = new LinkedList<Ref<Starteable>>();
+    var tasks = new LinkedList<Ref<CanBeStarted>>();
     var runtime = new RuntimeApp(tasks, closeables);
     try {
       for (var constant : app.constants()) {
@@ -55,10 +55,8 @@ public class ApplicationRunner implements ApplicationTask {
       }
       for (var block : app.blocks()) {
         var bean = resolver.resolveBlock(block, new BitSet());
-        if (bean instanceof Thread t) {
-          tasks.add(new Ref<>(t::start, block.id()));
-        } else if (bean instanceof Starteable r) {
-          tasks.add(new Ref<>(r, block.id()));
+        if (bean instanceof CanBeStarted s) {
+          tasks.addLast(new Ref<>(s, block.id()));
         }
       }
       for (var block : app.blocks()) {
@@ -149,12 +147,6 @@ public class ApplicationRunner implements ApplicationTask {
         var bean = resolvedMethod.method.invoke(resolvedMethod.bean, resolvedParams);
         if (bean instanceof AutoCloseable c) {
           closeables.addLast(new Ref<>(c, b.id()));
-        } else if (bean instanceof Timer t) {
-          closeables.addLast(new Ref<>(t::cancel, b.id()));
-        } else if (bean instanceof TimerTask t) {
-          closeables.addLast(new Ref<>(t::cancel, b.id()));
-        } else if (bean instanceof ScheduledFuture<?> f) {
-          closeables.addLast(new Ref<>(() -> f.cancel(false), b.id()));
         }
         beans.put(b, bean);
         return bean;
@@ -234,7 +226,7 @@ public class ApplicationRunner implements ApplicationTask {
     }
   }
 
-  record RuntimeApp(LinkedList<Ref<Starteable>> tasks, LinkedList<Ref<AutoCloseable>> closeables) implements AutoCloseable {
+  record RuntimeApp(LinkedList<Ref<CanBeStarted>> tasks, LinkedList<Ref<AutoCloseable>> closeables) implements AutoCloseable {
 
     void run() {
       while (true) {

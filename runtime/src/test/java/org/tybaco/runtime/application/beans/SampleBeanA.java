@@ -21,9 +21,9 @@ package org.tybaco.runtime.application.beans;
  * #L%
  */
 
-import org.tybaco.runtime.basic.Starteable;
+import org.tybaco.runtime.basic.CanBeStarted;
 
-public class SampleBeanA implements Starteable, AutoCloseable {
+public class SampleBeanA implements CanBeStarted, AutoCloseable {
 
   public static boolean started;
   public static boolean closed;
