@@ -26,6 +26,7 @@ import org.tybaco.runtime.application.tasks.run.*;
 import org.tybaco.runtime.basic.CanBeStarted;
 import org.tybaco.runtime.reflect.ClassInfoCache;
 import org.tybaco.runtime.reflect.ConstantInfoCache;
+import org.tybaco.runtime.util.FList;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Parameter;
@@ -45,7 +46,7 @@ public class ApplicationRunner implements ApplicationTask {
 
   RuntimeApp runtimeApp(Application app) {
     var resolver = new ApplicationResolver(app);
-    var tasks = new LinkedList<Ref<CanBeStarted>>();
+    var tasks = new FList<Ref<CanBeStarted>>();
     var runtime = new RuntimeApp(resolver.closeables);
     try {
       for (var constant : app.constants()) {
@@ -54,7 +55,7 @@ public class ApplicationRunner implements ApplicationTask {
       for (var block : app.blocks()) {
         var bean = resolver.resolveBlock(block, new BitSet());
         if (bean instanceof CanBeStarted s) {
-          tasks.addLast(new Ref<>(s, block.id()));
+          tasks.add(new Ref<>(s, block.id()));
         }
       }
       resolver.invokeInputs();

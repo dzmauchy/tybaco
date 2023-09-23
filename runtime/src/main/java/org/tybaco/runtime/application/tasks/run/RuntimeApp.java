@@ -22,15 +22,14 @@ package org.tybaco.runtime.application.tasks.run;
  */
 
 import org.tybaco.runtime.basic.CanBeStarted;
+import org.tybaco.runtime.util.FList;
 
 import java.util.LinkedList;
 
 public record RuntimeApp(LinkedList<Ref<AutoCloseable>> closeables) implements AutoCloseable {
 
-  public void run(LinkedList<Ref<CanBeStarted>> tasks) {
-    while (true) {
-      var ref = tasks.pollFirst();
-      if (ref == null) break;
+  public void run(FList<Ref<CanBeStarted>> tasks) {
+    tasks.pollEach(ref -> {
       try {
         ref.ref().start();
       } catch (Throwable e) {
@@ -41,7 +40,7 @@ public record RuntimeApp(LinkedList<Ref<AutoCloseable>> closeables) implements A
         }
         throw new IllegalStateException("Unable to run %d".formatted(ref.id()), e);
       }
-    }
+    });
   }
 
   @Override
