@@ -75,9 +75,9 @@ public class ApplicationRunner implements ApplicationTask {
     private final ClassInfoCache classInfoCache = new ClassInfoCache();
     private final ConstantInfoCache constantInfoCache = new ConstantInfoCache();
     private final IdentityHashMap<ResolvableObject, Object> beans;
-    private final IdentityHashMap<ApplicationBlock, HashMap<String, TreeMap<Integer, Link>>> args;
-    private final IdentityHashMap<ApplicationBlock, HashMap<String, TreeMap<Integer, Link>>> inputs;
-    private final IdentityHashMap<ResolvableObject, HashMap<String, Object>> outValues;
+    private final IdentityHashMap<ApplicationBlock, TreeMap<String, TreeMap<Integer, Link>>> args;
+    private final IdentityHashMap<ApplicationBlock, TreeMap<String, TreeMap<Integer, Link>>> inputs;
+    private final IdentityHashMap<ResolvableObject, TreeMap<String, Object>> outValues;
     private final Resolvables objectMap;
     private final LinkedList<Ref<AutoCloseable>> closeables = new LinkedList<>();
 
@@ -94,9 +94,9 @@ public class ApplicationRunner implements ApplicationTask {
         var m = l.arg() ? args : inputs;
         if (inBlock instanceof ApplicationBlock in) {
           m
-            .computeIfAbsent(in, b -> new HashMap<>(16, 0.75f))
+            .computeIfAbsent(in, b -> new TreeMap<>())
             .computeIfAbsent(l.in().spot(), k -> new TreeMap<>())
-            .put(l.in().index(), new Link(out, l.out().spot(), in));
+            .put(l.in().index(), new Link(out, l.out().spot()));
         } else {
           throw new IllegalArgumentException("Invalid link " + l);
         }
@@ -125,7 +125,7 @@ public class ApplicationRunner implements ApplicationTask {
       passed.set(b.id());
       try {
         var m = method(b, passed);
-        var argLinks = this.args.get(b);
+        var argLinks = args.get(b);
         var bean = m.invoke(argLinks == null ? Map.of() : blockArgs(passed, argLinks, m));
         switch (bean) {
           case null -> throw new IllegalArgumentException("Null bean " + b);
@@ -139,7 +139,7 @@ public class ApplicationRunner implements ApplicationTask {
       }
     }
 
-    private HashMap<String, Object> blockArgs(BitSet passed, HashMap<String, TreeMap<Integer, Link>> ls, ResolvedMethod method) {
+    private HashMap<String, Object> blockArgs(BitSet passed, TreeMap<String, TreeMap<Integer, Link>> ls, ResolvedMethod method) {
       var args = new HashMap<String, Object>(ls.size());
       ls.forEach((name, m) -> {
         var p = requireNonNull(method.parameter(name), () -> "No such parameter " + name);
@@ -210,7 +210,7 @@ public class ApplicationRunner implements ApplicationTask {
         };
         if ("*".equals(spot)) return bean;
         else {
-          var outValues = this.outValues.computeIfAbsent(out, k -> new HashMap<>(16, 0.75f));
+          var outValues = this.outValues.computeIfAbsent(out, k -> new TreeMap<>());
           if (outValues.containsKey(spot)) {
             return outValues.get(spot);
           } else {
