@@ -23,37 +23,27 @@ package org.tybaco.runtime.application.tasks;
 
 import org.tybaco.runtime.application.*;
 import org.tybaco.runtime.basic.Starteable;
+import org.tybaco.runtime.reflect.ClassInfoCache;
+import org.tybaco.runtime.reflect.ConstantInfoCache;
+import org.tybaco.runtime.util.ResolvableObjectMap;
 
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledFuture;
 
 import static java.lang.Long.parseLong;
-import static java.lang.Runtime.getRuntime;
 import static java.lang.System.identityHashCode;
+import static java.lang.Thread.currentThread;
 import static java.util.Objects.requireNonNull;
-import static java.util.concurrent.locks.LockSupport.parkNanos;
-import static org.tybaco.runtime.util.Settings.booleanSetting;
-import static org.tybaco.runtime.util.Settings.longSetting;
 
 public class ApplicationRunner implements ApplicationTask {
 
   @Override
   public void run(ApplicationContext context) {
     requireNonNull(context.application, "Application is not loaded");
-    var latch = new CountDownLatch(1);
-    var watchdog = new Thread(() -> watch(latch), "application-watchdog");
-    watchdog.setDaemon(true);
-    watchdog.start();
-    try {
-      //noinspection resource
-      var runtimeApp = runtimeApp(context.application);
-      getRuntime().addShutdownHook(new Thread(runtimeApp::close));
-      runtimeApp.run();
-    } finally {
-      latch.countDown();
-    }
+    var runtimeApp = requireNonNull(runtimeApp(context.application));
+    context.closeable = runtimeApp::close;
+    runtimeApp.run();
   }
 
   RuntimeApp runtimeApp(Application app) {
@@ -87,23 +77,12 @@ public class ApplicationRunner implements ApplicationTask {
     }
   }
 
-  private static void watch(CountDownLatch latch) {
-    try {
-      latch.await();
-      if (!booleanSetting("TYBACO_EXIT_ENABLED").orElse(false)) {
-        return;
-      }
-      parkNanos(longSetting("TYBACO_EXIT_WAIT_TIMEOUT").orElse(1L) * 1_000_000_000L);
-      System.exit(0);
-    } catch (Throwable e) {
-      e.printStackTrace(System.err);
-    }
-  }
-
   private static final class ApplicationResolver {
 
-    private final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    private final ClassInfoCache classInfoCache = new ClassInfoCache();
+    private final ConstantInfoCache constantInfoCache = new ConstantInfoCache();
     private final IdentityHashMap<ResolvableObject, Object> beans;
+    private final HashMap<Conn, Conns> args;
     private final HashMap<Conn, Conns> inputs;
     private final HashMap<Conn, Object> outValues;
     private final ResolvableObjectMap objectMap;
@@ -111,6 +90,7 @@ public class ApplicationRunner implements ApplicationTask {
 
     private ApplicationResolver(Application app) {
       this.beans = new IdentityHashMap<>(app.blocks().size());
+      this.args = new HashMap<>(app.links().size());
       this.inputs = new HashMap<>(app.links().size());
       this.outValues = new HashMap<>(app.links().size());
       this.objectMap = new ResolvableObjectMap(app.maxInternalId() + 1);
@@ -121,7 +101,8 @@ public class ApplicationRunner implements ApplicationTask {
       app.links().forEach(l -> {
         var outBlock = requireNonNull(objectMap.get(l.out().block()), () -> "Object %d doesn't exist".formatted(l.out().block()));
         var inBlock = requireNonNull(objectMap.get(l.in().block()), () -> "Object %d doesn't exist".formatted(l.in().block()));
-        inputs.computeIfAbsent(new Conn(inBlock, l.in().spot()), k -> new Conns()).add(l.in().index(), new Conn(outBlock, l.out().spot()));
+        var m = l.arg() ? args : inputs;
+        m.computeIfAbsent(new Conn(inBlock, l.in().spot()), k -> new Conns()).add(l.in().index(), new Conn(outBlock, l.out().spot()));
       });
     }
 
@@ -135,18 +116,9 @@ public class ApplicationRunner implements ApplicationTask {
     }
 
     private Object constValue(ApplicationConstant c) throws Exception {
-      var factoryClass = Class.forName(c.factory(), true, classLoader);
-      for (var method : factoryClass.getMethods()) {
-        if (ApplicationConstant.isFactoryExecutable(method)) {
-          return method.invoke(null, c.value());
-        }
-      }
-      for (var constructor : factoryClass.getConstructors()) {
-        if (ApplicationConstant.isFactoryExecutable(constructor)) {
-          return constructor.newInstance(c.value());
-        }
-      }
-      throw new NoSuchElementException("No value methods found on " + factoryClass);
+      var factoryClass = Class.forName(c.factory(), true, currentThread().getContextClassLoader());
+      var info = requireNonNull(constantInfoCache.get(factoryClass), () -> "No constant found in " + factoryClass);
+      return info.invoke(c.value());
     }
 
     private Object resolveBlock(ApplicationBlock b, BitSet passed) {
@@ -160,7 +132,7 @@ public class ApplicationRunner implements ApplicationTask {
         for (int i = 0; i < params.length; i++) {
           var param = params[i];
           var in = new Conn(b, param.getName());
-          var out = inputs.get(in);
+          var out = args.get(in);
           if (out == null) {
             resolvedParams[i] = defaultValue(param);
           } else if (param.isVarArgs()) {
@@ -199,7 +171,7 @@ public class ApplicationRunner implements ApplicationTask {
         if (method.getParameterCount() != 1) continue;
         if (Modifier.isStatic(method.getModifiers())) continue;
         var conn = new Conn(b, "+" + method.getName());
-        var out = inputs.get(conn);
+        var out = args.get(conn);
         if (out != null) {
           var parameter = method.getParameters()[0];
           final Object arg;
@@ -231,7 +203,7 @@ public class ApplicationRunner implements ApplicationTask {
         var method = b.resolveFactoryMethod(bean);
         return new ResolvedMethod(method, bean);
       }
-      var type = Class.forName(b.factory(), true, classLoader);
+      var type = Class.forName(b.factory(), true, currentThread().getContextClassLoader());
       var method = b.resolveFactoryMethod(type);
       return new ResolvedMethod(method, type);
     }
@@ -320,6 +292,11 @@ public class ApplicationRunner implements ApplicationTask {
         try {
           ref.ref.start();
         } catch (Throwable e) {
+          try {
+            close();
+          } catch (Throwable x) {
+            e.addSuppressed(x);
+          }
           throw new IllegalStateException("Unable to run %d".formatted(ref.id), e);
         }
       }
@@ -359,45 +336,4 @@ public class ApplicationRunner implements ApplicationTask {
   }
 
   private record Ref<T>(T ref, int id) {}
-
-  private static final class ResolvableObjectMap {
-
-    private static final int BUCKET_SIZE = 64;
-
-    private final ResolvableObject[][] buckets;
-
-    private ResolvableObjectMap(int size) {
-      buckets = new ResolvableObject[Math.ceilDiv(size, BUCKET_SIZE)][];
-    }
-
-    private void put(int key, ResolvableObject value) {
-      var bucketIndex = key / BUCKET_SIZE;
-      var bucket = buckets[bucketIndex];
-      if (bucket == null) buckets[bucketIndex] = bucket = new ResolvableObject[BUCKET_SIZE];
-      bucket[key % BUCKET_SIZE] = value;
-    }
-
-    private ResolvableObject get(int key) {
-      var bucketIndex = key / BUCKET_SIZE;
-      if (bucketIndex >= buckets.length) return null;
-      var bucket = buckets[bucketIndex];
-      return bucket == null ? null : bucket[key % BUCKET_SIZE];
-    }
-
-    @Override
-    public String toString() {
-      var map = new TreeMap<Integer, ResolvableObject>();
-      int i = 0;
-      for (var bucket : buckets) {
-        if (bucket == null) {
-          i += BUCKET_SIZE;
-        } else {
-          for (var v : bucket) {
-            if (v != null) map.put(i++, v); else i++;
-          }
-        }
-      }
-      return map.toString();
-    }
-  }
 }

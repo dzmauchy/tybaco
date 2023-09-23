@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application.tasks;
+package org.tybaco.runtime.reflect;
 
 /*-
  * #%L
@@ -21,10 +21,11 @@ package org.tybaco.runtime.application.tasks;
  * #L%
  */
 
-import org.tybaco.runtime.application.Application;
+import java.lang.reflect.Method;
+import java.util.Map;
 
-public final class ApplicationContext {
-
-  Application application;
-  public Runnable closeable;
+public record ClassInfo(Map<String, Method> inputs, Map<String, Method> outputs, Map<String, FactoryInfo> factories) {
+  public boolean hasFactories() {
+    return !factories.isEmpty();
+  }
 }

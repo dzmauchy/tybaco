@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application.tasks;
+package org.tybaco.runtime.reflect;
 
 /*-
  * #%L
@@ -21,10 +21,14 @@ package org.tybaco.runtime.application.tasks;
  * #L%
  */
 
-import org.tybaco.runtime.application.Application;
+import java.lang.reflect.*;
 
-public final class ApplicationContext {
+public record ConstantInfo(Executable executable) {
 
-  Application application;
-  public Runnable closeable;
+  public Object invoke(String value) throws ReflectiveOperationException {
+    return switch (executable) {
+      case Constructor<?> c -> c.newInstance(value);
+      case Method m -> m.invoke(null, value);
+    };
+  }
 }

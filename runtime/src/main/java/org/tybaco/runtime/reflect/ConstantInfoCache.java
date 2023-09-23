@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application.tasks;
+package org.tybaco.runtime.reflect;
 
 /*-
  * #%L
@@ -21,10 +21,21 @@ package org.tybaco.runtime.application.tasks;
  * #L%
  */
 
-import org.tybaco.runtime.application.Application;
+import java.lang.reflect.Modifier;
 
-public final class ApplicationContext {
-
-  Application application;
-  public Runnable closeable;
+public final class ConstantInfoCache extends ClassValue<ConstantInfo> {
+  @Override
+  protected ConstantInfo computeValue(Class<?> type) {
+    for (var c : type.getConstructors()) {
+      if (c.getParameterCount() == 1 && c.getParameterTypes()[0] == String.class) {
+        return new ConstantInfo(c);
+      }
+    }
+    for (var m : type.getMethods()) {
+      if (Modifier.isStatic(m.getModifiers()) && m.getParameterCount() == 1 && m.getParameterTypes()[0] == String.class) {
+        return new ConstantInfo(m);
+      }
+    }
+    return null;
+  }
 }
