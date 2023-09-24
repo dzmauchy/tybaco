@@ -113,9 +113,9 @@ public class ApplicationRunner implements ApplicationTask {
     }
 
     private Object constValue(ApplicationConstant c) throws Exception {
-      var factoryClass = Class.forName(c.factory(), true, currentThread().getContextClassLoader());
+      var factoryClass = Class.forName(c.factory, true, currentThread().getContextClassLoader());
       var info = requireNonNull(constantInfoCache.get(factoryClass), () -> "No constant found in " + factoryClass);
-      return info.invoke(c.value());
+      return info.invoke(c.value);
     }
 
     private Object resolveBlock(ApplicationBlock b, BitSet passed) {
@@ -192,11 +192,11 @@ public class ApplicationRunner implements ApplicationTask {
           default -> throw new IllegalArgumentException("Invalid block reference: " + b);
         };
         var classInfo = classInfoCache.get(bean.getClass());
-        return new ResolvedMethod(classInfo.factory(b.method()), bean);
+        return new ResolvedMethod(classInfo.factory(b.method), bean);
       } else {
-        var type = Class.forName(b.factory(), true, currentThread().getContextClassLoader());
+        var type = Class.forName(b.factory, true, currentThread().getContextClassLoader());
         var classInfo = classInfoCache.get(type);
-        return new ResolvedMethod(classInfo.staticFactory(b.method()), type);
+        return new ResolvedMethod(classInfo.staticFactory(b.method), type);
       }
     }
 

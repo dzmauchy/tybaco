@@ -27,7 +27,17 @@ import java.lang.reflect.Method;
 
 import static java.lang.Integer.parseInt;
 
-public record ApplicationBlock(int id, String factory, String method) implements ResolvableObject {
+public final class ApplicationBlock implements ResolvableObject {
+  
+  public final int id;
+  public final String factory;
+  public final String method;
+
+  public ApplicationBlock(int id, String factory, String method) {
+    this.id = id;
+    this.factory = factory;
+    this.method = method;
+  }
 
   public ApplicationBlock(Element element) {
     this(
@@ -43,6 +53,21 @@ public record ApplicationBlock(int id, String factory, String method) implements
 
   public int parentBlockId() {
     return parseInt(factory);
+  }
+
+  @Override
+  public int id() {
+    return id;
+  }
+
+  @Override
+  public String factory() {
+    return factory;
+  }
+
+  @Override
+  public String toString() {
+    return "Block(" + id + ":" + factory + "." + method + ")";
   }
 
   public static ApplicationBlock fromMethod(int id, Method method) {

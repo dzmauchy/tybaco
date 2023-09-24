@@ -26,7 +26,17 @@ import org.w3c.dom.Element;
 import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
 
-public record ApplicationConstant(int id, String factory, String value) implements ResolvableObject {
+public final class ApplicationConstant implements ResolvableObject {
+
+  public final int id;
+  public final String factory;
+  public final String value;
+
+  public ApplicationConstant(int id, String factory, String value) {
+    this.id = id;
+    this.factory = factory;
+    this.value = value;
+  }
 
   public ApplicationConstant(Element element) {
     this(
@@ -48,5 +58,20 @@ public record ApplicationConstant(int id, String factory, String value) implemen
       case "double" -> Double.parseDouble(value);
       default -> null;
     };
+  }
+
+  @Override
+  public int id() {
+    return id;
+  }
+
+  @Override
+  public String factory() {
+    return factory;
+  }
+
+  @Override
+  public String toString() {
+    return "Const(" + id + ":" + factory + ":" + value + ")";
   }
 }

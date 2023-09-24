@@ -45,8 +45,8 @@ class ApplicationParseTest {
     var application = load(inputSource, schema(), Application::new);
     assertEquals(1, application.constants().size());
     assertEquals("abc", application.id());
-    assertEquals("int", application.constants().get(0).factory());
-    assertEquals("45", application.constants().get(0).value());
+    assertEquals("int", application.constants().get(0).factory);
+    assertEquals("45", application.constants().get(0).value);
     assertEquals(23, application.constants().get(0).id());
   }
 
