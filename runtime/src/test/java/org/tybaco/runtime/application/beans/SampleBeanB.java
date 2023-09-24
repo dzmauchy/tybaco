@@ -38,4 +38,8 @@ public final class SampleBeanB {
   public void v(Object... vs) {
     values = vs;
   }
+
+  public int o() {
+    return 0;
+  }
 }

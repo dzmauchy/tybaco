@@ -193,9 +193,9 @@ public class ApplicationRunner implements ApplicationTask {
     private ResolvedMethod method(ApplicationBlock b, BitSet passed) throws Exception {
       if (b.isDependent()) {
         var bean = switch (objectMap.get(b.parentBlockId())) {
-          case null -> throw new IllegalArgumentException("Non-existent block reference: " + b);
+          case null -> throw new IllegalArgumentException("Non-existent block " + b.parentBlockId() + " referenced from " + b);
           case ApplicationBlock p -> resolveBlock(p, passed);
-          default -> throw new IllegalArgumentException("Invalid block reference: " + b);
+          case ApplicationConstant c -> beans.get(c);
         };
         var classInfo = classInfoCache.get(bean.getClass());
         return new ResolvedMethod(classInfo.factory(b.method), bean);
@@ -226,7 +226,7 @@ public class ApplicationRunner implements ApplicationTask {
           }
         }
       } catch (Throwable e) {
-        throw new IllegalStateException("Block %d: error on resolving output %s".formatted(out.id(), spot));
+        throw new IllegalStateException("Block %d: error on resolving output %s".formatted(out.id(), spot), e);
       }
     }
   }

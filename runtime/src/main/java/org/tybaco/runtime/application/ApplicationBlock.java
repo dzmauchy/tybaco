@@ -75,4 +75,8 @@ public final class ApplicationBlock implements ResolvableObject {
     var value = method.getName();
     return new ApplicationBlock(id, factory, value);
   }
+
+  public static ApplicationBlock fromConstructor(int id, Class<?> type) {
+    return new ApplicationBlock(id, type.getName(), "new");
+  }
 }

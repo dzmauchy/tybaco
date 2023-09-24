@@ -23,20 +23,21 @@ package org.tybaco.runtime.application.tasks;
 
 import org.junit.jupiter.api.Test;
 import org.tybaco.runtime.application.*;
-import org.tybaco.runtime.application.beans.SampleBeanA;
-import org.tybaco.runtime.application.beans.SampleBeanB;
+import org.tybaco.runtime.application.beans.*;
+import org.tybaco.runtime.exception.CircularBlockReferenceException;
 
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.tybaco.runtime.application.ApplicationConnector.in;
 import static org.tybaco.runtime.application.ApplicationConnector.out;
 
 class ApplicationRunnerTest {
 
   @Test
-  void a() throws Exception {
+  void simplestBean() throws Exception {
     // given
     var blocks = List.of(ApplicationBlock.fromMethod(0, SampleBeanA.class.getMethod("sampleBeanA")));
     var app = new Application("app", List.of(), blocks, List.of());
@@ -48,7 +49,7 @@ class ApplicationRunnerTest {
   }
 
   @Test
-  void b() throws Exception {
+  void aBeanWithConstantsAndOneBlock() throws Exception {
     // given
     var constants = List.of(
       new ApplicationConstant(0, "int", "12"),
@@ -57,13 +58,13 @@ class ApplicationRunnerTest {
       new ApplicationConstant(3, "java.math.BigDecimal", "1.2")
     );
     var blocks = List.of(
-      ApplicationBlock.fromMethod(100, SampleBeanB.class.getMethod("sampleBeanB", Object[].class))
+      ApplicationBlock.fromMethod(32, SampleBeanB.class.getMethod("sampleBeanB", Object[].class))
     );
     var links = List.of(
-      new ApplicationLink(out(0), new ApplicationConnector(100, "v", 1), false),
-      new ApplicationLink(out(1), new ApplicationConnector(100, "v", 3), false),
-      new ApplicationLink(out(2), new ApplicationConnector(100, "v", 4), false),
-      new ApplicationLink(out(3), new ApplicationConnector(100, "values", 2))
+      new ApplicationLink(out(0), in(32, "v", 1), false),
+      new ApplicationLink(out(1), in(32, "v", 3), false),
+      new ApplicationLink(out(2), in(32, "v", 4), false),
+      new ApplicationLink(out(3), in(32, "values", 2))
     );
     var app = new Application("app", constants, blocks, links);
     // when
@@ -71,6 +72,28 @@ class ApplicationRunnerTest {
     // then
     assertArrayEquals(new Object[] {null, null, new BigDecimal("1.2")}, SampleBeanB.constructorValues);
     assertArrayEquals(new Object[] {null, 12, null, 234L, new URI("http://localhost:80")}, SampleBeanB.values);
+  }
+
+  @Test
+  void circularReference() throws Exception {
+    // given
+    var constants = List.of(
+      new ApplicationConstant(0, "int", "12")
+    );
+    var blocks = List.of(
+      ApplicationBlock.fromConstructor(32, SampleBeanC.class),
+      ApplicationBlock.fromMethod(33, SampleBeanB.class.getMethod("sampleBeanB", Object[].class)),
+      ApplicationBlock.fromMethod(34, SampleBeanA.class.getMethod("sampleBeanA"))
+    );
+    var links = List.of(
+      new ApplicationLink(out(33, "o"), in(32, "x")),
+      new ApplicationLink(out(32), in(33, "values"))
+    );
+    var app = new Application("app", constants, blocks, links);
+    // when
+    var exc = assertThrows(CircularBlockReferenceException.class, () -> runApp(app));
+    // then
+    assertEquals("[32,33]", exc.getMessage());
   }
 
   private void runApp(Application app) {

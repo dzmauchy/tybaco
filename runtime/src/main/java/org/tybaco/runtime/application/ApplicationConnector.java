@@ -27,10 +27,6 @@ import static java.lang.Integer.parseInt;
 
 public record ApplicationConnector(int block, String spot, int index) {
 
-  public ApplicationConnector(int block, String spot) {
-    this(block, spot, -1);
-  }
-
   public ApplicationConnector(Element element) {
     this(
       parseInt(element.getAttribute("block")),
@@ -40,6 +36,18 @@ public record ApplicationConnector(int block, String spot, int index) {
   }
 
   public static ApplicationConnector out(int block) {
-    return new ApplicationConnector(block, "*");
+    return new ApplicationConnector(block, "*", -1);
+  }
+
+  public static ApplicationConnector out(int block, String spot) {
+    return new ApplicationConnector(block, spot, -1);
+  }
+
+  public static ApplicationConnector in(int block, String spot) {
+    return new ApplicationConnector(block, spot, -1);
+  }
+
+  public static ApplicationConnector in(int block, String spot, int index) {
+    return new ApplicationConnector(block, spot, index);
   }
 }

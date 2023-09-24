@@ -35,7 +35,7 @@ public final class ClassInfoCache extends ClassValue<ClassInfo> {
     var factories = new HashMap<String, FactoryInfo>(methods.length);
     var staticFactories = new HashMap<String, FactoryInfo>(methods.length);
     for (var c : type.getConstructors()) {
-      factories.compute("new", (k, o) -> merge(o, c));
+      staticFactories.compute("new", (k, o) -> merge(o, c));
     }
     for (var m : methods) {
       if (!m.trySetAccessible()) {
