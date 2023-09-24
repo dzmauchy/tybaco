@@ -24,9 +24,10 @@ package org.tybaco.runtime.application.tasks;
 import org.tybaco.runtime.application.*;
 import org.tybaco.runtime.application.tasks.run.*;
 import org.tybaco.runtime.basic.Startable;
+import org.tybaco.runtime.exception.BlockStartException;
+import org.tybaco.runtime.exception.CircularBlockReferenceException;
 import org.tybaco.runtime.reflect.ClassInfoCache;
 import org.tybaco.runtime.reflect.ConstantInfoCache;
-import org.tybaco.runtime.util.FList;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Parameter;
@@ -46,19 +47,14 @@ public class ApplicationRunner implements ApplicationTask {
 
   RuntimeApp runtimeApp(Application app) {
     var resolver = new ApplicationResolver(app);
-    var tasks = new FList<Ref<Startable>>();
     try {
       for (var constant : app.constants()) {
         resolver.resolveConstant(constant);
       }
       for (var block : app.blocks()) {
-        var bean = resolver.resolveBlock(block, new BitSet());
-        if (bean instanceof Startable s) {
-          tasks.add(new Ref<>(s, block.id()));
-        }
+        resolver.resolveBlock(block, new BitSet());
       }
-      resolver.invokeInputs();
-      resolver.runtimeApp.run(tasks);
+      resolver.start();
       return resolver.runtimeApp;
     } catch (Throwable e) {
       try {
@@ -75,14 +71,14 @@ public class ApplicationRunner implements ApplicationTask {
     private final RuntimeApp runtimeApp = new RuntimeApp();
     private final ClassInfoCache classInfoCache = new ClassInfoCache();
     private final ConstantInfoCache constantInfoCache = new ConstantInfoCache();
-    private final IdentityHashMap<ResolvableObject, Object> beans;
+    private final LinkedHashMap<ResolvableObject, Object> beans;
     private final IdentityHashMap<ApplicationBlock, TreeMap<String, TreeMap<Integer, Link>>> args;
     private final IdentityHashMap<ApplicationBlock, TreeMap<String, TreeMap<Integer, Link>>> inputs;
     private final IdentityHashMap<ResolvableObject, TreeMap<String, Object>> outValues;
     private final Resolvables objectMap;
 
     private ApplicationResolver(Application app) {
-      this.beans = new IdentityHashMap<>(app.blocks().size() + app.constants().size());
+      this.beans = new LinkedHashMap<>(app.blocks().size() + app.constants().size(), 0.5f);
       this.args = new IdentityHashMap<>(app.blocks().size());
       this.inputs = new IdentityHashMap<>(app.blocks().size());
       this.outValues = new IdentityHashMap<>(app.blocks().size() + app.constants().size());
@@ -121,7 +117,7 @@ public class ApplicationRunner implements ApplicationTask {
     private Object resolveBlock(ApplicationBlock b, BitSet passed) {
       var existingBean = beans.get(b);
       if (existingBean != null) return existingBean;
-      if (passed.get(b.id())) throw new IllegalStateException("Circular reference of blocks: %s".formatted(passed));
+      if (passed.get(b.id())) throw new CircularBlockReferenceException(passed);
       passed.set(b.id());
       try {
         var m = method(b, passed);
@@ -133,6 +129,7 @@ public class ApplicationRunner implements ApplicationTask {
           default -> {}
         }
         beans.put(b, bean);
+        invokeInputs(b, bean, passed);
         return bean;
       } catch (Throwable e) {
         throw new IllegalStateException("Unable to resolve %d".formatted(b.id()), e);
@@ -152,22 +149,30 @@ public class ApplicationRunner implements ApplicationTask {
       return args;
     }
 
-    private void invokeInputs() {
-      beans.forEach((b, bean) -> {
-        if (b instanceof ApplicationBlock ab) {
-          var links = this.inputs.get(ab);
-          if (links == null) return;
-          var classInfo = classInfoCache.get(bean.getClass());
-          var inputs = classInfo.inputs();
-          links.forEach((spot, map) -> {
-            try {
-              var method = requireNonNull(inputs.get(spot), () -> "Unknown input " + spot + " of " + classInfo);
-              var param = method.getParameters()[0];
-              method.invoke(bean, v(param, map, new BitSet()));
-            } catch (Throwable e) {
-              throw new IllegalStateException("Unable to set " + spot + " of " + b, e);
-            }
-          });
+    private void invokeInputs(ApplicationBlock b, Object bean, BitSet passed) {
+      var links = this.inputs.get(b);
+      if (links == null) return;
+      var classInfo = classInfoCache.get(bean.getClass());
+      var inputs = classInfo.inputs();
+      links.forEach((spot, map) -> {
+        try {
+          var method = requireNonNull(inputs.get(spot), () -> "Unknown input " + spot + " of " + classInfo);
+          var param = method.getParameters()[0];
+          method.invoke(bean, v(param, map, passed));
+        } catch (Throwable e) {
+          throw new IllegalStateException("Unable to set " + spot + " of " + b, e);
+        }
+      });
+    }
+
+    private void start() {
+      beans.forEach((o, bean) -> {
+        if (bean instanceof Startable s) {
+          try {
+            s.start();
+          } catch (Throwable e) {
+            throw new BlockStartException(o, e);
+          }
         }
       });
     }

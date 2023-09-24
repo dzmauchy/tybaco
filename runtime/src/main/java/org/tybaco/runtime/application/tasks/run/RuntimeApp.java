@@ -21,30 +21,12 @@ package org.tybaco.runtime.application.tasks.run;
  * #L%
  */
 
-import org.tybaco.runtime.basic.Startable;
-import org.tybaco.runtime.util.FList;
-
 public final class RuntimeApp implements AutoCloseable {
 
   private CloseableRef closeables;
 
   public void addCloseable(Ref<AutoCloseable> ref) {
     closeables = new CloseableRef(ref, closeables);
-  }
-
-  public void run(FList<Ref<Startable>> tasks) {
-    tasks.pollEach(ref -> {
-      try {
-        ref.ref().start();
-      } catch (Throwable e) {
-        try {
-          close();
-        } catch (Throwable x) {
-          e.addSuppressed(x);
-        }
-        throw new IllegalStateException("Unable to run %d".formatted(ref.id()), e);
-      }
-    });
   }
 
   @Override
