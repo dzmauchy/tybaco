@@ -47,7 +47,6 @@ public class ApplicationRunner implements ApplicationTask {
   RuntimeApp runtimeApp(Application app) {
     var resolver = new ApplicationResolver(app);
     var tasks = new FList<Ref<CanBeStarted>>();
-    var runtime = new RuntimeApp(resolver.closeables);
     try {
       for (var constant : app.constants()) {
         resolver.resolveConstant(constant);
@@ -59,11 +58,11 @@ public class ApplicationRunner implements ApplicationTask {
         }
       }
       resolver.invokeInputs();
-      runtime.run(tasks);
-      return runtime;
+      resolver.runtimeApp.run(tasks);
+      return resolver.runtimeApp;
     } catch (Throwable e) {
       try {
-        runtime.close();
+        resolver.runtimeApp.close();
       } catch (Throwable x) {
         e.addSuppressed(x);
       }
@@ -73,6 +72,7 @@ public class ApplicationRunner implements ApplicationTask {
 
   private static final class ApplicationResolver {
 
+    private final RuntimeApp runtimeApp = new RuntimeApp();
     private final ClassInfoCache classInfoCache = new ClassInfoCache();
     private final ConstantInfoCache constantInfoCache = new ConstantInfoCache();
     private final IdentityHashMap<ResolvableObject, Object> beans;
@@ -80,7 +80,6 @@ public class ApplicationRunner implements ApplicationTask {
     private final IdentityHashMap<ApplicationBlock, TreeMap<String, TreeMap<Integer, Link>>> inputs;
     private final IdentityHashMap<ResolvableObject, TreeMap<String, Object>> outValues;
     private final Resolvables objectMap;
-    private final LinkedList<Ref<AutoCloseable>> closeables = new LinkedList<>();
 
     private ApplicationResolver(Application app) {
       this.beans = new IdentityHashMap<>(app.blocks().size());
@@ -130,7 +129,7 @@ public class ApplicationRunner implements ApplicationTask {
         var bean = m.invoke(argLinks == null ? Map.of() : blockArgs(passed, argLinks, m));
         switch (bean) {
           case null -> throw new IllegalArgumentException("Null bean " + b);
-          case AutoCloseable c -> closeables.addLast(new Ref<>(c, b.id()));
+          case AutoCloseable c -> runtimeApp.addCloseable(new Ref<>(c, b.id()));
           default -> {}
         }
         beans.put(b, bean);
