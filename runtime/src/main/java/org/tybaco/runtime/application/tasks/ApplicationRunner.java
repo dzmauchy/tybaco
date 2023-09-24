@@ -23,9 +23,9 @@ package org.tybaco.runtime.application.tasks;
 
 import org.tybaco.runtime.application.*;
 import org.tybaco.runtime.application.tasks.run.*;
+import org.tybaco.runtime.basic.Initializable;
 import org.tybaco.runtime.basic.Startable;
-import org.tybaco.runtime.exception.BlockStartException;
-import org.tybaco.runtime.exception.CircularBlockReferenceException;
+import org.tybaco.runtime.exception.*;
 import org.tybaco.runtime.reflect.ClassInfoCache;
 import org.tybaco.runtime.reflect.ConstantInfoCache;
 
@@ -48,12 +48,10 @@ public class ApplicationRunner implements ApplicationTask {
   RuntimeApp runtimeApp(Application app) {
     var resolver = new ApplicationResolver(app);
     try {
-      for (var constant : app.constants()) {
+      for (var constant : app.constants())
         resolver.resolveConstant(constant);
-      }
-      for (var block : app.blocks()) {
+      for (var block : app.blocks())
         resolver.resolveBlock(block, new BitSet());
-      }
       resolver.start();
       return resolver.runtimeApp;
     } catch (Throwable e) {
@@ -123,11 +121,8 @@ public class ApplicationRunner implements ApplicationTask {
         var m = method(b, passed);
         var argLinks = args.get(b);
         var bean = m.invoke(argLinks == null ? Map.of() : blockArgs(passed, argLinks, m));
-        switch (bean) {
-          case null -> throw new IllegalArgumentException("Null bean " + b);
-          case AutoCloseable c -> runtimeApp.addCloseable(new Ref<>(c, b.id()));
-          default -> {}
-        }
+        if (bean == null) throw new NullBlockResolutionException(b);
+        else if (bean instanceof AutoCloseable c) runtimeApp.addCloseable(new Ref<>(c, b.id));
         beans.put(b, bean);
         invokeInputs(b, bean, passed);
         return bean;
@@ -163,6 +158,13 @@ public class ApplicationRunner implements ApplicationTask {
           throw new IllegalStateException("Unable to set " + spot + " of " + b, e);
         }
       });
+      if (bean instanceof Initializable i) {
+        try {
+          i.init();
+        } catch (Throwable e) {
+          throw new IllegalStateException("Unable to initialize " + b, e);
+        }
+      }
     }
 
     private void start() {

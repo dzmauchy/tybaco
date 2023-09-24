@@ -21,7 +21,6 @@ package org.tybaco.runtime.basic;
  * #L%
  */
 
-@FunctionalInterface
-public interface Startable {
-  void start() throws Exception;
+public interface Initializable {
+  void init() throws Exception;
 }

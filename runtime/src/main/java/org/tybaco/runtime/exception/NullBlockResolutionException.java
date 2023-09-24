@@ -1,4 +1,4 @@
-package org.tybaco.runtime.basic;
+package org.tybaco.runtime.exception;
 
 /*-
  * #%L
@@ -21,7 +21,11 @@ package org.tybaco.runtime.basic;
  * #L%
  */
 
-@FunctionalInterface
-public interface Startable {
-  void start() throws Exception;
+import org.tybaco.runtime.application.ApplicationBlock;
+
+public class NullBlockResolutionException extends RuntimeException {
+
+  public NullBlockResolutionException(ApplicationBlock block) {
+    super("Null result of " + block);
+  }
 }
