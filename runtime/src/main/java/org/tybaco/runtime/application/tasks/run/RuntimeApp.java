@@ -21,7 +21,7 @@ package org.tybaco.runtime.application.tasks.run;
  * #L%
  */
 
-import org.tybaco.runtime.basic.CanBeStarted;
+import org.tybaco.runtime.basic.Startable;
 import org.tybaco.runtime.util.FList;
 
 public final class RuntimeApp implements AutoCloseable {
@@ -32,7 +32,7 @@ public final class RuntimeApp implements AutoCloseable {
     closeables = new CloseableRef(ref, closeables);
   }
 
-  public void run(FList<Ref<CanBeStarted>> tasks) {
+  public void run(FList<Ref<Startable>> tasks) {
     tasks.pollEach(ref -> {
       try {
         ref.ref().start();

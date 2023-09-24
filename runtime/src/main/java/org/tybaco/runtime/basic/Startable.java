@@ -22,6 +22,6 @@ package org.tybaco.runtime.basic;
  */
 
 @FunctionalInterface
-public interface CanBeStarted {
+public interface Startable {
   void start();
 }

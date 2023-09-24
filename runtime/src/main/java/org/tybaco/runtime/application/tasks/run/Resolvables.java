@@ -21,7 +21,7 @@ package org.tybaco.runtime.application.tasks.run;
  * #L%
  */
 
-import org.tybaco.runtime.application.ResolvableObject;
+import org.tybaco.runtime.application.*;
 
 import java.util.*;
 
@@ -31,17 +31,11 @@ public final class Resolvables {
 
   private final ResolvableObject[][] buckets;
 
-  @SafeVarargs
-  public Resolvables(List<? extends ResolvableObject>... lists) {
-    var maxId = Arrays.stream(lists)
-      .flatMap(List::stream)
-      .mapToInt(ResolvableObject::id)
-      .max()
-      .orElse(-1);
+  public Resolvables(List<? extends ApplicationBlock> blocks, List<? extends ApplicationConstant> constants) {
+    var maxId = Math.max(maxId(blocks), maxId(constants));
     buckets = new ResolvableObject[Math.ceilDiv(maxId + 1, BUCKET_SIZE)][];
-    for (var list : lists) {
-      list.forEach(this::put);
-    }
+    blocks.forEach(this::put);
+    constants.forEach(this::put);
   }
 
   private void put(ResolvableObject value) {
@@ -74,5 +68,14 @@ public final class Resolvables {
       }
     }
     return map.toString();
+  }
+
+  private static int maxId(List<? extends ResolvableObject> list) {
+    int maxId = -1;
+    for (var o : list) {
+      var id = o.id();
+      if (id > maxId) maxId = id;
+    }
+    return maxId;
   }
 }

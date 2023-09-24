@@ -23,7 +23,7 @@ package org.tybaco.runtime.application.tasks;
 
 import org.tybaco.runtime.application.*;
 import org.tybaco.runtime.application.tasks.run.*;
-import org.tybaco.runtime.basic.CanBeStarted;
+import org.tybaco.runtime.basic.Startable;
 import org.tybaco.runtime.reflect.ClassInfoCache;
 import org.tybaco.runtime.reflect.ConstantInfoCache;
 import org.tybaco.runtime.util.FList;
@@ -46,14 +46,14 @@ public class ApplicationRunner implements ApplicationTask {
 
   RuntimeApp runtimeApp(Application app) {
     var resolver = new ApplicationResolver(app);
-    var tasks = new FList<Ref<CanBeStarted>>();
+    var tasks = new FList<Ref<Startable>>();
     try {
       for (var constant : app.constants()) {
         resolver.resolveConstant(constant);
       }
       for (var block : app.blocks()) {
         var bean = resolver.resolveBlock(block, new BitSet());
-        if (bean instanceof CanBeStarted s) {
+        if (bean instanceof Startable s) {
           tasks.add(new Ref<>(s, block.id()));
         }
       }
@@ -82,7 +82,7 @@ public class ApplicationRunner implements ApplicationTask {
     private final Resolvables objectMap;
 
     private ApplicationResolver(Application app) {
-      this.beans = new IdentityHashMap<>(app.blocks().size());
+      this.beans = new IdentityHashMap<>(app.blocks().size() + app.constants().size());
       this.args = new IdentityHashMap<>(app.blocks().size());
       this.inputs = new IdentityHashMap<>(app.blocks().size());
       this.outValues = new IdentityHashMap<>(app.blocks().size() + app.constants().size());
@@ -156,9 +156,7 @@ public class ApplicationRunner implements ApplicationTask {
       beans.forEach((b, bean) -> {
         if (b instanceof ApplicationBlock ab) {
           var links = this.inputs.get(ab);
-          if (links == null) {
-            return;
-          }
+          if (links == null) return;
           var classInfo = classInfoCache.get(bean.getClass());
           var inputs = classInfo.inputs();
           links.forEach((spot, map) -> {
