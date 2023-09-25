@@ -29,8 +29,7 @@ import org.tybaco.runtime.exception.*;
 import org.tybaco.runtime.reflect.ClassInfoCache;
 import org.tybaco.runtime.reflect.ConstantInfoCache;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.util.*;
 
 import static java.lang.Thread.currentThread;
@@ -156,8 +155,10 @@ public class ApplicationRunner implements ApplicationTask {
           if (method == null) throw new NoSuchBlockInputException(b, spot);
           var param = method.getParameters()[0];
           method.invoke(bean, v(param, map, passed));
+        } catch (InvocationTargetException e) {
+          throw new BlockSetInputException(b, spot, e.getTargetException());
         } catch (Throwable e) {
-          throw new IllegalStateException("Unable to set " + spot + " of " + b, e);
+          throw new BlockSetInputException(b, spot, e);
         }
       });
       if (bean instanceof Initializable i) {
