@@ -21,11 +21,11 @@ package org.tybaco.runtime.exception;
  * #L%
  */
 
-import org.tybaco.runtime.application.ResolvableObject;
+import org.tybaco.runtime.application.ApplicationBlock;
 
-public class BlockStartException extends RuntimeException {
+public final class BlockSetArgumentException extends RuntimeException {
 
-  public BlockStartException(ResolvableObject obj, Throwable cause) {
-    super("Unable to start " + obj, cause, true, false);
+  public BlockSetArgumentException(ApplicationBlock block, String name, Throwable cause) {
+    super("Unable to set argument " + name + " of " + block, cause, true, false);
   }
 }

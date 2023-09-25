@@ -21,11 +21,11 @@ package org.tybaco.runtime.exception;
  * #L%
  */
 
-import org.tybaco.runtime.application.ResolvableObject;
+import org.tybaco.runtime.application.ApplicationBlock;
 
-public class BlockStartException extends RuntimeException {
+public class NoSuchBlockArgumentException extends RuntimeException {
 
-  public BlockStartException(ResolvableObject obj, Throwable cause) {
-    super("Unable to start " + obj, cause, true, false);
+  public NoSuchBlockArgumentException(ApplicationBlock block, String name) {
+    super("No such argument " + name + " of " + block, null, true, false);
   }
 }

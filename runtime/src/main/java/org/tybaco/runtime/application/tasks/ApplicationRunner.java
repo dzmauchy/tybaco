@@ -120,7 +120,7 @@ public class ApplicationRunner implements ApplicationTask {
       try {
         var m = method(b, passed);
         var argLinks = args.get(b);
-        var bean = m.invoke(argLinks == null ? Map.of() : blockArgs(passed, argLinks, m));
+        var bean = m.invoke(argLinks == null ? Map.of() : blockArgs(b, passed, argLinks, m));
         if (bean == null) throw new NullBlockResolutionException(b);
         else if (bean instanceof AutoCloseable c) runtimeApp.addCloseable(new Ref<>(c, b.id));
         beans.put(b, bean);
@@ -131,14 +131,15 @@ public class ApplicationRunner implements ApplicationTask {
       }
     }
 
-    private HashMap<String, Object> blockArgs(BitSet passed, TreeMap<String, TreeMap<Integer, Link>> ls, ResolvedMethod method) {
-      var args = new HashMap<String, Object>(ls.size());
+    private HashMap<String, Object> blockArgs(ApplicationBlock b, BitSet passed, TreeMap<String, TreeMap<Integer, Link>> ls, ResolvedMethod method) {
+      var args = new HashMap<String, Object>(ls.size(), 0.5f);
       ls.forEach((name, m) -> {
-        var p = requireNonNull(method.parameter(name), () -> "No such parameter " + name);
+        var p = method.parameter(name);
+        if (p == null) throw new NoSuchBlockArgumentException(b, name);
         try {
           args.put(name, v(p, m, passed));
         } catch (Throwable e) {
-          throw new IllegalStateException("Unable to set " + name, e);
+          throw new BlockSetArgumentException(b, name, e);
         }
       });
       return args;
@@ -193,7 +194,7 @@ public class ApplicationRunner implements ApplicationTask {
     private ResolvedMethod method(ApplicationBlock b, BitSet passed) throws Exception {
       if (b.isDependent()) {
         var bean = switch (objectMap.get(b.parentBlockId())) {
-          case null -> throw new IllegalArgumentException("Non-existent block " + b.parentBlockId() + " referenced from " + b);
+          case null -> throw new NoSuchParentBlockException(b);
           case ApplicationBlock p -> resolveBlock(p, passed);
           case ApplicationConstant c -> beans.get(c);
         };
@@ -226,7 +227,7 @@ public class ApplicationRunner implements ApplicationTask {
           }
         }
       } catch (Throwable e) {
-        throw new IllegalStateException("Block %d: error on resolving output %s".formatted(out.id(), spot), e);
+        throw new OutputResolutionException(out, spot, e);
       }
     }
   }

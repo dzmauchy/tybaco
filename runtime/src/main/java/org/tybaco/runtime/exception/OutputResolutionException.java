@@ -23,9 +23,9 @@ package org.tybaco.runtime.exception;
 
 import org.tybaco.runtime.application.ResolvableObject;
 
-public class BlockStartException extends RuntimeException {
+public class OutputResolutionException extends RuntimeException {
 
-  public BlockStartException(ResolvableObject obj, Throwable cause) {
-    super("Unable to start " + obj, cause, true, false);
+  public OutputResolutionException(ResolvableObject object, String spot, Throwable cause) {
+    super("Resolution error of " + object + "[" + spot + "]", cause, true, false);
   }
 }
