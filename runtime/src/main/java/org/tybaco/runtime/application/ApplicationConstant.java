@@ -72,6 +72,6 @@ public final class ApplicationConstant implements ResolvableObject {
 
   @Override
   public String toString() {
-    return "Const(" + id + ":" + factory + ":" + value + ")";
+    return "Const(" + id + ")";
   }
 }

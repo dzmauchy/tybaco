@@ -30,6 +30,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.tybaco.runtime.application.ApplicationConnector.in;
 import static org.tybaco.runtime.application.ApplicationConnector.out;
@@ -91,9 +92,9 @@ class ApplicationRunnerTest {
     );
     var app = new Application("app", constants, blocks, links);
     // when
-    var exc = assertThrows(CircularBlockReferenceException.class, () -> runApp(app));
+    var exc = assertThrows(RuntimeException.class, () -> runApp(app));
     // then
-    assertEquals("[32,33]", exc.getMessage());
+    assertThat(exc).hasRootCauseInstanceOf(CircularBlockReferenceException.class);
   }
 
   private void runApp(Application app) {

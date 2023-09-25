@@ -67,7 +67,7 @@ public final class ApplicationBlock implements ResolvableObject {
 
   @Override
   public String toString() {
-    return "Block(" + id + ":" + factory + "." + method + ")";
+    return "Block(" + id  + ")";
   }
 
   public static ApplicationBlock fromMethod(int id, Method method) {

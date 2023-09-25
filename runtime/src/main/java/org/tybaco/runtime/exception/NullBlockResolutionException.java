@@ -26,6 +26,6 @@ import org.tybaco.runtime.application.ApplicationBlock;
 public class NullBlockResolutionException extends RuntimeException {
 
   public NullBlockResolutionException(ApplicationBlock block) {
-    super("Null result of " + block);
+    super("Null result of " + block, null, true, false);
   }
 }
