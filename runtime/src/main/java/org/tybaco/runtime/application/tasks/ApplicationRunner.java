@@ -83,8 +83,8 @@ public class ApplicationRunner implements ApplicationTask {
       this.objectMap = new Resolvables(app.blocks(), app.constants());
 
       app.links().forEach(l -> {
-        var out = requireNonNull(objectMap.get(l.out().block()), () -> "Object %d doesn't exist".formatted(l.out().block()));
-        var inBlock = requireNonNull(objectMap.get(l.in().block()), () -> "Object %d doesn't exist".formatted(l.in().block()));
+        var out = objectMap.get(l.out().block());
+        var inBlock = objectMap.get(l.in().block());
         var m = l.arg() ? args : inputs;
         if (inBlock instanceof ApplicationBlock in) {
           m

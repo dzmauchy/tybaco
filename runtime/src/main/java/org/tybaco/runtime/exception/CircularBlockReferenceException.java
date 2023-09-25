@@ -26,6 +26,6 @@ import java.util.BitSet;
 public final class CircularBlockReferenceException extends RuntimeException {
 
   public CircularBlockReferenceException(BitSet passed) {
-    super(passed.toString());
+    super(passed.toString(), null, true, false);
   }
 }
