@@ -152,7 +152,8 @@ public class ApplicationRunner implements ApplicationTask {
       var inputs = classInfo.inputs();
       links.forEach((spot, map) -> {
         try {
-          var method = requireNonNull(inputs.get(spot), () -> "Unknown input " + spot + " of " + classInfo);
+          var method = inputs.get(spot);
+          if (method == null) throw new NoSuchBlockInputException(b, spot);
           var param = method.getParameters()[0];
           method.invoke(bean, v(param, map, passed));
         } catch (Throwable e) {
@@ -163,7 +164,7 @@ public class ApplicationRunner implements ApplicationTask {
         try {
           i.init();
         } catch (Throwable e) {
-          throw new IllegalStateException("Unable to initialize " + b, e);
+          throw new BlockInitializationException(b, e);
         }
       }
     }
