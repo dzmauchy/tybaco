@@ -21,9 +21,11 @@ package org.tybaco.runtime.exception;
  * #L%
  */
 
-public class BootstrapException extends RuntimeException {
+import org.tybaco.runtime.application.ApplicationLink;
 
-  public BootstrapException(String step, Throwable cause) {
-    super("Bootstrap exception occurred at [" + step + "]", cause, true, false);
+public class InvalidLinkException extends RuntimeException {
+
+  public InvalidLinkException(ApplicationLink link, String error) {
+    super("Invalid " + link + ": " + error, null, true, false);
   }
 }

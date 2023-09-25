@@ -83,6 +83,7 @@ public class ApplicationRunner implements ApplicationTask {
 
       app.links().forEach(l -> {
         var out = objectMap.get(l.out().block());
+        if (out == null) throw new InvalidLinkException(l, "non-existing output");
         var inBlock = objectMap.get(l.in().block());
         var m = l.arg() ? args : inputs;
         if (inBlock instanceof ApplicationBlock in) {
@@ -91,7 +92,7 @@ public class ApplicationRunner implements ApplicationTask {
             .computeIfAbsent(l.in().spot(), k -> new TreeMap<>())
             .put(l.in().index(), new Link(out, l.out().spot()));
         } else {
-          throw new IllegalArgumentException("Invalid link " + l);
+          throw new InvalidLinkException(l, "invalid type of input: " + inBlock);
         }
       });
     }
