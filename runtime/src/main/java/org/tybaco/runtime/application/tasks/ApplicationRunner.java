@@ -102,7 +102,7 @@ public class ApplicationRunner implements ApplicationTask {
         var v = c.primitiveConstValue();
         beans.put(c, v == null ? constValue(c) : v);
       } catch (Throwable e) {
-        throw new IllegalStateException("Unable to create " + c);
+        throw new ConstantResolutionException(c, e);
       }
     }
 
@@ -127,7 +127,7 @@ public class ApplicationRunner implements ApplicationTask {
         invokeInputs(b, bean, passed);
         return bean;
       } catch (Throwable e) {
-        throw new IllegalStateException("Unable to resolve %d".formatted(b.id()), e);
+        throw new BlockResolutionException(b, e);
       }
     }
 
