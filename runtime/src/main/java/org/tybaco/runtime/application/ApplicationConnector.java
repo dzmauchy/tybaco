@@ -34,20 +34,4 @@ public record ApplicationConnector(int block, String spot, int index) {
       parseInt(element.getAttribute("index"))
     );
   }
-
-  public static ApplicationConnector out(int block) {
-    return new ApplicationConnector(block, "*", -1);
-  }
-
-  public static ApplicationConnector out(int block, String spot) {
-    return new ApplicationConnector(block, spot, -1);
-  }
-
-  public static ApplicationConnector in(int block, String spot) {
-    return new ApplicationConnector(block, spot, -1);
-  }
-
-  public static ApplicationConnector in(int block, String spot, int index) {
-    return new ApplicationConnector(block, spot, index);
-  }
 }

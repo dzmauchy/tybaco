@@ -29,10 +29,6 @@ import static org.tybaco.runtime.util.Xml.elementByTag;
 
 public record ApplicationLink(ApplicationConnector out, ApplicationConnector in, boolean arg) {
 
-  public ApplicationLink(ApplicationConnector out, ApplicationConnector in) {
-    this(out, in, true);
-  }
-
   public ApplicationLink(Element element) {
     this(conn(element, "out"), conn(element, "in"), arg(element));
   }

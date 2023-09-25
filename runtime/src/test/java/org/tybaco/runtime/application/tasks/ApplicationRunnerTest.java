@@ -32,8 +32,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.tybaco.runtime.application.ApplicationConnector.in;
-import static org.tybaco.runtime.application.ApplicationConnector.out;
+import static org.tybaco.runtime.helper.ApplicationHelper.*;
 
 class ApplicationRunnerTest {
 
@@ -62,10 +61,10 @@ class ApplicationRunnerTest {
       ApplicationBlock.fromMethod(32, SampleBeanB.class.getMethod("sampleBeanB", Object[].class))
     );
     var links = List.of(
-      new ApplicationLink(out(0), in(32, "v", 1), false),
-      new ApplicationLink(out(1), in(32, "v", 3), false),
-      new ApplicationLink(out(2), in(32, "v", 4), false),
-      new ApplicationLink(out(3), in(32, "values", 2))
+      inp(out(0), in(32, "v", 1)),
+      inp(out(1), in(32, "v", 3)),
+      inp(out(2), in(32, "v", 4)),
+      arg(out(3), in(32, "values", 2))
     );
     var app = new Application("app", constants, blocks, links);
     // when
@@ -87,8 +86,8 @@ class ApplicationRunnerTest {
       ApplicationBlock.fromMethod(34, SampleBeanA.class.getMethod("sampleBeanA"))
     );
     var links = List.of(
-      new ApplicationLink(out(33, "o"), in(32, "x")),
-      new ApplicationLink(out(32), in(33, "values"))
+      arg(out(33, "o"), in(32, "x")),
+      arg(out(32), in(33, "values"))
     );
     var app = new Application("app", constants, blocks, links);
     // when
