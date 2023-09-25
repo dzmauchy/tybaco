@@ -22,7 +22,8 @@ package org.tybaco.runtime.application.tasks;
  */
 
 import org.junit.jupiter.api.Test;
-import org.tybaco.runtime.application.*;
+import org.tybaco.runtime.application.Application;
+import org.tybaco.runtime.application.ApplicationConstant;
 import org.tybaco.runtime.application.beans.*;
 import org.tybaco.runtime.exception.CircularBlockReferenceException;
 
@@ -39,7 +40,7 @@ class ApplicationRunnerTest {
   @Test
   void simplestBean() throws Exception {
     // given
-    var blocks = List.of(ApplicationBlock.fromMethod(0, SampleBeanA.class.getMethod("sampleBeanA")));
+    var blocks = List.of(block(0, SampleBeanA.class.getMethod("sampleBeanA")));
     var app = new Application("app", List.of(), blocks, List.of());
     // when
     runApp(app);
@@ -52,13 +53,13 @@ class ApplicationRunnerTest {
   void aBeanWithConstantsAndOneBlock() throws Exception {
     // given
     var constants = List.of(
-      new ApplicationConstant(0, "int", "12"),
-      new ApplicationConstant(1, "long", "234"),
-      new ApplicationConstant(2, "java.net.URI", "http://localhost:80"),
-      new ApplicationConstant(3, "java.math.BigDecimal", "1.2")
+      constant(0, "int", "12"),
+      constant(1, "long", "234"),
+      constant(2, "java.net.URI", "http://localhost:80"),
+      constant(3, "java.math.BigDecimal", "1.2")
     );
     var blocks = List.of(
-      ApplicationBlock.fromMethod(32, SampleBeanB.class.getMethod("sampleBeanB", Object[].class))
+      block(32, SampleBeanB.class.getMethod("sampleBeanB", Object[].class))
     );
     var links = List.of(
       inp(out(0), in(32, "v", 1)),
@@ -78,12 +79,12 @@ class ApplicationRunnerTest {
   void circularReference() throws Exception {
     // given
     var constants = List.of(
-      new ApplicationConstant(0, "int", "12")
+      constant(0, "int", "12")
     );
     var blocks = List.of(
-      ApplicationBlock.fromConstructor(32, SampleBeanC.class),
-      ApplicationBlock.fromMethod(33, SampleBeanB.class.getMethod("sampleBeanB", Object[].class)),
-      ApplicationBlock.fromMethod(34, SampleBeanA.class.getMethod("sampleBeanA"))
+      block(32, SampleBeanC.class),
+      block(33, SampleBeanB.class.getMethod("sampleBeanB", Object[].class)),
+      block(34, SampleBeanA.class.getMethod("sampleBeanA"))
     );
     var links = List.of(
       arg(out(33, "o"), in(32, "x")),

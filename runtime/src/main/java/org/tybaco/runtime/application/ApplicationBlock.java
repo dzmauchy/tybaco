@@ -23,8 +23,6 @@ package org.tybaco.runtime.application;
 
 import org.w3c.dom.Element;
 
-import java.lang.reflect.Method;
-
 import static java.lang.Integer.parseInt;
 
 public final class ApplicationBlock implements ResolvableObject {
@@ -68,15 +66,5 @@ public final class ApplicationBlock implements ResolvableObject {
   @Override
   public String toString() {
     return "Block(" + id  + ")";
-  }
-
-  public static ApplicationBlock fromMethod(int id, Method method) {
-    var factory = method.getDeclaringClass().getName();
-    var value = method.getName();
-    return new ApplicationBlock(id, factory, value);
-  }
-
-  public static ApplicationBlock fromConstructor(int id, Class<?> type) {
-    return new ApplicationBlock(id, type.getName(), "new");
   }
 }

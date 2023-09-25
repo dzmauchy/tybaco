@@ -21,8 +21,9 @@ package org.tybaco.runtime.helper;
  * #L%
  */
 
-import org.tybaco.runtime.application.ApplicationConnector;
-import org.tybaco.runtime.application.ApplicationLink;
+import org.tybaco.runtime.application.*;
+
+import java.lang.reflect.Method;
 
 public interface ApplicationHelper {
 
@@ -48,5 +49,19 @@ public interface ApplicationHelper {
 
   static ApplicationLink inp(ApplicationConnector out, ApplicationConnector in) {
     return new ApplicationLink(out, in, false);
+  }
+
+  static ApplicationBlock block(int id, Method method) {
+    var factory = method.getDeclaringClass().getName();
+    var value = method.getName();
+    return new ApplicationBlock(id, factory, value);
+  }
+
+  static ApplicationBlock block(int id, Class<?> type) {
+    return new ApplicationBlock(id, type.getName(), "new");
+  }
+
+  static ApplicationConstant constant(int id, String factory, String value) {
+    return new ApplicationConstant(id, factory, value);
   }
 }
