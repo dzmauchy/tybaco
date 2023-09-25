@@ -101,6 +101,8 @@ public class ApplicationRunner implements ApplicationTask {
       try {
         var v = c.primitiveConstValue();
         beans.put(c, v == null ? constValue(c) : v);
+      } catch (InvocationTargetException e) {
+        throw new ConstantResolutionException(c, e.getTargetException());
       } catch (Throwable e) {
         throw new ConstantResolutionException(c, e);
       }
@@ -108,7 +110,8 @@ public class ApplicationRunner implements ApplicationTask {
 
     private Object constValue(ApplicationConstant c) throws Exception {
       var factoryClass = Class.forName(c.factory, true, currentThread().getContextClassLoader());
-      var info = requireNonNull(constantInfoCache.get(factoryClass), () -> "No constant found in " + factoryClass);
+      var info = constantInfoCache.get(factoryClass);
+      if (info == null) throw new NoConstantFoundException(c);
       return info.invoke(c.value);
     }
 
@@ -229,6 +232,8 @@ public class ApplicationRunner implements ApplicationTask {
             return v;
           }
         }
+      } catch (InvocationTargetException e) {
+        throw new OutputResolutionException(out, spot, e.getTargetException());
       } catch (Throwable e) {
         throw new OutputResolutionException(out, spot, e);
       }
