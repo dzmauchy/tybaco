@@ -23,7 +23,7 @@ package org.tybaco.runtime.exception;
 
 import org.tybaco.runtime.application.ApplicationBlock;
 
-public class NoSuchBlockArgumentException extends RuntimeException {
+public final class NoSuchBlockArgumentException extends RuntimeException {
 
   public NoSuchBlockArgumentException(ApplicationBlock block, String name) {
     super("No such argument " + name + " of " + block, null, true, false);

@@ -76,7 +76,7 @@ public class ApplicationRunner implements ApplicationTask {
     private final Resolvables objectMap;
 
     private ApplicationResolver(Application app) {
-      this.beans = new LinkedHashMap<>(app.blocks().size() + app.constants().size(), 0.5f);
+      this.beans = new LinkedHashMap<>(app.blocks().size() + app.constants().size(), 1f);
       this.args = new IdentityHashMap<>(app.blocks().size());
       this.inputs = new IdentityHashMap<>(app.blocks().size());
       this.outValues = new IdentityHashMap<>(app.blocks().size() + app.constants().size());
@@ -130,6 +130,8 @@ public class ApplicationRunner implements ApplicationTask {
         beans.put(b, bean);
         invokeInputs(b, bean, new int[]{b.id});
         return bean;
+      } catch (InvocationTargetException e) {
+        throw new BlockResolutionException(b, e.getTargetException());
       } catch (Throwable e) {
         throw new BlockResolutionException(b, e);
       }
@@ -151,11 +153,9 @@ public class ApplicationRunner implements ApplicationTask {
       var links = this.inputs.get(b);
       if (links == null) return;
       var classInfo = classInfoCache.get(bean.getClass());
-      var inputs = classInfo.inputs();
       links.forEach((spot, map) -> {
         try {
-          var method = inputs.get(spot);
-          if (method == null) throw new NoSuchBlockInputException(b, spot);
+          var method = classInfo.input(spot);
           var param = method.getParameters()[0];
           method.invoke(bean, v(param, map, passed));
         } catch (InvocationTargetException e) {

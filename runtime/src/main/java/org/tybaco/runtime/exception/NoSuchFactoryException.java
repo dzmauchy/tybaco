@@ -21,11 +21,9 @@ package org.tybaco.runtime.exception;
  * #L%
  */
 
-import org.tybaco.runtime.application.ApplicationBlock;
+public final class NoSuchFactoryException extends RuntimeException {
 
-public class NoSuchBlockInputException extends RuntimeException {
-
-  public NoSuchBlockInputException(ApplicationBlock block, String input) {
-    super("No such input " + input + " of " + block, null, true, false);
+  public NoSuchFactoryException(String name) {
+    super("No such factory: " + name, null, true, false);
   }
 }

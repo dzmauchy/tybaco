@@ -21,8 +21,10 @@ package org.tybaco.runtime.reflect;
  * #L%
  */
 
+import org.tybaco.runtime.exception.*;
+
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Map;
 
 public record ClassInfo(
   Class<?> type,
@@ -33,18 +35,38 @@ public record ClassInfo(
 ) {
 
   public Method input(String name) {
-    return Objects.requireNonNull(inputs.get(name), () -> "No such input " + name + " for " + type);
+    var input = inputs.get(name);
+    if (input == null) {
+      throw new NoSuchInputException(name);
+    } else {
+      return input;
+    }
   }
 
   public Method output(String name) {
-    return Objects.requireNonNull(outputs.get(name), () -> "No such output " + name + " for " + type);
+    var output = outputs.get(name);
+    if (output == null) {
+      throw new NoSuchOutputException(name);
+    } else {
+      return output;
+    }
   }
 
   public FactoryInfo factory(String name) {
-    return Objects.requireNonNull(factories.get(name), () -> "No such factory " + name + " for " + type);
+    var factory = factories.get(name);
+    if (factory == null) {
+      throw new NoSuchFactoryException(name);
+    } else {
+      return factory;
+    }
   }
 
   public FactoryInfo staticFactory(String name) {
-    return Objects.requireNonNull(staticFactories.get(name), () -> "No such static factory " + name + " for " + type);
+    var factory = staticFactories.get(name);
+    if (factory == null) {
+      throw new NoSuchFactoryException(name);
+    } else {
+      return factory;
+    }
   }
 }

@@ -21,7 +21,7 @@ package org.tybaco.runtime.exception;
  * #L%
  */
 
-public class BootstrapException extends RuntimeException {
+public final class BootstrapException extends RuntimeException {
 
   public BootstrapException(String step, Throwable cause) {
     super("Bootstrap exception occurred at [" + step + "]", cause, true, false);

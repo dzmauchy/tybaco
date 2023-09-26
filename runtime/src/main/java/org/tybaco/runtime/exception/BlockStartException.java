@@ -23,7 +23,7 @@ package org.tybaco.runtime.exception;
 
 import org.tybaco.runtime.application.ResolvableObject;
 
-public class BlockStartException extends RuntimeException {
+public final class BlockStartException extends RuntimeException {
 
   public BlockStartException(ResolvableObject obj, Throwable cause) {
     super("Unable to start " + obj, cause, true, false);

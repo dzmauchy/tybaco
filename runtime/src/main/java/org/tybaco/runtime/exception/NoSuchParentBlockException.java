@@ -23,7 +23,7 @@ package org.tybaco.runtime.exception;
 
 import org.tybaco.runtime.application.ApplicationBlock;
 
-public class NoSuchParentBlockException extends RuntimeException {
+public final class NoSuchParentBlockException extends RuntimeException {
 
   public NoSuchParentBlockException(ApplicationBlock block) {
     super("No such parent block " + block.factory + " of " + block, null, true, false);

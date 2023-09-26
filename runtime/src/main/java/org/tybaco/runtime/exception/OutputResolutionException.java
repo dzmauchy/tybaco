@@ -23,7 +23,7 @@ package org.tybaco.runtime.exception;
 
 import org.tybaco.runtime.application.ResolvableObject;
 
-public class OutputResolutionException extends RuntimeException {
+public final class OutputResolutionException extends RuntimeException {
 
   public OutputResolutionException(ResolvableObject object, String spot, Throwable cause) {
     super("Resolution error of " + object + "[" + spot + "]", cause, true, false);

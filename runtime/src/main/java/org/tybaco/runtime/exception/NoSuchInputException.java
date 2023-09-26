@@ -21,11 +21,9 @@ package org.tybaco.runtime.exception;
  * #L%
  */
 
-import org.tybaco.runtime.application.ApplicationBlock;
+public final class NoSuchInputException extends RuntimeException {
 
-public final class NullBlockResolutionException extends RuntimeException {
-
-  public NullBlockResolutionException(ApplicationBlock block) {
-    super("Null result of " + block, null, true, false);
+  public NoSuchInputException(String input) {
+    super("No such input: " + input, null, true, false);
   }
 }

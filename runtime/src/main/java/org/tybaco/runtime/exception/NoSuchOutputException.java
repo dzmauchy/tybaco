@@ -21,11 +21,9 @@ package org.tybaco.runtime.exception;
  * #L%
  */
 
-import org.tybaco.runtime.application.ApplicationBlock;
+public final class NoSuchOutputException extends RuntimeException {
 
-public final class NullBlockResolutionException extends RuntimeException {
-
-  public NullBlockResolutionException(ApplicationBlock block) {
-    super("Null result of " + block, null, true, false);
+  public NoSuchOutputException(String name) {
+    super("No such output; " + name, null, true, false);
   }
 }

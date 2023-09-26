@@ -23,7 +23,7 @@ package org.tybaco.runtime.exception;
 
 import org.tybaco.runtime.application.ApplicationBlock;
 
-public class BlockInitializationException extends RuntimeException {
+public final class BlockInitializationException extends RuntimeException {
 
   public BlockInitializationException(ApplicationBlock block, Throwable cause) {
     super(block + " initialization error", cause, true, false);

@@ -23,7 +23,7 @@ package org.tybaco.runtime.exception;
 
 import org.tybaco.runtime.application.ApplicationLink;
 
-public class InvalidLinkException extends RuntimeException {
+public final class InvalidLinkException extends RuntimeException {
 
   public InvalidLinkException(ApplicationLink link, String error) {
     super("Invalid " + link + ": " + error, null, true, false);

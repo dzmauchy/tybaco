@@ -23,7 +23,7 @@ package org.tybaco.runtime.exception;
 
 import org.tybaco.runtime.application.ApplicationBlock;
 
-public class BlockSetInputException extends RuntimeException {
+public final class BlockSetInputException extends RuntimeException {
 
   public BlockSetInputException(ApplicationBlock block, String input, Throwable cause) {
     super(block + " set input " + input + " error", cause, true, false);
