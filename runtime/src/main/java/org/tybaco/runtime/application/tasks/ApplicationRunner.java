@@ -34,6 +34,8 @@ import java.util.*;
 
 import static java.lang.Thread.currentThread;
 import static java.util.Objects.requireNonNull;
+import static org.tybaco.runtime.util.IntSet.EMPTY_INT_SET;
+import static org.tybaco.runtime.util.IntSet.tryAdd;
 
 public class ApplicationRunner implements ApplicationTask {
 
@@ -47,10 +49,8 @@ public class ApplicationRunner implements ApplicationTask {
   RuntimeApp runtimeApp(Application app) {
     var resolver = new ApplicationResolver(app);
     try {
-      for (var constant : app.constants())
-        resolver.resolveConstant(constant);
-      for (var block : app.blocks())
-        resolver.resolveBlock(block, new BitSet());
+      for (var constant : app.constants()) resolver.resolveConstant(constant);
+      for (var block : app.blocks()) resolver.resolveBlock(block, EMPTY_INT_SET);
       resolver.start();
       return resolver.runtimeApp;
     } catch (Throwable e) {
@@ -115,27 +115,27 @@ public class ApplicationRunner implements ApplicationTask {
       return info.invoke(c.value);
     }
 
-    private Object resolveBlock(ApplicationBlock b, BitSet passed) {
+    private Object resolveBlock(ApplicationBlock b, int[] passed) {
       var existingBean = beans.get(b);
       if (existingBean != null) return existingBean;
-      if (passed.get(b.id())) throw new CircularBlockReferenceException(passed);
-      passed.set(b.id());
+      var newPassed = tryAdd(passed, b.id);
+      if (newPassed == passed) throw new CircularBlockReferenceException(passed);
       try {
-        var m = method(b, passed);
+        var m = method(b, newPassed);
         var argLinks = args.get(b);
-        var bean = m.invoke(argLinks == null ? Map.of() : blockArgs(b, passed, argLinks, m));
+        var bean = m.invoke(argLinks == null ? Map.of() : blockArgs(b, newPassed, argLinks, m));
         if (bean == null) throw new NullBlockResolutionException(b);
         else if (bean instanceof AutoCloseable c) runtimeApp.addCloseable(new Ref<>(c, b.id));
         beans.put(b, bean);
-        invokeInputs(b, bean, passed);
+        invokeInputs(b, bean, new int[] {b.id});
         return bean;
       } catch (Throwable e) {
         throw new BlockResolutionException(b, e);
       }
     }
 
-    private HashMap<String, Object> blockArgs(ApplicationBlock b, BitSet passed, TreeMap<String, TreeMap<Integer, Link>> ls, ResolvedMethod method) {
-      var args = new HashMap<String, Object>(ls.size(), 0.5f);
+    private TreeMap<String, Object> blockArgs(ApplicationBlock b, int[] passed, TreeMap<String, TreeMap<Integer, Link>> ls, ResolvedMethod method) {
+      var args = new TreeMap<String, Object>();
       ls.forEach((name, m) -> {
         var p = method.parameter(name);
         if (p == null) throw new NoSuchBlockArgumentException(b, name);
@@ -148,7 +148,7 @@ public class ApplicationRunner implements ApplicationTask {
       return args;
     }
 
-    private void invokeInputs(ApplicationBlock b, Object bean, BitSet passed) {
+    private void invokeInputs(ApplicationBlock b, Object bean, int[] passed) {
       var links = this.inputs.get(b);
       if (links == null) return;
       var classInfo = classInfoCache.get(bean.getClass());
@@ -186,7 +186,7 @@ public class ApplicationRunner implements ApplicationTask {
       });
     }
 
-    private Object v(Parameter param, TreeMap<Integer, Link> map, BitSet passed) {
+    private Object v(Parameter param, TreeMap<Integer, Link> map, int[] passed) {
       if (param.isVarArgs()) {
         var v = Array.newInstance(param.getType().getComponentType(), map.lastKey() + 1);
         map.forEach((i, l) -> Array.set(v, i, resolveOut(l.from(), l.out(), passed)));
@@ -197,7 +197,7 @@ public class ApplicationRunner implements ApplicationTask {
       }
     }
 
-    private ResolvedMethod method(ApplicationBlock b, BitSet passed) throws Exception {
+    private ResolvedMethod method(ApplicationBlock b, int[] passed) throws Exception {
       if (b.isDependent()) {
         var bean = switch (objectMap.get(b.parentBlockId())) {
           case null -> throw new NoSuchParentBlockException(b);
@@ -213,7 +213,7 @@ public class ApplicationRunner implements ApplicationTask {
       }
     }
 
-    private Object resolveOut(ResolvableObject out, String spot, BitSet passed) {
+    private Object resolveOut(ResolvableObject out, String spot, int[] passed) {
       try {
         var bean = switch (out) {
           case ApplicationConstant c -> beans.get(c);

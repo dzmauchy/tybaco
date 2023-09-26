@@ -1,4 +1,4 @@
-package org.tybaco.runtime.exception;
+package org.tybaco.runtime.util;
 
 /*-
  * #%L
@@ -23,9 +23,17 @@ package org.tybaco.runtime.exception;
 
 import java.util.Arrays;
 
-public final class CircularBlockReferenceException extends RuntimeException {
+public interface IntSet {
 
-  public CircularBlockReferenceException(int[] passed) {
-    super(Arrays.toString(passed), null, true, false);
+  int[] EMPTY_INT_SET = new int[0];
+
+  static int[] tryAdd(int[] array, int v) {
+    for (int e : array) {
+      if (e == v) return array;
+    }
+    int n = array.length;
+    array = Arrays.copyOf(array, n + 1);
+    array[n] = v;
+    return array;
   }
 }

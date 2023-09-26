@@ -87,7 +87,7 @@ class ApplicationRunnerTest {
     );
     var links = List.of(
       arg(out(33, "o"), in(32, "x")),
-      arg(out(32), in(33, "values"))
+      arg(out(32), in(33, "values", 0))
     );
     var app = new Application("app", constants, blocks, links);
     // when
@@ -95,6 +95,27 @@ class ApplicationRunnerTest {
     // then
     assertThat(exc).hasRootCauseInstanceOf(CircularBlockReferenceException.class);
   }
+
+  @Test
+  void noCircularReferenceInput() throws Exception {
+    // given
+    var constants = List.of(
+      constant(0, "int", "12")
+    );
+    var blocks = List.of(
+      block(32, SampleBeanC.class),
+      block(33, SampleBeanB.class.getMethod("sampleBeanB", Object[].class)),
+      block(34, SampleBeanA.class.getMethod("sampleBeanA"))
+    );
+    var links = List.of(
+      arg(out(33, "o"), in(32, "x")),
+      inp(out(32), in(33, "v", 0))
+    );
+    var app = new Application("app", constants, blocks, links);
+    // when
+    runApp(app);
+  }
+
 
   private void runApp(Application app) {
     var runner = new ApplicationRunner();
