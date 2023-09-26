@@ -23,14 +23,17 @@ package org.tybaco.runtime.basic.sink;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tybaco.runtime.annotations.Sink;
 import org.tybaco.runtime.basic.Startable;
 import org.tybaco.runtime.basic.Break;
 import org.tybaco.runtime.basic.source.Source;
+import org.tybaco.runtime.util.Throwables;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+@Sink
 public final class ParallelSink<E> implements Startable {
 
   private final Logger logger;
@@ -62,31 +65,18 @@ public final class ParallelSink<E> implements Startable {
   }
 
   private void run() {
-    var exception = new AtomicReference<Throwable>();
+    var exceptions = new ConcurrentLinkedQueue<Throwable>();
     try {
       source.apply(e -> {
         executor.execute(() -> {
           try {
             consumer.accept(e);
           } catch (Throwable x) {
-            exception.updateAndGet(o -> merge(o, x));
+            exceptions.add(x);
           }
         });
-        var x = exception.get();
-        switch (x) {
-          case null -> {}
-          case RuntimeException ex -> throw ex;
-          case Error er -> throw er;
-          default -> throw new ExceptionWrapper(x);
-        }
+        if (!exceptions.isEmpty()) throw Break.BREAK;
       });
-    } catch (Break ignore) {
-    } catch (ExceptionWrapper wrapper) {
-      if (onError == null) {
-        logger.error("Sink error", wrapper.getCause());
-      } else {
-        onError.accept(wrapper.getCause());
-      }
     } catch (Throwable e) {
       if (onError == null) {
         logger.error("Sink error", e);
@@ -99,14 +89,5 @@ public final class ParallelSink<E> implements Startable {
   @Override
   public void start() {
     thread.start();
-  }
-
-  private static Throwable merge(Throwable old, Throwable current) {
-    if (old == null) {
-      return current;
-    } else {
-      old.addSuppressed(current);
-      return old;
-    }
   }
 }

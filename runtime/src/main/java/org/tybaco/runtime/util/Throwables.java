@@ -1,4 +1,4 @@
-package org.tybaco.runtime.basic.sink;
+package org.tybaco.runtime.util;
 
 /*-
  * #%L
@@ -21,9 +21,14 @@ package org.tybaco.runtime.basic.sink;
  * #L%
  */
 
-final class ExceptionWrapper extends RuntimeException {
+public interface Throwables {
 
-  public ExceptionWrapper(Throwable throwable) {
-    super(null, throwable, false, false);
+  static Throwable merge(Throwable old, Throwable current) {
+    if (old == null) {
+      return current;
+    } else {
+      old.addSuppressed(current);
+      return old;
+    }
   }
 }

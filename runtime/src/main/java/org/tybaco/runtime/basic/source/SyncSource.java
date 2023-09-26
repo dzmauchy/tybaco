@@ -21,6 +21,7 @@ package org.tybaco.runtime.basic.source;
  * #L%
  */
 
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 
@@ -28,29 +29,14 @@ public record SyncSource<E>(Source<E> source, long periodNanos) implements Sourc
 
   @Override
   public void apply(Consumer<? super E> consumer) {
-    source.apply(new SyncConsumer<>(consumer, periodNanos));
-  }
-
-  private static final class SyncConsumer<E> implements Consumer<E> {
-
-    private final Consumer<? super E> consumer;
-    private final long periodNanos;
-    private long lastTime;
-
-    private SyncConsumer(Consumer<? super E> consumer, long periodNanos) {
-      this.consumer = consumer;
-      this.periodNanos = periodNanos;
-      this.lastTime = System.nanoTime() - periodNanos;
-    }
-
-    @Override
-    public void accept(E o) {
-      var time = System.nanoTime() - lastTime;
+    var lastTime = new AtomicLong(System.nanoTime() - periodNanos);
+    source.apply(e -> {
+      var time = System.nanoTime() - lastTime.get();
       if (time < periodNanos) {
         LockSupport.parkNanos(periodNanos - time);
       }
-      lastTime = System.nanoTime();
-      consumer.accept(o);
-    }
+      lastTime.set(System.nanoTime());
+      consumer.accept(e);
+    });
   }
 }

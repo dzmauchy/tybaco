@@ -42,10 +42,8 @@ public final class SinkAnnotationProcessor extends AbstractFileProcessor {
         var newName = name.substring(0, name.length() - 4) + t + "Sink";
         var c = code
           .replace("Sink<E>", t + "Sink")
-          .replace("Source<E>", t + "Source")
-          .replace("Consumer<? super E>", t + "Consumer")
-          .replace("/*** CONSUMER_IMPORT ***/", "import " + Consumer.class.getPackageName() + "." + t + "Consumer;")
-          .replace("org.tybaco.runtime.basic.source.Source", "org.tybaco.runtime.basic.source." + t + "Source")
+          .replace("Source<E>", "org.tybaco.runtime.basic.source." + t + "Source")
+          .replace("Consumer<? super E>", Consumer.class.getPackageName() + "." + t + "Consumer")
           .replace("public " + name + "(", "public " + newName + "(")
           .replace("@Sink", "");
         return new ProcessedFile(newName, c);

@@ -31,8 +31,6 @@ import org.tybaco.runtime.basic.source.Source;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
 
-/*** CONSUMER_IMPORT ***/
-
 @Sink
 public final class SequentialSink<E> implements Startable, AutoCloseable {
 
