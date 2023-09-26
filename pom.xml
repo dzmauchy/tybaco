@@ -88,6 +88,7 @@
 
   <modules>
     <module>library</module>
+    <module>annotations</module>
     <module>runtime</module>
     <module>ui</module>
     <module>ide</module>
