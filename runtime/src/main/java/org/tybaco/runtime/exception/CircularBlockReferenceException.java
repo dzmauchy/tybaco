@@ -21,11 +21,18 @@ package org.tybaco.runtime.exception;
  * #L%
  */
 
-import java.util.Arrays;
-
 public final class CircularBlockReferenceException extends RuntimeException {
 
-  public CircularBlockReferenceException(int[] passed) {
-    super(Arrays.toString(passed), null, true, false);
+  public CircularBlockReferenceException(int[] passed, int id) {
+    super(message(passed, id), null, true, false);
+  }
+
+  private static String message(int[] passed, int id) {
+    var builder = new StringBuilder();
+    for (var p : passed) {
+      builder.append(p).append('-');
+    }
+    builder.append(id);
+    return builder.toString();
   }
 }

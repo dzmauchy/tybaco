@@ -28,6 +28,7 @@ import org.tybaco.runtime.basic.Startable;
 import org.tybaco.runtime.exception.*;
 import org.tybaco.runtime.reflect.ClassInfoCache;
 import org.tybaco.runtime.reflect.ConstantInfoCache;
+import org.tybaco.runtime.util.TransformedMap;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -119,7 +120,7 @@ public class ApplicationRunner implements ApplicationTask {
       var existingBean = beans.get(b);
       if (existingBean != null) return existingBean;
       var newPassed = tryAdd(passed, b.id);
-      if (newPassed == passed) throw new CircularBlockReferenceException(passed);
+      if (newPassed == passed) throw new CircularBlockReferenceException(passed, b.id);
       try {
         var m = method(b, newPassed);
         var argLinks = args.get(b);
@@ -127,25 +128,23 @@ public class ApplicationRunner implements ApplicationTask {
         if (bean == null) throw new NullBlockResolutionException(b);
         else if (bean instanceof AutoCloseable c) runtimeApp.addCloseable(new Ref<>(c, b.id));
         beans.put(b, bean);
-        invokeInputs(b, bean, new int[] {b.id});
+        invokeInputs(b, bean, new int[]{b.id});
         return bean;
       } catch (Throwable e) {
         throw new BlockResolutionException(b, e);
       }
     }
 
-    private TreeMap<String, Object> blockArgs(ApplicationBlock b, int[] passed, TreeMap<String, TreeMap<Integer, Link>> ls, ResolvedMethod method) {
-      var args = new TreeMap<String, Object>();
-      ls.forEach((name, m) -> {
+    private Map<String, Object> blockArgs(ApplicationBlock b, int[] passed, TreeMap<String, TreeMap<Integer, Link>> ls, ResolvedMethod method) {
+      return new TransformedMap<>(ls, (name, m) -> {
         var p = method.parameter(name);
         if (p == null) throw new NoSuchBlockArgumentException(b, name);
         try {
-          args.put(name, v(p, m, passed));
+          return v(p, m, passed);
         } catch (Throwable e) {
           throw new BlockSetArgumentException(b, name, e);
         }
       });
-      return args;
     }
 
     private void invokeInputs(ApplicationBlock b, Object bean, int[] passed) {
@@ -220,20 +219,19 @@ public class ApplicationRunner implements ApplicationTask {
           case ApplicationBlock b -> resolveBlock(b, passed);
         };
         if ("*".equals(spot)) return bean;
-        else {
-          var outValues = this.outValues.computeIfAbsent(out, k -> new TreeMap<>());
-          if (outValues.containsKey(spot)) {
-            return outValues.get(spot);
-          } else {
-            var classInfo = classInfoCache.get(bean.getClass());
-            var output = classInfo.output(spot);
-            var v = output.invoke(bean);
-            outValues.put(spot, v);
-            return v;
-          }
-        }
-      } catch (InvocationTargetException e) {
-        throw new OutputResolutionException(out, spot, e.getTargetException());
+        else return outValues
+          .computeIfAbsent(out, k -> new TreeMap<>())
+          .computeIfAbsent(spot, s -> {
+            try {
+              var classInfo = classInfoCache.get(bean.getClass());
+              var output = classInfo.output(spot);
+              return output.invoke(bean);
+            } catch (InvocationTargetException e) {
+              throw new OutputResolutionException(out, spot, e.getTargetException());
+            } catch (ReflectiveOperationException e) {
+              throw new OutputResolutionException(out, spot, e);
+            }
+          });
       } catch (Throwable e) {
         throw new OutputResolutionException(out, spot, e);
       }

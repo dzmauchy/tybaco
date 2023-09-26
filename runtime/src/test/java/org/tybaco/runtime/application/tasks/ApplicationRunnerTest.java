@@ -116,7 +116,6 @@ class ApplicationRunnerTest {
     runApp(app);
   }
 
-
   private void runApp(Application app) {
     var runner = new ApplicationRunner();
     try (var runtime = runner.runtimeApp(app)) {
