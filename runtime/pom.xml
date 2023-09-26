@@ -56,7 +56,7 @@
             </path>
           </annotationProcessorPaths>
           <annotationProcessors>
-            <annotationProcessor>org.tybaco.annotations.sink.SinkAnnotationProcessor</annotationProcessor>
+            <processor>org.tybaco.annotations.sink.SinkAnnotationProcessor</processor>
           </annotationProcessors>
         </configuration>
       </plugin>

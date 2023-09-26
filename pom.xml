@@ -106,7 +106,7 @@
             <parameters>true</parameters>
             <compilerReuseStrategy>reuseSame</compilerReuseStrategy>
             <useIncrementalCompilation>false</useIncrementalCompilation>
-            <forceJavacCompilerUse>true</forceJavacCompilerUse>
+            <showWarnings>true</showWarnings>
           </configuration>
         </plugin>
 

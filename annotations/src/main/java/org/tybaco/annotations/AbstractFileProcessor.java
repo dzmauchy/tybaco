@@ -76,6 +76,7 @@ public abstract class AbstractFileProcessor implements Processor {
             try (var w = outFile.openWriter()) {
               w.write(f.contents());
             }
+            messager.printNote("Processed " + f.name());
           }
         } catch (Throwable e) {
           e.printStackTrace(System.err);
