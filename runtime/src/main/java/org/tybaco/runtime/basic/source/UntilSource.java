@@ -21,11 +21,20 @@ package org.tybaco.runtime.basic.source;
  * #L%
  */
 
-public final class Break extends RuntimeException {
+import org.tybaco.runtime.basic.Break;
 
-  public static final Break BREAK = new Break();
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
-  private Break() {
-    super("RETURN", null, false, false);
+public record UntilSource<E>(Source<E> source, Predicate<? super E> predicate) implements Source<E> {
+  @Override
+  public void apply(Consumer<? super E> consumer) {
+    source.apply(e -> {
+      if (predicate.test(e)) {
+        throw Break.BREAK;
+      } else {
+        consumer.accept(e);
+      }
+    });
   }
 }

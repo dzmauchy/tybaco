@@ -1,4 +1,4 @@
-package org.tybaco.runtime.basic.source;
+package org.tybaco.runtime.basic.sink;
 
 /*-
  * #%L
@@ -10,33 +10,40 @@ package org.tybaco.runtime.basic.source;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tybaco.runtime.basic.Startable;
+import org.tybaco.runtime.basic.Break;
+import org.tybaco.runtime.basic.source.Source;
 
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
-
-import static org.tybaco.runtime.basic.source.Break.BREAK;
 
 public final class SequentialSink<E> implements Startable, AutoCloseable {
 
   private final Thread thread;
+  private final Logger logger;
   private final Source<E> source;
   private final Consumer<? super E> consumer;
+  private final Consumer<? super Throwable> onError;
 
-  public SequentialSink(ThreadGroup threadGroup, String name, Source<E> source, Consumer<? super E> consumer) {
-    this.thread = new Thread(threadGroup, this::run, name);
+  public SequentialSink(ThreadFactory tf, String name, Source<E> source, Consumer<? super E> consumer, Consumer<? super Throwable> onError) {
+    this.thread = tf == null ? new Thread(this::run, name) : tf.newThread(this::run);
+    this.logger = LoggerFactory.getLogger(name.replaceAll("\\s++", "_"));
     this.source = source;
     this.consumer = consumer;
+    this.onError = onError;
   }
 
   public void daemon(boolean daemon) {
@@ -51,15 +58,17 @@ public final class SequentialSink<E> implements Startable, AutoCloseable {
     return thread.isAlive();
   }
 
-  private void consume(E element) {
-    consumer.accept(element);
-    if (thread.isInterrupted()) {
-      throw BREAK;
-    }
-  }
-
   private void run() {
-    source.apply(this::consume);
+    try {
+      source.apply(consumer);
+    } catch (Break ignore) {
+    } catch (Throwable e) {
+      if (onError == null) {
+        logger.error("Sink error", e);
+      } else {
+        onError.accept(e);
+      }
+    }
   }
 
   @Override

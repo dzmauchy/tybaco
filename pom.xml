@@ -532,5 +532,9 @@
         </property>
       </activation>
     </profile>
+
+    <profile>
+      <id>scripts</id>
+    </profile>
   </profiles>
 </project>
