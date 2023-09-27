@@ -35,6 +35,7 @@ import java.util.*;
 
 import static java.lang.Thread.currentThread;
 import static java.util.Objects.requireNonNull;
+import static org.tybaco.runtime.exception.BlockCloseException.wrapCloseable;
 import static org.tybaco.runtime.util.IntSet.EMPTY_INT_SET;
 import static org.tybaco.runtime.util.IntSet.tryAdd;
 
@@ -117,18 +118,19 @@ public class ApplicationRunner implements ApplicationTask {
     }
 
     private Object resolveBlock(ApplicationBlock b, int[] passed) {
+      var id = b.id;
       var existingBean = beans.get(b);
       if (existingBean != null) return existingBean;
-      var newPassed = tryAdd(passed, b.id);
-      if (newPassed == passed) throw new CircularBlockReferenceException(passed, b.id);
+      var newPassed = tryAdd(passed, id);
+      if (newPassed == passed) throw new CircularBlockReferenceException(passed, id);
       try {
         var m = method(b, newPassed);
         var argLinks = args.get(b);
         var bean = m.invoke(argLinks == null ? Map.of() : blockArgs(b, newPassed, argLinks, m));
         if (bean == null) throw new NullBlockResolutionException(b);
-        else if (bean instanceof AutoCloseable c) runtimeApp.addCloseable(new Ref<>(c, b.id));
+        else if (bean instanceof AutoCloseable c) runtimeApp.addCloseable(wrapCloseable(id, c));
         beans.put(b, bean);
-        invokeInputs(b, bean, new int[]{b.id});
+        invokeInputs(b, bean, new int[]{id}); // do not allow to reference itself
         return bean;
       } catch (InvocationTargetException e) {
         throw new BlockResolutionException(b, e.getTargetException());

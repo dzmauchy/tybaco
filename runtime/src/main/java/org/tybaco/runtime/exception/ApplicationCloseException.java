@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application.tasks;
+package org.tybaco.runtime.exception;
 
 /*-
  * #%L
@@ -21,14 +21,9 @@ package org.tybaco.runtime.application.tasks;
  * #L%
  */
 
-import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.tybaco.runtime.logging.LoggingManager;
+public class ApplicationCloseException extends RuntimeException {
 
-public final class LogConfigurer implements ApplicationTask {
-
-  @Override
-  public void run(ApplicationContext context) {
-    System.setProperty("java.util.logging.manager", LoggingManager.class.getName());
-    if (!SLF4JBridgeHandler.isInstalled()) SLF4JBridgeHandler.install();
+  public ApplicationCloseException() {
+    super("Application close error", null, true, false);
   }
 }

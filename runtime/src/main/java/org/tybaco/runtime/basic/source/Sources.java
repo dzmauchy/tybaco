@@ -25,8 +25,9 @@ import org.tybaco.runtime.basic.Break;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.LockSupport;
 import java.util.function.*;
+
+import static java.util.concurrent.locks.LockSupport.parkNanos;
 
 public interface Sources {
 
@@ -140,9 +141,7 @@ public interface Sources {
 
   private static void waitIfNecessary(AtomicLong lastTime, long period, Runnable task) {
     var time = System.nanoTime() - lastTime.get();
-    if (time < period) {
-      LockSupport.parkNanos(period - time);
-    }
+    if (time < period) parkNanos(period - time);
     lastTime.set(System.nanoTime());
     task.run();
   }

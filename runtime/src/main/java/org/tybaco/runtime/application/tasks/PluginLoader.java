@@ -21,8 +21,6 @@ package org.tybaco.runtime.application.tasks;
  * #L%
  */
 
-import org.tybaco.runtime.application.tasks.ApplicationContext;
-import org.tybaco.runtime.application.tasks.ApplicationTask;
 import org.tybaco.runtime.plugins.Plugin;
 import org.tybaco.runtime.plugins.PluginException;
 

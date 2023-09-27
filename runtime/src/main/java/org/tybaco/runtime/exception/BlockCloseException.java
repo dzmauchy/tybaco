@@ -1,4 +1,4 @@
-package org.tybaco.runtime.application.tasks.run;
+package org.tybaco.runtime.exception;
 
 /*-
  * #%L
@@ -21,5 +21,19 @@ package org.tybaco.runtime.application.tasks.run;
  * #L%
  */
 
-public record Ref<T>(T ref, int id) {
+public final class BlockCloseException extends Exception {
+
+  public BlockCloseException(int id, Throwable cause) {
+    super("Unable to close " + id, cause, true, false);
+  }
+
+  public static AutoCloseable wrapCloseable(int id, AutoCloseable closeable) {
+    return () -> {
+      try {
+        closeable.close();
+      } catch (Throwable e) {
+        throw new BlockCloseException(id, e);
+      }
+    };
+  }
 }

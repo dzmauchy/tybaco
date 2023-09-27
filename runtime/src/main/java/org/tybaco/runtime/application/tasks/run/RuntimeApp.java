@@ -21,30 +21,29 @@ package org.tybaco.runtime.application.tasks.run;
  * #L%
  */
 
+import org.tybaco.runtime.exception.ApplicationCloseException;
+
 public final class RuntimeApp implements AutoCloseable {
 
   private CloseableRef closeables;
 
-  public void addCloseable(Ref<AutoCloseable> ref) {
+  public void addCloseable(AutoCloseable ref) {
     closeables = new CloseableRef(ref, closeables);
   }
 
   @Override
   public void close() {
-    var exception = new IllegalStateException("Application close error");
+    var exception = new ApplicationCloseException();
     for (var c = closeables; c != null; ) {
-      var ref = c.ref;
       try {
-        ref.ref().close();
+        c.ref.close();
       } catch (Throwable e) {
-        exception.addSuppressed(new IllegalStateException("Unable to close %d".formatted(ref.id()), e));
+        exception.addSuppressed(e);
       }
       closeables = c = c.prev;
     }
-    if (exception.getSuppressed().length > 0) {
-      throw exception;
-    }
+    if (exception.getSuppressed().length > 0) throw exception;
   }
 
-  private record CloseableRef(Ref<AutoCloseable> ref, CloseableRef prev) {}
+  private record CloseableRef(AutoCloseable ref, CloseableRef prev) {}
 }
