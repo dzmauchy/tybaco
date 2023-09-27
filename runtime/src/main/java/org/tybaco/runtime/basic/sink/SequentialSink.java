@@ -21,8 +21,6 @@ package org.tybaco.runtime.basic.sink;
  * #L%
  */
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.tybaco.runtime.annotations.Sink;
 import org.tybaco.runtime.basic.Break;
 import org.tybaco.runtime.basic.Startable;
@@ -35,14 +33,12 @@ import java.util.function.Consumer;
 public final class SequentialSink<E> implements Startable, AutoCloseable {
 
   private final Thread thread;
-  private final Logger logger;
   private final Source<E> source;
   private final Consumer<? super E> consumer;
   private final Consumer<? super Throwable> onError;
 
-  public SequentialSink(ThreadFactory tf, String name, Source<E> source, Consumer<? super E> consumer, Consumer<? super Throwable> onError) {
-    this.thread = tf == null ? new Thread(this::run, name) : tf.newThread(this::run);
-    this.logger = LoggerFactory.getLogger(name.replaceAll("\\s++", "_"));
+  public SequentialSink(ThreadFactory tf, Source<E> source, Consumer<? super E> consumer, Consumer<? super Throwable> onError) {
+    this.thread = tf.newThread(this::run);
     this.source = source;
     this.consumer = consumer;
     this.onError = onError;
@@ -65,11 +61,7 @@ public final class SequentialSink<E> implements Startable, AutoCloseable {
       source.apply(consumer);
     } catch (Break ignore) {
     } catch (Throwable e) {
-      if (onError == null) {
-        logger.error("Sink error", e);
-      } else {
-        onError.accept(e);
-      }
+      onError.accept(e);
     }
   }
 
