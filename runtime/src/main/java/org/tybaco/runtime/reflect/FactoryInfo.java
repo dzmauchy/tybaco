@@ -44,10 +44,6 @@ public final class FactoryInfo {
     return parameterMap.get(name);
   }
 
-  public int parameterCount() {
-    return parameters.length;
-  }
-
   public Object execute(Object bean, Map<String, Object> map) throws ReflectiveOperationException {
     var args = new Object[parameters.length];
     for (int i = 0; i < parameters.length; i++) {

@@ -22,10 +22,17 @@ package org.tybaco.runtime.reflect;
  */
 
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
 
-public final class ConstantInfoCache extends ClassValue<ConstantInfo> {
-  @Override
-  protected ConstantInfo computeValue(Class<?> type) {
+public final class ConstantInfoCache {
+
+  private final HashMap<Class<?>, ConstantInfo> map = new HashMap<>(64, 0.5f);
+
+  public ConstantInfo get(Class<?> type) {
+    return map.computeIfAbsent(type, this::computeValue);
+  }
+
+  private ConstantInfo computeValue(Class<?> type) {
     for (var c : type.getConstructors()) {
       if (c.getParameterCount() == 1 && c.getParameterTypes()[0] == String.class) {
         return new ConstantInfo(c);

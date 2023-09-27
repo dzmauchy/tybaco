@@ -25,25 +25,29 @@ import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class ClassInfoCache extends ClassValue<ClassInfo> {
+public final class ClassInfoCache {
 
-  @Override
-  protected ClassInfo computeValue(Class<?> type) {
+  private final HashMap<Class<?>, ClassInfo> map = new HashMap<>(64, 0.5f);
+
+  public ClassInfo get(Class<?> type) {
+    return map.computeIfAbsent(type, this::computeValue);
+  }
+
+  private ClassInfo computeValue(Class<?> type) {
     var methods = type.getMethods();
-    var inputs = new HashMap<String, Method>(methods.length);
-    var outputs = new HashMap<String, Method>(methods.length);
-    var factories = new HashMap<String, FactoryInfo>(methods.length);
-    var staticFactories = new HashMap<String, FactoryInfo>(methods.length);
+    var inputs = HashMap.<String, Method>newHashMap(methods.length);
+    var outputs = HashMap.<String, Method>newHashMap(methods.length);
+    var factories = HashMap.<String, FactoryInfo>newHashMap(methods.length);
+    var staticFactories = HashMap.<String, FactoryInfo>newHashMap(methods.length);
     for (var c : type.getConstructors()) {
-      staticFactories.compute("new", (k, o) -> merge(o, c));
+      if (!c.trySetAccessible()) continue;
+      staticFactories.computeIfAbsent("new", k -> new FactoryInfo(c));
     }
     for (var m : methods) {
-      if (!m.trySetAccessible()) {
-        continue;
-      }
+      if (!m.trySetAccessible()) continue;
       if (Modifier.isStatic(m.getModifiers())) {
         if (m.getReturnType() != void.class) {
-          staticFactories.compute(m.getName(), (k, o) -> merge(o, m));
+          staticFactories.computeIfAbsent(m.getName(), k -> new FactoryInfo(m));
         }
       } else {
         if (m.getReturnType() == void.class && m.getParameterCount() == 1) {
@@ -52,14 +56,16 @@ public final class ClassInfoCache extends ClassValue<ClassInfo> {
           outputs.put(m.getName(), m);
         }
         if (m.getReturnType() != void.class) {
-          factories.compute(m.getName(), (k, o) -> merge(o, m));
+          factories.computeIfAbsent(m.getName(), k -> new FactoryInfo(m));
         }
       }
     }
-    return new ClassInfo(type, Map.copyOf(inputs), Map.copyOf(outputs), Map.copyOf(factories), Map.copyOf(staticFactories));
-  }
-
-  private static FactoryInfo merge(FactoryInfo old, Executable e) {
-    return old != null && old.parameterCount() >= e.getParameterCount() ? old : new FactoryInfo(e);
+    return new ClassInfo(
+      type,
+      Map.copyOf(inputs),
+      Map.copyOf(outputs),
+      Map.copyOf(factories),
+      Map.copyOf(staticFactories)
+    );
   }
 }
