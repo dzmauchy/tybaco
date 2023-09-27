@@ -23,6 +23,9 @@ package org.tybaco.runtime.basic.source;
 
 import org.tybaco.runtime.basic.Break;
 
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.*;
 
 public interface Sources {
@@ -109,5 +112,38 @@ public interface Sources {
       if (predicate.test(e)) consumer.accept(e);
       else throw Break.BREAK;
     });
+  }
+
+  static <E> Source<E> syncSource(Source<E> source, Duration period) {
+    var nanos = period.toNanos();
+    var lastTime = new AtomicLong(System.nanoTime() - nanos);
+    return consumer -> source.apply(e -> waitIfNecessary(lastTime, nanos, () -> consumer.accept(e)));
+  }
+
+  static DoubleSource syncDoubleSource(DoubleSource source, Duration period) {
+    var nanos = period.toNanos();
+    var lastTime = new AtomicLong(System.nanoTime() - nanos);
+    return consumer -> source.apply(e -> waitIfNecessary(lastTime, nanos, () -> consumer.accept(e)));
+  }
+
+  static IntSource syncIntSource(IntSource source, Duration period) {
+    var nanos = period.toNanos();
+    var lastTime = new AtomicLong(System.nanoTime() - nanos);
+    return consumer -> source.apply(e -> waitIfNecessary(lastTime, nanos, () -> consumer.accept(e)));
+  }
+
+  static LongSource syncLongSource(LongSource source, Duration period) {
+    var nanos = period.toNanos();
+    var lastTime = new AtomicLong(System.nanoTime() - nanos);
+    return consumer -> source.apply(e -> waitIfNecessary(lastTime, nanos, () -> consumer.accept(e)));
+  }
+
+  private static void waitIfNecessary(AtomicLong lastTime, long period, Runnable task) {
+    var time = System.nanoTime() - lastTime.get();
+    if (time < period) {
+      LockSupport.parkNanos(period - time);
+    }
+    lastTime.set(System.nanoTime());
+    task.run();
   }
 }

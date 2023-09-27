@@ -23,10 +23,12 @@ package org.tybaco.runtime.basic.source;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.tybaco.runtime.basic.source.Sources.syncSource;
 
 class SyncSourceTest {
 
@@ -44,7 +46,7 @@ class SyncSourceTest {
     };
     var times = new long[count];
     var counter = new AtomicInteger();
-    var syncSource = new SyncSource<>(source, 10_000_000L);
+    var syncSource = syncSource(source, Duration.ofMillis(10L));
     syncSource.apply(v -> {
       if (v == null) {
         times[counter.getAndIncrement()] = System.nanoTime();
@@ -71,7 +73,7 @@ class SyncSourceTest {
     };
     var times = new long[count];
     var counter = new AtomicInteger();
-    var syncSource = new SyncSource<>(source, 10_000_000L);
+    var syncSource = syncSource(source, Duration.ofMillis(10L));
     syncSource.apply(v -> {
       if (v == null) {
         times[counter.getAndIncrement()] = System.nanoTime();
