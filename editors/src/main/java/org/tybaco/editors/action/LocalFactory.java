@@ -79,11 +79,12 @@ public abstract class LocalFactory {
   private Image load(IconKey key) {
     try (var is = classLoader.getResourceAsStream(key.key())) {
       if (is == null) {
+        warn(Icons.class, "Unable to resolve {0}", key);
         return null;
       }
       return new Image(is, key.size(), key.size(), false, true);
     } catch (Throwable e) {
-      warn(Icons.class, "Unable to resolve {0}", key);
+      warn(Icons.class, "Unable to resolve {0}", e, key);
       return null;
     }
   }
