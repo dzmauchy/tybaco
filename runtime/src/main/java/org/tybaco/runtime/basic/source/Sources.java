@@ -61,4 +61,12 @@ public interface Sources {
     lastTime.set(System.nanoTime());
     task.run();
   }
+
+  static <E, K, V> BiSource<K, V> biSource(Source<E> source, Function<? super E, ? extends K> key, Function<? super E, ? extends V> value) {
+    return consumer -> source.apply(e -> consumer.accept(key.apply(e), value.apply(e)));
+  }
+
+  static <K, V> BiSource<K, V> sourceWithKey(Source<V> source, Function<? super V, ? extends K> key) {
+    return consumer -> source.apply(e -> consumer.accept(key.apply(e), e));
+  }
 }

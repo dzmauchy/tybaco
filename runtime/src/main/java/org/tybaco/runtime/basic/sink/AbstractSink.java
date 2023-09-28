@@ -21,9 +21,14 @@ package org.tybaco.runtime.basic.sink;
  * #L%
  */
 
+import org.tybaco.runtime.basic.Break;
 import org.tybaco.runtime.basic.Startable;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
+import java.util.function.Consumer;
 
 abstract class AbstractSink implements Startable, AutoCloseable {
 
@@ -50,6 +55,27 @@ abstract class AbstractSink implements Startable, AutoCloseable {
   @Override
   public void start() {
     thread.start();
+  }
+
+  void waitForState(AtomicInteger state, Consumer<InterruptedException> consumer) {
+    var thread = Thread.currentThread();
+    while (state.get() > 0) {
+      if (thread.isInterrupted()) {
+        consumer.accept(new InterruptedException());
+        break;
+      }
+      LockSupport.parkNanos(1_000L);
+    }
+  }
+
+  void processErrors(ConcurrentLinkedQueue<Throwable> exceptions, Consumer<? super Throwable> consumer) {
+    exceptions.stream()
+      .filter(e -> e != Break.BREAK)
+      .reduce((e1, e2) -> {
+        e1.addSuppressed(e2);
+        return e1;
+      })
+      .ifPresent(consumer);
   }
 
   @Override

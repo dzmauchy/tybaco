@@ -1,4 +1,4 @@
-package org.tybaco.runtime.util;
+package org.tybaco.runtime.basic.executors;
 
 /*-
  * #%L
@@ -21,14 +21,8 @@ package org.tybaco.runtime.util;
  * #L%
  */
 
-public interface Throwables {
+import java.util.concurrent.Executor;
 
-  static Throwable merge(Throwable old, Throwable current) {
-    if (old == null) {
-      return current;
-    } else {
-      old.addSuppressed(current);
-      return old;
-    }
-  }
+public interface ExecutorByKey<K> {
+  Executor executorByKey(K key);
 }
