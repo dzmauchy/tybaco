@@ -1,4 +1,4 @@
-package org.tybaco.ui.lib.action;
+package org.tybaco.editors.action;
 
 /*-
  * #%L
@@ -23,6 +23,7 @@ package org.tybaco.ui.lib.action;
 
 import javafx.beans.Observable;
 import javafx.beans.*;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.*;
 import javafx.beans.value.ObservableValue;
@@ -34,8 +35,8 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCombination;
 import org.kordamp.ikonli.Ikon;
-import org.tybaco.ui.lib.icon.Icons;
-import org.tybaco.ui.lib.text.Texts;
+import org.tybaco.editors.icon.Icons;
+import org.tybaco.editors.text.Texts;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -246,7 +247,7 @@ public final class Action {
   }
 
   public ObjectBinding<Node> graphic(int size) {
-    return createObjectBinding(() -> Icons.icon(icon.get(), size), icon);
+    return Bindings.createObjectBinding(() -> Icons.icon(icon.get(), size), icon);
   }
 
   public ObjectBinding<Tooltip> tooltip() {

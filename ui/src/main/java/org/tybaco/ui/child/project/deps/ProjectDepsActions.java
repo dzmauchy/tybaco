@@ -25,7 +25,7 @@ import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.lib.action.Action;
+import org.tybaco.editors.action.Action;
 
 @Component
 public class ProjectDepsActions {

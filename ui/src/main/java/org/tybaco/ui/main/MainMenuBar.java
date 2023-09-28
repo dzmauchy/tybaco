@@ -26,7 +26,7 @@ import javafx.scene.control.MenuBar;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.lib.action.Action;
+import org.tybaco.editors.action.Action;
 
 @Component
 public class MainMenuBar extends MenuBar {

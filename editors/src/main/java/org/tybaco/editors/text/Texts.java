@@ -1,4 +1,4 @@
-package org.tybaco.ui.lib.text;
+package org.tybaco.editors.text;
 
 /*-
  * #%L

@@ -26,7 +26,7 @@ import javafx.scene.control.TitledPane;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.child.project.constants.ProjectConstantsPane;
 import org.tybaco.ui.child.project.deps.ProjectDepsPane;
-import org.tybaco.ui.lib.text.Texts;
+import org.tybaco.editors.text.Texts;
 
 @Component
 public class ProjectAccordion extends Accordion {

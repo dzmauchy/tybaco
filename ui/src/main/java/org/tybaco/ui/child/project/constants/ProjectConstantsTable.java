@@ -21,13 +21,12 @@ package org.tybaco.ui.child.project.constants;
  * #L%
  */
 
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.lib.control.Tables;
-import org.tybaco.ui.lib.text.Texts;
+import org.tybaco.editors.control.Tables;
+import org.tybaco.editors.text.Texts;
 import org.tybaco.ui.model.Constant;
 import org.tybaco.ui.model.Project;
 

@@ -25,7 +25,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.lib.control.Tables;
+import org.tybaco.editors.control.Tables;
 import org.tybaco.ui.model.Dependency;
 import org.tybaco.ui.model.Project;
 

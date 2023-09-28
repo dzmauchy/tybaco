@@ -1,4 +1,4 @@
-package org.tybaco.ui.lib.icon;
+package org.tybaco.editors.icon;
 
 /*-
  * #%L
@@ -31,7 +31,7 @@ import javafx.stage.StageStyle;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.IkonProvider;
 import org.kordamp.ikonli.javafx.FontIcon;
-import org.tybaco.ui.lib.text.Texts;
+import org.tybaco.editors.text.Texts;
 
 import java.util.ArrayList;
 import java.util.ServiceLoader;

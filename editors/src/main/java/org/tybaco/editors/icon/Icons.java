@@ -1,4 +1,4 @@
-package org.tybaco.ui.lib.icon;
+package org.tybaco.editors.icon;
 
 /*-
  * #%L

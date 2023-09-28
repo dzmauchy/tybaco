@@ -32,15 +32,15 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.tybaco.meta.*;
 import org.tybaco.ui.child.project.classpath.LibraryFinder;
-import org.tybaco.ui.lib.control.Tables;
+import org.tybaco.editors.control.Tables;
 import org.tybaco.ui.model.Constant;
 import org.tybaco.ui.model.Project;
 
 import java.util.List;
 
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
-import static org.tybaco.ui.lib.icon.Icons.icon;
-import static org.tybaco.ui.lib.text.Texts.text;
+import static org.tybaco.editors.icon.Icons.icon;
+import static org.tybaco.editors.text.Texts.text;
 
 @Scope(SCOPE_PROTOTYPE)
 @Component

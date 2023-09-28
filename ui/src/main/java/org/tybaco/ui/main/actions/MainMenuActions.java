@@ -25,9 +25,9 @@ import org.kordamp.ikonli.materialdesign2.*;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.lib.action.Action;
-import org.tybaco.ui.lib.icon.IconViewer;
-import org.tybaco.ui.lib.text.Texts;
+import org.tybaco.editors.action.Action;
+import org.tybaco.editors.icon.IconViewer;
+import org.tybaco.editors.text.Texts;
 
 import java.util.List;
 import java.util.Locale;

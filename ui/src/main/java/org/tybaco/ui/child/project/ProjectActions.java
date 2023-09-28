@@ -29,7 +29,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.child.project.classpath.ProjectClasspath;
 import org.tybaco.ui.child.project.constants.LibraryConstantsTree;
-import org.tybaco.ui.lib.action.Action;
+import org.tybaco.editors.action.Action;
 import org.tybaco.ui.model.Project;
 
 import static org.tybaco.logging.Log.info;

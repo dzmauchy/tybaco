@@ -25,8 +25,8 @@ import javafx.scene.control.ToolBar;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.lib.action.Action;
-import org.tybaco.ui.lib.control.Toolbars;
+import org.tybaco.editors.action.Action;
+import org.tybaco.editors.control.Toolbars;
 
 @Component
 public class ProjectDepsToolbar extends ToolBar {

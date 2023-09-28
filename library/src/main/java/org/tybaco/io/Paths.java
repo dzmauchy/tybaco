@@ -22,23 +22,11 @@ package org.tybaco.io;
  */
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.*;
 
-public final class Paths {
+public interface Paths {
 
-  private Paths() {
-  }
-
-  public static boolean deleteRecursivelyUnchecked(Path path) {
-    try {
-      return deleteRecursively(path);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  public static boolean deleteRecursively(Path path) throws IOException {
+  static void deleteRecursively(Path path) throws IOException {
     if (Files.isDirectory(path)) {
       try {
         try (var ds = Files.newDirectoryStream(path)) {
@@ -49,6 +37,6 @@ public final class Paths {
       } catch (NoSuchFileException | NotDirectoryException ignore) {
       }
     }
-    return Files.deleteIfExists(path);
+    Files.deleteIfExists(path);
   }
 }

@@ -1,4 +1,4 @@
-package org.tybaco.ui.lib.control;
+package org.tybaco.editors.control;
 
 /*-
  * #%L
@@ -22,14 +22,14 @@ package org.tybaco.ui.lib.control;
  */
 
 import javafx.scene.control.*;
-import org.springframework.beans.factory.ObjectProvider;
-import org.tybaco.ui.lib.action.Action;
+import org.tybaco.editors.action.Action;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.TreeMap;
 
 public interface Toolbars {
 
-  static void fillToolbar(ToolBar toolBar, ObjectProvider<Action> actions) {
+  static void fillToolbar(ToolBar toolBar, Iterable<Action> actions) {
     var groupMap = new TreeMap<String, ToggleGroup>();
     var map = new TreeMap<String, ArrayList<Action>>();
     actions.forEach(a -> map.computeIfAbsent(a.getSeparatorGroup(), k -> new ArrayList<>()).add(a));

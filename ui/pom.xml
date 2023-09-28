@@ -12,7 +12,6 @@
 
   <properties>
     <main.class>org.tybaco.ui.Main</main.class>
-    <ikonli.version>12.3.1</ikonli.version>
     <ui.version>${project.version}</ui.version>
   </properties>
 
@@ -47,110 +46,14 @@
     </dependency>
 
     <dependency>
-      <groupId>org.montoni</groupId>
-      <artifactId>tybaco-library</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.openjfx</groupId>
-      <artifactId>javafx-web</artifactId>
-      <version>${javafx.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-javafx</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-evaicons-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-openiconic-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-octicons-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-materialdesign2-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-unicons-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-ionicons4-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-fontawesome5-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-maki2-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-mapicons-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-foundation-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-elusive-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-bootstrapicons-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-jamicons-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kordamp.ikonli</groupId>
-      <artifactId>ikonli-typicons-pack</artifactId>
-      <version>${ikonli.version}</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.montoni</groupId>
+      <artifactId>tybaco-editors</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
