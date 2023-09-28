@@ -128,13 +128,9 @@ public class MainApplication extends Application {
   }
 
   private static void doubleClick(Stage stage) {
-    robotAction(stage, r -> r.mousePress(MouseButton.PRIMARY));
+    robotAction(stage, r -> r.mouseClick(MouseButton.PRIMARY));
     LockSupport.parkNanos(1_000_000L);
-    robotAction(stage, r -> r.mouseRelease(MouseButton.PRIMARY));
-    LockSupport.parkNanos(1_000_000L);
-    robotAction(stage, r -> r.mousePress(MouseButton.PRIMARY));
-    LockSupport.parkNanos(1_000_000L);
-    robotAction(stage, r -> r.mouseRelease(MouseButton.PRIMARY));
+    robotAction(stage, r -> r.mouseClick(MouseButton.PRIMARY));
   }
 
   private static void robotAction(Stage stage, Consumer<Robot> action) {
