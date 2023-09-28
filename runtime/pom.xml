@@ -41,25 +41,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <annotationProcessorPaths>
-            <path>
-              <groupId>org.montoni</groupId>
-              <artifactId>tybaco-annotations</artifactId>
-              <version>${project.version}</version>
-            </path>
-          </annotationProcessorPaths>
-          <annotationProcessors>
-            <processor>org.tybaco.annotations.sink.SinkAnnotationProcessor</processor>
-          </annotationProcessors>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>

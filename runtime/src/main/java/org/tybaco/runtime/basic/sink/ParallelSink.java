@@ -21,7 +21,6 @@ package org.tybaco.runtime.basic.sink;
  * #L%
  */
 
-import org.tybaco.runtime.annotations.Sink;
 import org.tybaco.runtime.basic.Break;
 import org.tybaco.runtime.basic.Startable;
 import org.tybaco.runtime.basic.source.Source;
@@ -31,7 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 
-@Sink
 public final class ParallelSink<E> implements Startable {
 
   private final Thread thread;

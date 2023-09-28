@@ -21,7 +21,6 @@ package org.tybaco.runtime.basic.sink;
  * #L%
  */
 
-import org.tybaco.runtime.annotations.Sink;
 import org.tybaco.runtime.basic.Break;
 import org.tybaco.runtime.basic.Startable;
 import org.tybaco.runtime.basic.source.Source;
@@ -29,7 +28,6 @@ import org.tybaco.runtime.basic.source.Source;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
 
-@Sink
 public final class SequentialSink<E> implements Startable, AutoCloseable {
 
   private final Thread thread;
