@@ -41,19 +41,15 @@ public final class Icons {
     if (key == null) {
       return null;
     } else if (key.indexOf('.') > 0) {
-      var image = IMAGES.computeIfAbsent(
-        new IconKey(key, size),
-        k -> new Image(k.key, k.size, k.size, false, true, false)
-      );
-      return new ImageView(image);
+      return new ImageView(IMAGES.computeIfAbsent(new IconKey(key, size), Icons::load));
     } else {
       var resolver = IkonResolver.getInstance();
       try {
         var handler = resolver.resolve(key);
         var icon = handler.resolve(key);
         return icon == null ? null : icon(icon, size);
-      } catch (RuntimeException ignore) {
-        warn(Icons.class, "Unable to resolve {0}", key);
+      } catch (RuntimeException e) {
+        warn(Icons.class, "Unable to resolve {0}", e, key);
         return null;
       }
     }
@@ -63,6 +59,12 @@ public final class Icons {
     return FontIcon.of(icon, size, Color.WHITE);
   }
 
-  private record IconKey(String key, int size) {
+  private static Image load(IconKey key) {
+    try {
+      return new Image(key.key(), key.size(), key.size(), false, true, false);
+    } catch (Throwable e) {
+      warn(Icons.class, "Unable to resolve {0}", e, key);
+      return null;
+    }
   }
 }

@@ -21,26 +21,17 @@ package org.tybaco.ui.main;
  * #L%
  */
 
-import com.sun.javafx.PlatformUtil;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.event.EventHandler;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.input.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.paint.Color;
-import javafx.scene.robot.Robot;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import org.tybaco.ui.Main;
 import org.tybaco.ui.lib.logging.UILogHandler;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.locks.LockSupport;
-import java.util.function.Consumer;
-
-import static org.tybaco.logging.Log.info;
+import org.tybaco.ui.lib.stage.StageLinuxBugListener;
 
 public class MainApplication extends Application {
 
@@ -92,46 +83,7 @@ public class MainApplication extends Application {
       updateSplash();
       stage.setScene(new Scene(mainPane, 1024, 768, Color.BLACK));
       stage.setMaximized(true);
-      if (PlatformUtil.isLinux()) { // a workaround of a bug of modal dialogs shown on top of the stage
-        stage.setAlwaysOnTop(true);
-        stage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<>() {
-          @Override
-          public void handle(WindowEvent windowEvent) {
-            stage.removeEventHandler(WindowEvent.WINDOW_SHOWN, this);
-            new Thread(() -> {
-              doubleClick();
-              LockSupport.parkNanos(10_000_000L);
-              doubleClick();
-              Platform.runLater(() -> stage.setAlwaysOnTop(false));
-            }).start();
-          }
-
-          private void doubleClick() {
-            robotAction(stage, r -> r.mouseClick(MouseButton.PRIMARY));
-            LockSupport.parkNanos(1_000_000L);
-            robotAction(stage, r -> r.mouseClick(MouseButton.PRIMARY));
-          }
-
-          private void robotAction(Stage stage, Consumer<Robot> action) {
-            var latch = new CountDownLatch(1);
-            Platform.runLater(() -> {
-              try {
-                var robot = new Robot();
-                var centerX = stage.getX() + stage.getWidth() / 2d;
-                robot.mouseMove(centerX, stage.getY() + 3d);
-                action.accept(robot);
-              } finally {
-                latch.countDown();
-              }
-            });
-            try {
-              latch.await();
-            } catch (InterruptedException e) {
-              throw new IllegalStateException(e);
-            }
-          }
-        });
-      }
+      StageLinuxBugListener.install(stage);
       stage.show();
       updateSplash();
       context.start();
