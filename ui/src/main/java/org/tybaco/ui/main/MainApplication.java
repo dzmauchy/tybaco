@@ -111,6 +111,25 @@ public class MainApplication extends Application {
             LockSupport.parkNanos(1_000_000L);
             robotAction(stage, r -> r.mouseClick(MouseButton.PRIMARY));
           }
+
+          private void robotAction(Stage stage, Consumer<Robot> action) {
+            var latch = new CountDownLatch(1);
+            Platform.runLater(() -> {
+              try {
+                var robot = new Robot();
+                var centerX = stage.getX() + stage.getWidth() / 2d;
+                robot.mouseMove(centerX, stage.getY() + 3d);
+                action.accept(robot);
+              } finally {
+                latch.countDown();
+              }
+            });
+            try {
+              latch.await();
+            } catch (InterruptedException e) {
+              throw new IllegalStateException(e);
+            }
+          }
         });
       }
       stage.show();
@@ -131,24 +150,5 @@ public class MainApplication extends Application {
   private static void initLaf() {
     com.sun.javafx.css.StyleManager.getInstance().addUserAgentStylesheet("theme/ui.css");
     updateSplash();
-  }
-
-  private static void robotAction(Stage stage, Consumer<Robot> action) {
-    var latch = new CountDownLatch(1);
-    Platform.runLater(() -> {
-      try {
-        var robot = new Robot();
-        var centerX = stage.getX() + stage.getWidth() / 2d;
-        robot.mouseMove(centerX, stage.getY() + 3d);
-        action.accept(robot);
-      } finally {
-        latch.countDown();
-      }
-    });
-    try {
-      latch.await();
-    } catch (InterruptedException e) {
-      throw new IllegalStateException(e);
-    }
   }
 }
