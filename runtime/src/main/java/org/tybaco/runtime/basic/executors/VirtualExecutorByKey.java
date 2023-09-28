@@ -27,10 +27,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 public final class VirtualExecutorByKey<K> implements ExecutorByKey<K>, AutoCloseable {
 
+  private final String name;
   private final ConcurrentHashMap<K, ThreadPoolExecutor> executors;
 
-  public VirtualExecutorByKey(int expectedSize) {
-    executors = new ConcurrentHashMap<>(expectedSize, 0.5f);
+  public VirtualExecutorByKey(String name, int expectedSize) {
+    this.name = name;
+    this.executors = new ConcurrentHashMap<>(expectedSize, 0.5f);
   }
 
   @Override
@@ -39,7 +41,7 @@ public final class VirtualExecutorByKey<K> implements ExecutorByKey<K>, AutoClos
   }
 
   private ThreadFactory threadFactory(K key) {
-    return r -> Thread.ofVirtual().name(String.valueOf(key)).unstarted(r);
+    return r -> Thread.ofVirtual().name(name + "_" + key).unstarted(r);
   }
 
   private ThreadPoolExecutor newExecutor(K key) {

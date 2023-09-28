@@ -77,12 +77,6 @@
         <artifactId>guava</artifactId>
         <version>32.1.2-jre</version>
       </dependency>
-
-      <dependency>
-        <groupId>org.jboss.logmanager</groupId>
-        <artifactId>jboss-logmanager</artifactId>
-        <version>3.0.2.Final</version>
-      </dependency>
     </dependencies>
   </dependencyManagement>
 
