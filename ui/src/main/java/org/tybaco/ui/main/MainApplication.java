@@ -98,12 +98,18 @@ public class MainApplication extends Application {
           @Override
           public void handle(WindowEvent windowEvent) {
             stage.removeEventHandler(WindowEvent.WINDOW_SHOWN, this);
-            Thread.startVirtualThread(() -> {
-              doubleClick(stage);
+            new Thread(() -> {
+              doubleClick();
               LockSupport.parkNanos(10_000_000L);
-              doubleClick(stage);
+              doubleClick();
               Platform.runLater(() -> stage.setAlwaysOnTop(false));
-            });
+            }).start();
+          }
+
+          private void doubleClick() {
+            robotAction(stage, r -> r.mouseClick(MouseButton.PRIMARY));
+            LockSupport.parkNanos(1_000_000L);
+            robotAction(stage, r -> r.mouseClick(MouseButton.PRIMARY));
           }
         });
       }
@@ -125,12 +131,6 @@ public class MainApplication extends Application {
   private static void initLaf() {
     com.sun.javafx.css.StyleManager.getInstance().addUserAgentStylesheet("theme/ui.css");
     updateSplash();
-  }
-
-  private static void doubleClick(Stage stage) {
-    robotAction(stage, r -> r.mouseClick(MouseButton.PRIMARY));
-    LockSupport.parkNanos(1_000_000L);
-    robotAction(stage, r -> r.mouseClick(MouseButton.PRIMARY));
   }
 
   private static void robotAction(Stage stage, Consumer<Robot> action) {
