@@ -10,46 +10,55 @@ package org.tybaco.runtime.basic.sink;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
 
-import org.tybaco.runtime.basic.Break;
-import org.tybaco.runtime.basic.source.Source;
+import org.tybaco.runtime.basic.Startable;
 
 import java.util.concurrent.ThreadFactory;
-import java.util.function.Consumer;
 
-public final class SequentialSink<E> extends AbstractSink {
+abstract class AbstractSink implements Startable, AutoCloseable {
 
-  private final Source<E> source;
-  private final Consumer<? super E> consumer;
-  private final Consumer<? super Throwable> onError;
+  final Thread thread;
 
-  public SequentialSink(ThreadFactory tf, Source<E> source, Consumer<? super E> consumer, Consumer<? super Throwable> onError) {
-    super(tf);
-    this.source = source;
-    this.consumer = consumer;
-    this.onError = onError;
+  AbstractSink(ThreadFactory tf) {
+    this.thread = tf.newThread(this::run);
+  }
+
+  abstract void run();
+
+  public void daemon(boolean daemon) {
+    thread.setDaemon(daemon);
+  }
+
+  public boolean daemon() {
+    return thread.isDaemon();
+  }
+
+  public boolean alive() {
+    return thread.isAlive();
   }
 
   @Override
-  void run() {
-    try {
-      source.apply(e -> {
-        if (thread.isInterrupted()) throw Break.BREAK;
-        consumer.accept(e);
-      });
-    } catch (Break ignore) {
-    } catch (Throwable e) {
-      onError.accept(e);
+  public void start() {
+    thread.start();
+  }
+
+  @Override
+  public void close() throws Exception {
+    if (thread.isAlive()) {
+      if (!thread.isInterrupted()) {
+        thread.interrupt();
+      }
+      thread.join();
     }
   }
 }

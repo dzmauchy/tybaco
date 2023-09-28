@@ -22,7 +22,6 @@ package org.tybaco.runtime.basic.sink;
  */
 
 import org.tybaco.runtime.basic.Break;
-import org.tybaco.runtime.basic.Startable;
 import org.tybaco.runtime.basic.source.Source;
 
 import java.util.concurrent.*;
@@ -30,49 +29,43 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 
-public final class ParallelSink<E> implements Startable {
+public final class ParallelSink<E> extends AbstractSink {
 
-  private final Thread thread;
   private final Executor executor;
   private final Source<E> source;
   private final Consumer<? super E> consumer;
   private final Consumer<? super Throwable> onError;
 
   public ParallelSink(ThreadFactory tf, Executor executor, Source<E> source, Consumer<? super E> consumer, Consumer<? super Throwable> onError) {
-    this.thread = tf.newThread(this::run);
+    super(tf);
     this.executor = executor;
     this.source = source;
     this.consumer = consumer;
     this.onError = onError;
   }
 
-  public void daemon(boolean daemon) {
-    thread.setDaemon(daemon);
-  }
-
-  public boolean daemon() {
-    return thread.isDaemon();
-  }
-
-  public boolean alive() {
-    return thread.isAlive();
-  }
-
-  private void run() {
+  @Override
+  void run() {
     var exceptions = new ConcurrentLinkedQueue<Throwable>();
     var state = new AtomicInteger();
     try {
       source.apply(e -> {
+        if (thread.isInterrupted()) throw Break.BREAK;
         state.incrementAndGet();
-        executor.execute(() -> {
-          try {
-            consumer.accept(e);
-          } catch (Throwable x) {
-            exceptions.add(x);
-          } finally {
-            state.decrementAndGet();
-          }
-        });
+        try {
+          executor.execute(() -> {
+            try {
+              consumer.accept(e);
+            } catch (Throwable x) {
+              exceptions.add(x);
+            } finally {
+              state.decrementAndGet();
+            }
+          });
+        } catch (Throwable x) {
+          state.decrementAndGet();
+          throw x;
+        }
         if (!exceptions.isEmpty()) throw Break.BREAK;
       });
     } catch (Break ignore) {
@@ -94,10 +87,5 @@ public final class ParallelSink<E> implements Startable {
         return e1;
       })
       .ifPresent(onError);
-  }
-
-  @Override
-  public void start() {
-    thread.start();
   }
 }
