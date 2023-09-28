@@ -28,11 +28,17 @@ import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.input.*;
 import javafx.scene.paint.Color;
+import javafx.scene.robot.Robot;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import org.tybaco.ui.Main;
 import org.tybaco.ui.lib.logging.UILogHandler;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.LockSupport;
+import java.util.function.Consumer;
 
 import static org.tybaco.logging.Log.info;
 
@@ -73,6 +79,7 @@ public class MainApplication extends Application {
       updateSplash();
       UILogHandler.getInstance().flush();
       stage.setTitle("Tybaco IDE");
+      stage.setFullScreenExitKeyCombination(new KeyCodeCombination(KeyCode.ESCAPE));
       updateSplash();
       context.getDefaultListableBeanFactory().registerSingleton("primaryStage", stage);
       context.register(MainConfiguration.class);
@@ -85,19 +92,17 @@ public class MainApplication extends Application {
       updateSplash();
       stage.setScene(new Scene(mainPane, 1024, 768, Color.BLACK));
       stage.setMaximized(true);
-      if (PlatformUtil.isLinux()) {
+      if (PlatformUtil.isLinux()) { // a workaround of a bug of modal dialogs shown on top of the stage
+        stage.setAlwaysOnTop(true);
         stage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<>() {
           @Override
           public void handle(WindowEvent windowEvent) {
             stage.removeEventHandler(WindowEvent.WINDOW_SHOWN, this);
-            Platform.runLater(() -> {
-              var bounds = new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
-              info(MainApplication.class, "Window {0}", bounds);
-              stage.setMaximized(false);
-              stage.setX(bounds.getMinX());
-              stage.setY(bounds.getMinY());
-              stage.setWidth(bounds.getWidth());
-              stage.setHeight(bounds.getHeight());
+            Thread.startVirtualThread(() -> {
+              doubleClick(stage);
+              LockSupport.parkNanos(10_000_000L);
+              doubleClick(stage);
+              Platform.runLater(() -> stage.setAlwaysOnTop(false));
             });
           }
         });
@@ -120,5 +125,34 @@ public class MainApplication extends Application {
   private static void initLaf() {
     com.sun.javafx.css.StyleManager.getInstance().addUserAgentStylesheet("theme/ui.css");
     updateSplash();
+  }
+
+  private static void doubleClick(Stage stage) {
+    robotAction(stage, r -> r.mousePress(MouseButton.PRIMARY));
+    LockSupport.parkNanos(1_000_000L);
+    robotAction(stage, r -> r.mouseRelease(MouseButton.PRIMARY));
+    LockSupport.parkNanos(1_000_000L);
+    robotAction(stage, r -> r.mousePress(MouseButton.PRIMARY));
+    LockSupport.parkNanos(1_000_000L);
+    robotAction(stage, r -> r.mouseRelease(MouseButton.PRIMARY));
+  }
+
+  private static void robotAction(Stage stage, Consumer<Robot> action) {
+    var latch = new CountDownLatch(1);
+    Platform.runLater(() -> {
+      try {
+        var robot = new Robot();
+        var centerX = stage.getX() + stage.getWidth() / 2d;
+        robot.mouseMove(centerX, stage.getY() + 3d);
+        action.accept(robot);
+      } finally {
+        latch.countDown();
+      }
+    });
+    try {
+      latch.await();
+    } catch (InterruptedException e) {
+      throw new IllegalStateException(e);
+    }
   }
 }
