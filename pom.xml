@@ -77,6 +77,12 @@
         <artifactId>guava</artifactId>
         <version>32.1.2-jre</version>
       </dependency>
+
+      <dependency>
+        <groupId>org.jetbrains</groupId>
+        <artifactId>annotations</artifactId>
+        <version>24.0.1</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

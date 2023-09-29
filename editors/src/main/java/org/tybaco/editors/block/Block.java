@@ -21,10 +21,14 @@ package org.tybaco.editors.block;
  * #L%
  */
 
+import com.github.javaparser.ast.expr.Expression;
 import org.tybaco.editors.Meta;
 import org.tybaco.editors.util.SeqMap;
 
+import java.util.Map;
+
 public interface Block extends Meta {
   SeqMap<String, Input> inputs();
-  BlockResult build(BlockInputs inputs, Context context);
+  SeqMap<String, Output> outputs();
+  BlockResult build(Map<String, Expression> inputs);
 }

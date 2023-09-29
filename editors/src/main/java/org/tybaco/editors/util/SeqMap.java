@@ -21,62 +21,96 @@ package org.tybaco.editors.util;
  * #L%
  */
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.*;
-import java.util.function.BiConsumer;
+import java.util.Map.Entry;
+import java.util.function.*;
 
-import static java.util.Collections.unmodifiableSequencedSet;
+import static java.util.Arrays.stream;
+import static java.util.Spliterator.*;
+import static java.util.stream.Collectors.joining;
 
-public final class SeqMap<K, V> {
+public final class SeqMap<K, V> implements Iterable<Entry<@NotNull K, @NotNull V>> {
 
-  private final LinkedHashMap<K, V> entries;
+  private final Entry<@NotNull K, @NotNull V>[] entries;
 
   @SafeVarargs
-  public SeqMap(Map.Entry<K, V>... entries) {
-    this.entries = LinkedHashMap.newLinkedHashMap(entries.length);
-    for (var entry : entries) this.entries.put(entry.getKey(), entry.getValue());
+  public SeqMap(@NotNull Entry<@NotNull K, @NotNull V>... entries) {
+    this.entries = entries;
   }
 
-  public V get(K key) {
-    return entries.get(key);
+  @Nullable
+  public V get(@NotNull K key) {
+    return get(key, null);
   }
 
-  public V get(K key, V defaultValue) {
-    return entries.getOrDefault(key, defaultValue);
+  @Nullable
+  public V get(@NotNull K key, @Nullable V defaultValue) {
+    for (var e : entries) {
+      if (key.equals(e.getKey())) {
+        return e.getValue();
+      }
+    }
+    return defaultValue;
   }
 
-  public SequencedSet<K> keys() {
-    return unmodifiableSequencedSet(entries.sequencedKeySet());
+  @NotNull
+  public <E extends Throwable> V getOrElseThrow(@NotNull K key, @NotNull Supplier<@NotNull E> thrown) throws E {
+    var v = get(key);
+    if (v == null) throw thrown.get();
+    else return v;
   }
 
-  public void forEach(BiConsumer<? super K, ? super V> consumer) {
-    entries.forEach(consumer);
+  @Nullable
+  public V getOrElseGet(@NotNull K key, @NotNull Supplier<@Nullable V> defaultValue) {
+    var v = get(key);
+    return v == null ? defaultValue.get() : v;
   }
 
-  public void forEachReversed(BiConsumer<? super K, ? super V> consumer) {
-    entries.reversed().forEach(consumer);
-  }
-
-  public Iterable<Map.Entry<K, V>> entrySet() {
-    var entrySet = entries.sequencedEntrySet();
-    return () -> {
-      var it = entrySet.iterator();
-      return new Iterator<>() {
-        @Override
-        public boolean hasNext() {
-          return it.hasNext();
-        }
-
-        @Override
-        public Map.Entry<K, V> next() {
-          var next = it.next();
-          return Map.entry(next.getKey(), next.getValue());
-        }
-      };
-    };
+  public void forEach(BiConsumer<? super @NotNull K, ? super @NotNull V> consumer) {
+    for (var e : entries) {
+      consumer.accept(e.getKey(), e.getValue());
+    }
   }
 
   @Override
+  public void forEach(@NotNull Consumer<? super Entry<@NotNull K, @NotNull V>> action) {
+    for (var e : entries) {
+      action.accept(e);
+    }
+  }
+
+  @NotNull
+  @Override
+  public Iterator<@NotNull Entry<@NotNull K, @NotNull V>> iterator() {
+    return new Iterator<>() {
+
+      private int i = -1;
+
+      @Override
+      public boolean hasNext() {
+        return i + 1 < entries.length;
+      }
+
+      @NotNull
+      @Override
+      public Entry<@NotNull K, @NotNull V> next() {
+        return entries[++i];
+      }
+    };
+  }
+
+  @NotNull
+  @Override
+  public Spliterator<@NotNull Entry<@NotNull K, @NotNull V>> spliterator() {
+    return Spliterators.spliterator(entries, DISTINCT | IMMUTABLE | NONNULL);
+  }
+
+  @NotNull
+  @Override
   public String toString() {
-    return entries.toString();
+    return stream(entries).map(Entry::toString).collect(joining(",", "{", "}"));
   }
 }
