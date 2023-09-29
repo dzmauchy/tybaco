@@ -21,5 +21,7 @@ package org.tybaco.editors.block;
  * #L%
  */
 
-public record Input(String name, String icon, String description, boolean vector) {
+import java.util.Map;
+
+public record BlockInputs(Map<String, BlockInput> inputs) {
 }

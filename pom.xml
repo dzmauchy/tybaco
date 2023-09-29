@@ -385,6 +385,8 @@
         <configuration>
           <addJavaLicenseAfterPackage>true</addJavaLicenseAfterPackage>
           <emptyLineAfterHeader>true</emptyLineAfterHeader>
+          <acceptPomPackaging>false</acceptPomPackaging>
+          <ignoreNoFileToScan>true</ignoreNoFileToScan>
           <licenseName>agpl_v3</licenseName>
           <roots>
             <root>src</root>

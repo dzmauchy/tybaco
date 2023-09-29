@@ -21,5 +21,9 @@ package org.tybaco.editors.block;
  * #L%
  */
 
-public record Input(String name, String icon, String description, boolean vector) {
+import com.github.javaparser.ast.expr.Expression;
+
+import javax.lang.model.type.TypeMirror;
+
+public record BlockInput(Expression expression, TypeMirror type) {
 }

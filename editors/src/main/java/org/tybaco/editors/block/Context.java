@@ -21,5 +21,11 @@ package org.tybaco.editors.block;
  * #L%
  */
 
-public record Input(String name, String icon, String description, boolean vector) {
+import com.sun.source.util.JavacTask;
+import com.sun.source.util.Trees;
+
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
+
+public record Context(Trees trees, Elements elements, Types types, JavacTask task) {
 }

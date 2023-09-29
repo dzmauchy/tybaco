@@ -22,8 +22,7 @@ package org.tybaco.editors.block;
  */
 
 import com.github.javaparser.ast.expr.Expression;
+import org.tybaco.editors.util.SeqMap;
 
-import java.util.SequencedMap;
-
-public record BlockResult(Expression result, SequencedMap<String, Output> outputs) {
+public record BlockResult(Expression result, SeqMap<String, Output> outputs) {
 }
