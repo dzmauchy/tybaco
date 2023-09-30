@@ -27,9 +27,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.child.project.classpath.ProjectClasspath;
-import org.tybaco.ui.child.project.constants.LibraryConstantsTree;
 import org.tybaco.editors.action.Action;
+import org.tybaco.ui.child.project.classpath.Editors;
+import org.tybaco.ui.child.project.constants.LibraryConstantsTree;
 import org.tybaco.ui.model.Project;
 
 import static org.tybaco.logging.Log.info;
@@ -40,23 +40,23 @@ public class ProjectActions {
   @Bean
   @Qualifier("projectAction")
   @Order(1)
-  public Action newBlockAction(Project project, ProjectClasspath classpath) {
+  public Action newBlockAction(Project project, Editors editors) {
     return new Action(null, MaterialDesignB.BABY_BOTTLE, "New block", ev -> {
       var factory = "com.example.factory";
       var method = "method";
       var block = project.newBlock(project.guessBlockName(), factory, method, 0d, 0d);
       info(getClass(), "Block {0} created", block.id);
-    }).separatorGroup("block").disabled(classpath.classPathIsNotSet);
+    }).separatorGroup("block").disabled(editors.blockLibs.isNull());
   }
 
   @Bean
   @Qualifier("projectAction")
   @Order(2)
-  public Action newConstantAction(ObjectProvider<LibraryConstantsTree.Win> win, ProjectClasspath classpath) {
+  public Action newConstantAction(ObjectProvider<LibraryConstantsTree.Win> win, Editors editors) {
     return new Action(null, MaterialDesignB.BULLSEYE, "New constant", ev -> {
       var window = win.getObject();
       window.show();
-    }).separatorGroup("constant").disabled(classpath.classPathIsNotSet);
+    }).separatorGroup("constant").disabled(editors.constLibs.isNull());
   }
 
   @Bean

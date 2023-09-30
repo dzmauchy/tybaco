@@ -55,7 +55,7 @@ public class ArtifactClassPath implements Closeable {
           }
         })
         .toArray(URL[]::new);
-      return new URLClassLoader(name, urls, ClassLoader.getPlatformClassLoader());
+      return new URLClassLoader(name, urls, Thread.currentThread().getContextClassLoader());
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }

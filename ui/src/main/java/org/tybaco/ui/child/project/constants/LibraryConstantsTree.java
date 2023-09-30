@@ -21,7 +21,6 @@ package org.tybaco.ui.child.project.constants;
  * #L%
  */
 
-import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.*;
@@ -30,11 +29,14 @@ import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.tybaco.editors.Meta;
 import org.tybaco.editors.control.Tables;
 import org.tybaco.editors.model.LibConst;
+import org.tybaco.editors.text.Texts;
+import org.tybaco.ui.child.project.classpath.Editors;
 import org.tybaco.ui.child.project.classpath.ProjectClasspath;
-import org.tybaco.ui.model.*;
-import org.tybaco.editors.Meta;
+import org.tybaco.ui.model.Constant;
+import org.tybaco.ui.model.Project;
 
 import java.util.List;
 
@@ -46,17 +48,20 @@ import static org.tybaco.editors.text.Texts.text;
 @Component
 public final class LibraryConstantsTree extends TreeTableView<Meta> {
 
-  public LibraryConstantsTree(ProjectClasspath projectClasspath) {
+  private final ClassLoader classLoader;
+
+  public LibraryConstantsTree(Editors editors, ProjectClasspath classpath) {
+    classLoader = classpath.classPath.get().classLoader;
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     setShowRoot(false);
     setRoot(new TreeItem<>(null));
     getColumns().addAll(List.of(nameColumn(), descriptionColumn()));
     Tables.initColumnWidth(this, 300, 500);
-    projectClasspath.constLibs.get().forEach(lib -> {
+    editors.constLibs.get().forEach(lib -> {
       var libElem = new TreeItem<Meta>(lib, icon(lib.icon(), 20));
       getRoot().getChildren().add(libElem);
       lib.constants().forEach(c -> {
-        var elem = new TreeItem<Meta>(c, icon(c.icon(), 20));
+        var elem = new TreeItem<Meta>(c, icon(classLoader, c.icon(), 20));
         libElem.getChildren().add(elem);
         libElem.setExpanded(true);
       });
@@ -66,14 +71,14 @@ public final class LibraryConstantsTree extends TreeTableView<Meta> {
   private TreeTableColumn<Meta, String> nameColumn() {
     var col = new TreeTableColumn<Meta, String>();
     col.textProperty().bind(text("Name"));
-    col.setCellValueFactory(f -> new SimpleStringProperty(f.getValue().getValue().name()));
+    col.setCellValueFactory(f -> Texts.text(classLoader, f.getValue().getValue().name()));
     return col;
   }
 
   private TreeTableColumn<Meta, String> descriptionColumn() {
     var col = new TreeTableColumn<Meta, String>();
     col.textProperty().bind(text("Description"));
-    col.setCellValueFactory(f -> new SimpleStringProperty(f.getValue().getValue().description()));
+    col.setCellValueFactory(f -> Texts.text(classLoader, f.getValue().getValue().description()));
     return col;
   }
 

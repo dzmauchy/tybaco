@@ -33,7 +33,7 @@ import static javafx.scene.control.ButtonBar.ButtonData.APPLY;
 
 @Qualifier("basic")
 @Component
-@Descriptor(id = "int", name = "Integer", icon = "mdi2n-numeric-0", description = "Integer")
+@Descriptor(id = "int", name = "Integer", icon = "mdi2n-numeric-0", description = "32 bit signed integer number")
 public final class IntConstant implements LibConst<IntegerLiteralExpr> {
 
   @Override

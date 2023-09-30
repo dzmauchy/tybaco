@@ -25,17 +25,13 @@ import jakarta.annotation.PostConstruct;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleObjectProperty;
-import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.model.ConstLib;
 import org.tybaco.ui.lib.repo.ArtifactClassPath;
 import org.tybaco.ui.lib.repo.ArtifactResolver;
 import org.tybaco.ui.model.Dependency;
 import org.tybaco.ui.model.Project;
 
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -48,8 +44,6 @@ import static org.tybaco.logging.Log.*;
 public final class ProjectClasspath implements AutoCloseable {
 
   public final SimpleObjectProperty<ArtifactClassPath> classPath = new SimpleObjectProperty<>(this, "classPath");
-  public final SimpleObjectProperty<List<ConstLib>> constLibs = new SimpleObjectProperty<>(this, "constLibs", List.of());
-  public final BooleanBinding classPathIsNotSet = classPath.isNull();
   private final Project project;
   private final ArtifactResolver artifactResolver;
   private final InvalidationListener libsInvalidationListener;
@@ -93,11 +87,6 @@ public final class ProjectClasspath implements AutoCloseable {
     try {
       var cp = requireNonNull(artifactResolver.resolve(project.id, project.dependencies));
       currentClassPath = cp;
-      try (var ctx = new GenericXmlApplicationContext("classpath*:tybaco/editors/config.xml")) {
-        var provider = ctx.getBeanProvider(ConstLib.class);
-        var list = provider.stream().toList();
-        Platform.runLater(() -> constLibs.set(list));
-      }
       Platform.runLater(() -> classPath.set(cp));
     } catch (Throwable e) {
       warn(getClass(), "Unable to set classpath", e);
