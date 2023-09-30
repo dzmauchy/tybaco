@@ -1,4 +1,4 @@
-package org.tybaco.editors.block;
+package org.tybaco.editors.model;
 
 /*-
  * #%L
@@ -21,8 +21,10 @@ package org.tybaco.editors.block;
  * #L%
  */
 
-import com.github.javaparser.ast.expr.Expression;
 import org.tybaco.editors.Meta;
 
-public record Output(String name, String icon, String description, Expression expression) implements Meta {
+import java.util.List;
+
+public interface ConstLib extends Meta {
+  List<? extends LibConst> constants();
 }

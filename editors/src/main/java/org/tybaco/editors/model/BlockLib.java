@@ -1,4 +1,4 @@
-package org.tybaco.editors.block;
+package org.tybaco.editors.model;
 
 /*-
  * #%L
@@ -21,11 +21,10 @@ package org.tybaco.editors.block;
  * #L%
  */
 
-import com.sun.source.util.JavacTask;
-import com.sun.source.util.Trees;
+import org.tybaco.editors.Meta;
 
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
+import java.util.List;
 
-public record Context(Trees trees, Elements elements, Types types, JavacTask task) {
+public interface BlockLib extends Meta {
+  List<? extends LibBlock> blocks();
 }

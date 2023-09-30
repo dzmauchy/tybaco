@@ -1,4 +1,4 @@
-package org.tybaco.editors.block;
+package org.tybaco.editors.model;
 
 /*-
  * #%L
@@ -22,7 +22,14 @@ package org.tybaco.editors.block;
  */
 
 import com.github.javaparser.ast.expr.Expression;
+import org.tybaco.editors.Meta;
 import org.tybaco.editors.util.SeqMap;
 
-public record BlockResult(Expression result, SeqMap<String, Output> outputs) {
+import java.util.List;
+import java.util.Map;
+
+public interface LibBlock extends Meta {
+  SeqMap<String, LibInput> inputs();
+  SeqMap<String, LibOutput> outputs();
+  BlockResult build(Map<String, List<Expression>> inputs);
 }

@@ -1,4 +1,4 @@
-package org.tybaco.editors.block;
+package org.tybaco.editors.model;
 
 /*-
  * #%L
@@ -21,5 +21,5 @@ package org.tybaco.editors.block;
  * #L%
  */
 
-public record Input(String name, String icon, String description, boolean vector) {
+public record LibInput(String name, String icon, String description, boolean vector) {
 }
