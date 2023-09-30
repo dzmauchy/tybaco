@@ -106,12 +106,12 @@ public final class LibraryConstantsTree extends TreeTableView<Meta> {
       var applyButton = getDialogPane().lookupButton(ButtonType.APPLY);
       applyButton.setDisable(true);
       getSelectionModel().selectedItemProperty().addListener((o, ov, nv) ->
-        applyButton.setDisable(nv == null || !(nv.getValue() instanceof LibConst<?>))
+        applyButton.setDisable(nv == null || !(nv.getValue() instanceof LibConst))
       );
       setResultConverter(t -> switch (t.getButtonData()) {
         case APPLY -> {
           var item = getSelectionModel().getSelectedItem();
-          if (item != null && item.getValue() instanceof LibConst<?> c) {
+          if (item != null && item.getValue() instanceof LibConst c) {
             yield project.newConstant("x", "y", textArea.getText());
           } else {
             yield null;

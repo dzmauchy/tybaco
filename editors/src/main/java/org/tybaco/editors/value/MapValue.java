@@ -1,4 +1,4 @@
-package org.tybaco.editors.model;
+package org.tybaco.editors.value;
 
 /*-
  * #%L
@@ -21,10 +21,25 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-import org.tybaco.editors.Meta;
+import org.tybaco.xml.Xml;
+import org.w3c.dom.Element;
 
-import java.util.List;
+import java.util.Map;
 
-public interface ConstLib extends Meta {
-  List<? extends LibConst> constants();
+import static java.util.stream.Collectors.toMap;
+
+public record MapValue(Map<String, Value> map) implements Value {
+
+  public MapValue(Element element) {
+    this(Xml.elementsByTag(element, "entry").collect(toMap(e -> e.getAttribute("key"), Value::load)));
+  }
+
+  @Override
+  public void save(Element element) {
+    element.setAttribute("type", "map");
+    map.forEach((k, v) -> Xml.withChild(element, "entry", e -> {
+      e.setAttribute("key", k);
+      v.save(e);
+    }));
+  }
 }

@@ -1,4 +1,4 @@
-package org.tybaco.editors.model;
+package org.tybaco.editors.value;
 
 /*-
  * #%L
@@ -21,10 +21,16 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-import org.tybaco.editors.Meta;
+import org.w3c.dom.Element;
 
-import java.util.List;
+public record StringValue(String value) implements Value {
 
-public interface ConstLib extends Meta {
-  List<? extends LibConst> constants();
+  public StringValue(Element element) {
+    this(element.getTextContent());
+  }
+
+  @Override
+  public void save(Element element) {
+    element.setTextContent(value);
+  }
 }

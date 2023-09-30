@@ -1,4 +1,4 @@
-package org.tybaco.editors.model;
+package org.tybaco.editors.value;
 
 /*-
  * #%L
@@ -21,10 +21,20 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-import org.tybaco.editors.Meta;
+import org.w3c.dom.Element;
 
-import java.util.List;
+public sealed interface Value permits StringValue, ArrayValue, MapValue, NullValue {
 
-public interface ConstLib extends Meta {
-  List<? extends LibConst> constants();
+  void save(Element element);
+
+  static Value load(Element element) {
+    var type = element.getAttribute("type");
+    return switch (type) {
+      case "" -> new StringValue(element);
+      case "array" -> new ArrayValue(element);
+      case "map" -> new MapValue(element);
+      case "null" -> NullValue.NULL;
+      default -> throw new IllegalArgumentException("Invalid type: " + type);
+    };
+  }
 }

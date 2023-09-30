@@ -1,4 +1,4 @@
-package org.tybaco.editors.model;
+package org.tybaco.editors.value;
 
 /*-
  * #%L
@@ -21,10 +21,20 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-import org.tybaco.editors.Meta;
+import org.tybaco.xml.Xml;
+import org.w3c.dom.Element;
 
 import java.util.List;
 
-public interface ConstLib extends Meta {
-  List<? extends LibConst> constants();
+public record ArrayValue(List<Value> values) implements Value {
+
+  public ArrayValue(Element element) {
+    this(Xml.elementsByTag(element, "element").map(Value::load).toList());
+  }
+
+  @Override
+  public void save(Element element) {
+    element.setAttribute("type", "array");
+    Xml.withChildren(element, "element", values, Value::save);
+  }
 }

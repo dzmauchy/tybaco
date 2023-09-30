@@ -31,14 +31,14 @@ import java.util.List;
 @Descriptor(id = "basic", name = "Basic constants", icon = "ion4-ios-baseball", description = "Basic constants")
 public final class BasicConstants implements ConstLib {
 
-  private final List<? extends LibConst<?>> constants;
+  private final List<? extends LibConst> constants;
 
-  public BasicConstants(@Qualifier("basic") List<? extends LibConst<?>> constants) {
+  public BasicConstants(@Qualifier("basic") List<? extends LibConst> constants) {
     this.constants = constants;
   }
 
   @Override
-  public List<? extends LibConst<?>> constants() {
+  public List<? extends LibConst> constants() {
     return constants;
   }
 }

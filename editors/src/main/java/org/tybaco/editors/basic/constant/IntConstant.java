@@ -21,40 +21,46 @@ package org.tybaco.editors.basic.constant;
  * #L%
  */
 
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.IntegerLiteralExpr;
-import javafx.scene.control.*;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.TextField;
 import javafx.stage.*;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.model.Descriptor;
 import org.tybaco.editors.model.LibConst;
-import org.w3c.dom.Element;
+import org.tybaco.editors.value.StringValue;
+import org.tybaco.editors.value.Value;
 
 import static javafx.scene.control.ButtonBar.ButtonData.APPLY;
 
 @Qualifier("basic")
 @Component
 @Descriptor(id = "int", name = "Integer", icon = "mdi2n-numeric-0", description = "32 bit signed integer number")
-public final class IntConstant implements LibConst<String> {
+public final class IntConstant implements LibConst {
 
   @Override
-  public String edit(Window window, String old) {
-    var dialog = new Dialog<IntegerLiteralExpr>();
+  public Value edit(Window window, Value old) {
+    var dialog = new Dialog<Value>();
     dialog.initOwner(window);
     dialog.initModality(Modality.WINDOW_MODAL);
     dialog.initStyle(StageStyle.DECORATED);
-    var text = new TextField(old == null ? "0" : old);
-    dialog.setResultConverter(t -> t.getButtonData() == APPLY ? new IntegerLiteralExpr(text.getText()) : null);
+    var text = new TextField(old == null ? "0" : extractValue(old));
+    dialog.setResultConverter(t -> t.getButtonData() == APPLY ? new StringValue(text.getText()) : null);
     return null;
   }
 
   @Override
-  public String load(Element element) {
-    return element.getTextContent();
+  public Expression build(Value value) {
+    return new IntegerLiteralExpr(extractValue(value));
   }
 
-  @Override
-  public void save(Element element, String value) {
-    element.setTextContent(value);
+  private String extractValue(Value value) {
+    return switch (value) {
+      case null -> throw new NullPointerException("value");
+      case StringValue v -> v.value();
+      default -> throw new IllegalArgumentException(value.getClass().getName());
+    };
   }
 }

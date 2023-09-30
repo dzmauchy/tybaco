@@ -1,4 +1,4 @@
-package org.tybaco.editors.model;
+package org.tybaco.editors.value;
 
 /*-
  * #%L
@@ -21,10 +21,14 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-import org.tybaco.editors.Meta;
+import org.w3c.dom.Element;
 
-import java.util.List;
+public record NullValue() implements Value {
 
-public interface ConstLib extends Meta {
-  List<? extends LibConst> constants();
+  public static final NullValue NULL = new NullValue();
+
+  @Override
+  public void save(Element element) {
+    element.setAttribute("type", "null");
+  }
 }
