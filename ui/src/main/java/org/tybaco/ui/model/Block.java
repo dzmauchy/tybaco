@@ -31,21 +31,22 @@ import org.w3c.dom.Element;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static java.lang.Double.parseDouble;
+import static java.lang.Integer.parseInt;
+
 public final class Block {
 
   public final int id;
   public final SimpleStringProperty name;
-  public final String factory;
-  public final String method;
+  public final String factoryId;
   public final SimpleDoubleProperty x;
   public final SimpleDoubleProperty y;
   private final Observable[] observables;
 
-  Block(int id, String name, String factory, String method, double x, double y) {
+  Block(int id, String name, String factoryId, double x, double y) {
     this.id = id;
     this.name = new SimpleStringProperty(this, "name", name);
-    this.factory = factory;
-    this.method = method;
+    this.factoryId = factoryId;
     this.x = new SimpleDoubleProperty(this, "x", x);
     this.y = new SimpleDoubleProperty(this, "y", y);
     this.observables = new Observable[] {this.name};
@@ -53,20 +54,18 @@ public final class Block {
 
   public Block(Element element) {
     this(
-      Integer.parseInt(element.getAttribute("id")),
+      parseInt(element.getAttribute("id")),
       element.getAttribute("name"),
-      element.getAttribute("factory"),
-      element.getAttribute("method"),
-      Double.parseDouble(element.getAttribute("x")),
-      Double.parseDouble(element.getAttribute("y"))
+      element.getAttribute("factoryId"),
+      parseDouble(element.getAttribute("x")),
+      parseDouble(element.getAttribute("y"))
     );
   }
 
   public void saveTo(Element element) {
     element.setAttribute("id", Integer.toString(id));
     element.setAttribute("name", name.get());
-    element.setAttribute("factory", factory);
-    element.setAttribute("method", method);
+    element.setAttribute("factoryId", factoryId);
     element.setAttribute("x", Double.toString(x.get()));
     element.setAttribute("y", Double.toString(y.get()));
   }

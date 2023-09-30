@@ -28,22 +28,33 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.model.Descriptor;
 import org.tybaco.editors.model.LibConst;
+import org.w3c.dom.Element;
 
 import static javafx.scene.control.ButtonBar.ButtonData.APPLY;
 
 @Qualifier("basic")
 @Component
 @Descriptor(id = "int", name = "Integer", icon = "mdi2n-numeric-0", description = "32 bit signed integer number")
-public final class IntConstant implements LibConst<IntegerLiteralExpr> {
+public final class IntConstant implements LibConst<String> {
 
   @Override
-  public IntegerLiteralExpr edit(Window window, IntegerLiteralExpr old) {
+  public String edit(Window window, String old) {
     var dialog = new Dialog<IntegerLiteralExpr>();
     dialog.initOwner(window);
     dialog.initModality(Modality.WINDOW_MODAL);
     dialog.initStyle(StageStyle.DECORATED);
-    var text = new TextField(old == null ? "0" : old.getValue());
+    var text = new TextField(old == null ? "0" : old);
     dialog.setResultConverter(t -> t.getButtonData() == APPLY ? new IntegerLiteralExpr(text.getText()) : null);
     return null;
+  }
+
+  @Override
+  public String load(Element element) {
+    return element.getTextContent();
+  }
+
+  @Override
+  public void save(Element element, String value) {
+    element.setTextContent(value);
   }
 }

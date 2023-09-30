@@ -117,8 +117,8 @@ public final class Project {
     return links.stream().filter(l -> l.in().blockId() == block.id);
   }
 
-  public Block newBlock(String name, String factory, String method, double x, double y) {
-    var block = new Block(nextId(), name, factory, method, x, y);
+  public Block newBlock(String name, String factoryId, double x, double y) {
+    var block = new Block(nextId(), name, factoryId, x, y);
     blocks.add(block);
     return block;
   }

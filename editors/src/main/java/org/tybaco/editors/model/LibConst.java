@@ -21,10 +21,12 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-import com.github.javaparser.ast.expr.Expression;
 import javafx.stage.Window;
 import org.tybaco.editors.Meta;
+import org.w3c.dom.Element;
 
-public interface LibConst<E extends Expression> extends Meta {
+public interface LibConst<E> extends Meta {
   E edit(Window window, E old);
+  E load(Element element);
+  void save(Element element, E value);
 }

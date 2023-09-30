@@ -26,5 +26,5 @@ import org.tybaco.editors.Meta;
 import java.util.List;
 
 public interface ConstLib extends Meta {
-  List<? extends LibConst> constants();
+  List<? extends LibConst<?>> constants();
 }

@@ -42,9 +42,7 @@ public class ProjectActions {
   @Order(1)
   public Action newBlockAction(Project project, Editors editors) {
     return new Action(null, MaterialDesignB.BABY_BOTTLE, "New block", ev -> {
-      var factory = "com.example.factory";
-      var method = "method";
-      var block = project.newBlock(project.guessBlockName(), factory, method, 0d, 0d);
+      var block = project.newBlock(project.guessBlockName(), "id", 0d, 0d);
       info(getClass(), "Block {0} created", block.id);
     }).separatorGroup("block").disabled(editors.blockLibs.isNull());
   }
