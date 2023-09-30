@@ -1,4 +1,4 @@
-package org.tybaco.editors;
+package org.tybaco.editors.model;
 
 /*-
  * #%L
@@ -21,23 +21,13 @@ package org.tybaco.editors;
  * #L%
  */
 
-import org.kordamp.ikonli.materialdesign2.MaterialDesignU;
-import org.tybaco.editors.model.Descriptor;
+import java.lang.annotation.*;
 
-public interface Meta {
-
-  default String name() {
-    var descriptor = getClass().getAnnotation(Descriptor.class);
-    return descriptor != null ? descriptor.name() : getClass().getSimpleName();
-  }
-
-  default String icon() {
-    var descriptor = getClass().getAnnotation(Descriptor.class);
-    return descriptor != null ? descriptor.icon() : MaterialDesignU.UFO.getDescription();
-  }
-
-  default String description() {
-    var description = getClass().getAnnotation(Descriptor.class);
-    return description != null ? description.description() : "";
-  }
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Descriptor {
+  String id();
+  String name();
+  String icon();
+  String description();
 }

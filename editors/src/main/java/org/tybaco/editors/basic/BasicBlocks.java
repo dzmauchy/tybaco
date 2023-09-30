@@ -1,4 +1,4 @@
-package org.tybaco.editors;
+package org.tybaco.editors.basic;
 
 /*-
  * #%L
@@ -21,23 +21,24 @@ package org.tybaco.editors;
  * #L%
  */
 
-import org.kordamp.ikonli.materialdesign2.MaterialDesignU;
-import org.tybaco.editors.model.Descriptor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import org.tybaco.editors.model.*;
 
-public interface Meta {
+import java.util.List;
 
-  default String name() {
-    var descriptor = getClass().getAnnotation(Descriptor.class);
-    return descriptor != null ? descriptor.name() : getClass().getSimpleName();
+@Component
+@Descriptor(id = "basic", name = "Basic blocks", icon = "mdi2b-baby", description = "Basic blocks library")
+public final class BasicBlocks implements BlockLib {
+
+  private final List<? extends LibBlock> blocks;
+
+  public BasicBlocks(@Qualifier("basic") List<? extends LibBlock> blocks) {
+    this.blocks = blocks;
   }
 
-  default String icon() {
-    var descriptor = getClass().getAnnotation(Descriptor.class);
-    return descriptor != null ? descriptor.icon() : MaterialDesignU.UFO.getDescription();
-  }
-
-  default String description() {
-    var description = getClass().getAnnotation(Descriptor.class);
-    return description != null ? description.description() : "";
+  @Override
+  public List<? extends LibBlock> blocks() {
+    return blocks;
   }
 }

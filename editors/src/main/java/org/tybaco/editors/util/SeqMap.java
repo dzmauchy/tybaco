@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.function.*;
 
 import static java.util.Arrays.stream;
+import static java.util.Map.entry;
 import static java.util.Spliterator.*;
 import static java.util.stream.Collectors.joining;
 
@@ -39,6 +40,46 @@ public final class SeqMap<K, V> implements Iterable<Entry<@NotNull K, @NotNull V
   @SafeVarargs
   public SeqMap(@NotNull Entry<@NotNull K, @NotNull V>... entries) {
     this.entries = entries;
+  }
+
+  public SeqMap(@NotNull K k1, @NotNull V v1) {
+    this(entry(k1, v1));
+  }
+
+  public SeqMap(@NotNull K k1, @NotNull V v1, @NotNull K k2, @NotNull V v2) {
+    this(entry(k1, v1), entry(k2, v2));
+  }
+
+  public SeqMap(@NotNull K k1, @NotNull V v1, @NotNull K k2, @NotNull V v2, @NotNull K k3, @NotNull V v3) {
+    this(entry(k1, v1), entry(k2, v2), entry(k3, v3));
+  }
+
+  public SeqMap(@NotNull K k1, @NotNull V v1, @NotNull K k2, @NotNull V v2, @NotNull K k3, @NotNull V v3, @NotNull K k4, @NotNull V v4) {
+    this(entry(k1, v1), entry(k2, v2), entry(k3, v3), entry(k4, v4));
+  }
+
+  public SeqMap(@NotNull K k1, @NotNull V v1, @NotNull K k2, @NotNull V v2, @NotNull K k3, @NotNull V v3, @NotNull K k4, @NotNull V v4, @NotNull K k5, @NotNull V v5) {
+    this(entry(k1, v1), entry(k2, v2), entry(k3, v3), entry(k4, v4), entry(k5, v5));
+  }
+
+  public SeqMap(@NotNull K k1, @NotNull V v1, @NotNull K k2, @NotNull V v2, @NotNull K k3, @NotNull V v3, @NotNull K k4, @NotNull V v4, @NotNull K k5, @NotNull V v5, @NotNull K k6, @NotNull V v6) {
+    this(entry(k1, v1), entry(k2, v2), entry(k3, v3), entry(k4, v4), entry(k5, v5), entry(k6, v6));
+  }
+
+  public SeqMap(@NotNull K k1, @NotNull V v1, @NotNull K k2, @NotNull V v2, @NotNull K k3, @NotNull V v3, @NotNull K k4, @NotNull V v4, @NotNull K k5, @NotNull V v5, @NotNull K k6, @NotNull V v6, @NotNull K k7, @NotNull V v7) {
+    this(entry(k1, v1), entry(k2, v2), entry(k3, v3), entry(k4, v4), entry(k5, v5), entry(k6, v6), entry(k7, v7));
+  }
+
+  public SeqMap(@NotNull K k1, @NotNull V v1, @NotNull K k2, @NotNull V v2, @NotNull K k3, @NotNull V v3, @NotNull K k4, @NotNull V v4, @NotNull K k5, @NotNull V v5, @NotNull K k6, @NotNull V v6, @NotNull K k7, @NotNull V v7, @NotNull K k8, @NotNull V v8) {
+    this(entry(k1, v1), entry(k2, v2), entry(k3, v3), entry(k4, v4), entry(k5, v5), entry(k6, v6), entry(k7, v7), entry(k8, v8));
+  }
+
+  public SeqMap(@NotNull K k1, @NotNull V v1, @NotNull K k2, @NotNull V v2, @NotNull K k3, @NotNull V v3, @NotNull K k4, @NotNull V v4, @NotNull K k5, @NotNull V v5, @NotNull K k6, @NotNull V v6, @NotNull K k7, @NotNull V v7, @NotNull K k8, @NotNull V v8, @NotNull K k9, @NotNull V v9) {
+    this(entry(k1, v1), entry(k2, v2), entry(k3, v3), entry(k4, v4), entry(k5, v5), entry(k6, v6), entry(k7, v7), entry(k8, v8), entry(k9, v9));
+  }
+
+  public SeqMap(@NotNull K k1, @NotNull V v1, @NotNull K k2, @NotNull V v2, @NotNull K k3, @NotNull V v3, @NotNull K k4, @NotNull V v4, @NotNull K k5, @NotNull V v5, @NotNull K k6, @NotNull V v6, @NotNull K k7, @NotNull V v7, @NotNull K k8, @NotNull V v8, @NotNull K k9, @NotNull V v9, @NotNull K k10, @NotNull V v10) {
+    this(entry(k1, v1), entry(k2, v2), entry(k3, v3), entry(k4, v4), entry(k5, v5), entry(k6, v6), entry(k7, v7), entry(k8, v8), entry(k9, v9), entry(k10, v10));
   }
 
   @Nullable
