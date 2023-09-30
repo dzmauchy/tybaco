@@ -26,6 +26,11 @@ import org.tybaco.editors.model.Descriptor;
 
 public interface Meta {
 
+  default String id() {
+    var descriptor = getClass().getAnnotation(Descriptor.class);
+    return descriptor != null ? descriptor.id() : getClass().getSimpleName();
+  }
+
   default String name() {
     var descriptor = getClass().getAnnotation(Descriptor.class);
     return descriptor != null ? descriptor.name() : getClass().getSimpleName();
