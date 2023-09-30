@@ -30,11 +30,11 @@ import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.tybaco.meta.*;
-import org.tybaco.ui.child.project.classpath.LibraryFinder;
 import org.tybaco.editors.control.Tables;
-import org.tybaco.ui.model.Constant;
-import org.tybaco.ui.model.Project;
+import org.tybaco.editors.model.LibConst;
+import org.tybaco.ui.child.project.classpath.ProjectClasspath;
+import org.tybaco.ui.model.*;
+import org.tybaco.editors.Meta;
 
 import java.util.List;
 
@@ -44,41 +44,36 @@ import static org.tybaco.editors.text.Texts.text;
 
 @Scope(SCOPE_PROTOTYPE)
 @Component
-public final class LibraryConstantsTree extends TreeTableView<MetaContainer> {
+public final class LibraryConstantsTree extends TreeTableView<Meta> {
 
-  public LibraryConstantsTree(LibraryFinder finder) {
+  public LibraryConstantsTree(ProjectClasspath projectClasspath) {
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     setShowRoot(false);
-    setRoot(new TreeItem<>(new Meta("", "", "")));
+    setRoot(new TreeItem<>(null));
     getColumns().addAll(List.of(nameColumn(), descriptionColumn()));
     Tables.initColumnWidth(this, 300, 500);
-    finder.libraries().forEachOrdered(lib -> {
-      var libElem = new TreeItem<MetaContainer>(lib, icon(lib.meta().icon(), 20));
+    projectClasspath.constLibs.get().forEach(lib -> {
+      var libElem = new TreeItem<Meta>(lib, icon(lib.icon(), 20));
       getRoot().getChildren().add(libElem);
-      lib.constants().forEach(consts -> {
-        var constsElem = new TreeItem<MetaContainer>(consts, icon(consts.meta().icon(), 20));
-        libElem.getChildren().add(constsElem);
-        consts.constants().forEach(c -> {
-          var cElem = new TreeItem<MetaContainer>(c, icon(c.meta().icon(), 20));
-          constsElem.getChildren().add(cElem);
-        });
-        constsElem.setExpanded(true);
+      lib.constants().forEach(c -> {
+        var elem = new TreeItem<Meta>(c, icon(c.icon(), 20));
+        libElem.getChildren().add(elem);
         libElem.setExpanded(true);
       });
     });
   }
 
-  private TreeTableColumn<MetaContainer, String> nameColumn() {
-    var col = new TreeTableColumn<MetaContainer, String>();
+  private TreeTableColumn<Meta, String> nameColumn() {
+    var col = new TreeTableColumn<Meta, String>();
     col.textProperty().bind(text("Name"));
-    col.setCellValueFactory(f -> new SimpleStringProperty(f.getValue().getValue().meta().name()));
+    col.setCellValueFactory(f -> new SimpleStringProperty(f.getValue().getValue().name()));
     return col;
   }
 
-  private TreeTableColumn<MetaContainer, String> descriptionColumn() {
-    var col = new TreeTableColumn<MetaContainer, String>();
+  private TreeTableColumn<Meta, String> descriptionColumn() {
+    var col = new TreeTableColumn<Meta, String>();
     col.textProperty().bind(text("Description"));
-    col.setCellValueFactory(f -> new SimpleStringProperty(f.getValue().getValue().meta().description()));
+    col.setCellValueFactory(f -> new SimpleStringProperty(f.getValue().getValue().description()));
     return col;
   }
 
@@ -106,13 +101,13 @@ public final class LibraryConstantsTree extends TreeTableView<MetaContainer> {
       var applyButton = getDialogPane().lookupButton(ButtonType.APPLY);
       applyButton.setDisable(true);
       getSelectionModel().selectedItemProperty().addListener((o, ov, nv) ->
-        applyButton.setDisable(nv == null || !(nv.getValue() instanceof LibraryConstant))
+        applyButton.setDisable(nv == null || !(nv.getValue() instanceof LibConst<?>))
       );
       setResultConverter(t -> switch (t.getButtonData()) {
         case APPLY -> {
           var item = getSelectionModel().getSelectedItem();
-          if (item != null && item.getValue() instanceof LibraryConstant c) {
-            yield project.newConstant(c.meta().name(), c.factory(), textArea.getText());
+          if (item != null && item.getValue() instanceof LibConst<?> c) {
+            yield project.newConstant("x", "y", textArea.getText());
           } else {
             yield null;
           }

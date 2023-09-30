@@ -46,6 +46,8 @@ import static javafx.beans.binding.Bindings.createObjectBinding;
 @SuppressWarnings("DuplicatedCode")
 public final class Action {
 
+  private static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+
   private final SimpleObjectProperty<EventHandler<ActionEvent>> handler = new SimpleObjectProperty<>(this, "handler");
   private final SimpleStringProperty text = new SimpleStringProperty(this, "text");
   private final SimpleStringProperty description = new SimpleStringProperty(this, "description");
@@ -56,15 +58,18 @@ public final class Action {
   private final SimpleListProperty<Action> actions = new SimpleListProperty<>(this, "actions");
   private final SimpleStringProperty group = new SimpleStringProperty(this, "group");
 
+  private final ClassLoader classLoader;
   private String separatorGroup = "";
   private boolean selectionEnabled;
 
   public Action() {
+    classLoader = STACK_WALKER.getCallerClass().getClassLoader();
   }
 
   public Action(String text) {
+    this();
     if (text != null) {
-      this.text.bind(Texts.text(text));
+      this.text.bind(Texts.text(classLoader, text));
     }
   }
 
@@ -90,12 +95,12 @@ public final class Action {
 
   public Action(String text, String icon, String description) {
     this(text, icon);
-    this.description.bind(Texts.text(description));
+    this.description.bind(Texts.text(classLoader, description));
   }
 
   public Action(String text, Ikon icon, String description) {
     this(text, icon);
-    this.description.bind(Texts.text(description));
+    this.description.bind(Texts.text(classLoader, description));
   }
 
   public Action(String text, String icon, String description, EventHandler<ActionEvent> handler) {
@@ -109,18 +114,19 @@ public final class Action {
   }
 
   public Action(boolean vertical) {
+    this();
     if (vertical) {
       this.description.bind(new SimpleStringProperty("|"));
     }
   }
 
   public Action fmt(String fmt, Object... args) {
-    this.text.bind(Texts.text(fmt, args));
+    this.text.bind(Texts.text(classLoader, fmt, args));
     return this;
   }
 
   public Action msg(String msg, Object... args) {
-    this.text.bind(Texts.msg(msg, args));
+    this.text.bind(Texts.msg(classLoader, msg, args));
     return this;
   }
 
@@ -247,7 +253,7 @@ public final class Action {
   }
 
   public ObjectBinding<Node> graphic(int size) {
-    return Bindings.createObjectBinding(() -> Icons.icon(icon.get(), size), icon);
+    return Bindings.createObjectBinding(() -> Icons.icon(classLoader, icon.get(), size), icon);
   }
 
   public ObjectBinding<Tooltip> tooltip() {

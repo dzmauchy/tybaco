@@ -10,12 +10,12 @@ package org.tybaco.editors.icon;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -29,19 +29,29 @@ import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.javafx.IkonResolver;
 
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.tybaco.logging.Log.warn;
 
 public final class Icons {
 
-  private static final ConcurrentHashMap<IconKey, Image> IMAGES = new ConcurrentHashMap<>(64, 0.5f);
+  private static final WeakHashMap<ClassLoader, ConcurrentHashMap<IconKey, Image>> IMAGES = new WeakHashMap<>();
 
   public static Node icon(String key, int size) {
+    return icon(Thread.currentThread().getContextClassLoader(), key, size);
+  }
+
+  public static Node icon(ClassLoader classLoader, String key, int size) {
     if (key == null) {
       return null;
-    } else if (key.indexOf('.') > 0) {
-      return new ImageView(IMAGES.computeIfAbsent(new IconKey(key, size), Icons::load));
+    }
+    final ConcurrentHashMap<IconKey, Image> map;
+    synchronized (IMAGES) {
+      map = IMAGES.computeIfAbsent(classLoader, c -> new ConcurrentHashMap<>(64, 0.5f));
+    }
+    if (key.indexOf('.') > 0) {
+      return new ImageView(map.computeIfAbsent(new IconKey(key, size), k -> load(classLoader, k)));
     } else {
       var resolver = IkonResolver.getInstance();
       try {
@@ -59,9 +69,13 @@ public final class Icons {
     return FontIcon.of(icon, size, Color.WHITE);
   }
 
-  private static Image load(IconKey key) {
-    try {
-      return new Image(key.key(), key.size(), key.size(), false, true, false);
+  private static Image load(ClassLoader classLoader, IconKey key) {
+    try (var is = classLoader.getResourceAsStream(key.key())) {
+      if (is == null) {
+        warn(Icons.class, "Unable to resolve {0}", key);
+        return null;
+      }
+      return new Image(is, key.size(), key.size(), false, true);
     } catch (Throwable e) {
       warn(Icons.class, "Unable to resolve {0}", e, key);
       return null;

@@ -22,13 +22,9 @@ package org.tybaco.editors.model;
  */
 
 import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.LiteralExpr;
+import javafx.stage.Window;
 import org.tybaco.editors.Meta;
-import org.tybaco.editors.util.SeqMap;
 
-import java.util.Map;
-
-public interface LibConst extends Meta {
-  SeqMap<String, LibInput> inputs();
-  Expression build(Map<String, LiteralExpr> inputs);
+public interface LibConst<E extends Expression> extends Meta {
+  E edit(Window window, E old);
 }

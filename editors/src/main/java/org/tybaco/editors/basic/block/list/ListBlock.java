@@ -1,4 +1,4 @@
-package org.tybaco.editors.basic.list;
+package org.tybaco.editors.basic.block.list;
 
 /*-
  * #%L
@@ -25,6 +25,7 @@ import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.tybaco.editors.model.*;
 import org.tybaco.editors.util.SeqMap;
 
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 @Qualifier("basic")
+@Component
 @Descriptor(id = "list", name = "List", icon = "eva-list", description = "Creates a generic immutable list")
 public final class ListBlock implements LibBlock {
 
