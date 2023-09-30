@@ -21,7 +21,8 @@ package org.tybaco.editors.block;
  * #L%
  */
 
+import com.github.javaparser.ast.expr.Expression;
 import org.tybaco.editors.Meta;
 
-public record Output(String name, String icon, String description) implements Meta {
+public record Output(String name, String icon, String description, Expression expression) implements Meta {
 }

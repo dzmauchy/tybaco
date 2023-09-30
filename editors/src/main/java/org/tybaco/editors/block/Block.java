@@ -25,10 +25,11 @@ import com.github.javaparser.ast.expr.Expression;
 import org.tybaco.editors.Meta;
 import org.tybaco.editors.util.SeqMap;
 
+import java.util.List;
 import java.util.Map;
 
 public interface Block extends Meta {
   SeqMap<String, Input> inputs();
   SeqMap<String, Output> outputs();
-  BlockResult build(Map<String, Expression> inputs);
+  BlockResult build(Map<String, List<Expression>> inputs);
 }
