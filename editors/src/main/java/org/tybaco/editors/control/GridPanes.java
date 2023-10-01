@@ -1,4 +1,4 @@
-package org.tybaco.editors.model;
+package org.tybaco.editors.control;
 
 /*-
  * #%L
@@ -21,14 +21,24 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-import com.github.javaparser.ast.expr.Expression;
-import javafx.stage.Window;
-import org.tybaco.editors.Meta;
-import org.tybaco.editors.value.Value;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.layout.GridPane;
+import org.tybaco.editors.text.Texts;
+import org.tybaco.editors.util.SeqMap;
 
-import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public interface LibConst extends Meta {
-  Optional<Value> edit(Window window, Value old);
-  Expression build(Value value);
+public interface GridPanes {
+
+  static GridPane twoColumnPane(Class<?> caller, SeqMap<String, Node> nodes) {
+    var pane = new GridPane(5, 5);
+    var counter = new AtomicInteger();
+    nodes.forEach((k, v) -> {
+      var label = new Label();
+      label.textProperty().bind(Texts.text(caller.getClassLoader(), k));
+      pane.addRow(counter.getAndIncrement(), label, v);
+    });
+    return pane;
+  }
 }

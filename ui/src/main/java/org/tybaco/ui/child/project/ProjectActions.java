@@ -29,7 +29,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.action.Action;
 import org.tybaco.ui.child.project.classpath.Editors;
-import org.tybaco.ui.child.project.constants.LibraryConstantsTree;
+import org.tybaco.ui.child.project.constants.LibraryConstantsWindow;
 import org.tybaco.ui.model.Project;
 
 import static org.tybaco.logging.Log.info;
@@ -50,7 +50,7 @@ public class ProjectActions {
   @Bean
   @Qualifier("projectAction")
   @Order(2)
-  public Action newConstantAction(ObjectProvider<LibraryConstantsTree.Win> win, Editors editors) {
+  public Action newConstantAction(ObjectProvider<LibraryConstantsWindow> win, Editors editors) {
     return new Action(null, MaterialDesignB.BULLSEYE, "New constant", ev -> {
       var window = win.getObject();
       window.show();

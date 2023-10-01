@@ -1,4 +1,4 @@
-package org.tybaco.editors.model;
+package org.tybaco.editors.dialog;
 
 /*-
  * #%L
@@ -21,14 +21,25 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-import com.github.javaparser.ast.expr.Expression;
+import javafx.scene.control.*;
+import javafx.stage.Modality;
 import javafx.stage.Window;
-import org.tybaco.editors.Meta;
+import org.tybaco.editors.text.TextSupport;
 import org.tybaco.editors.value.Value;
 
-import java.util.Optional;
+public abstract class ConstantEditDialog extends Dialog<Value> implements TextSupport {
 
-public interface LibConst extends Meta {
-  Optional<Value> edit(Window window, Value old);
-  Expression build(Value value);
+  public ConstantEditDialog(Window window) {
+    initOwner(window);
+    initModality(Modality.WINDOW_MODAL);
+    setWidth(1024);
+    setHeight(768);
+    setResizable(true);
+    getDialogPane().getButtonTypes().addAll(ButtonType.APPLY, ButtonType.CLOSE);
+    headerTextProperty().bind(text("Edit the constant").map(v -> v + ":"));
+    titleProperty().bind(text("Constant"));
+    setResultConverter(t -> t.getButtonData() == ButtonBar.ButtonData.APPLY ? value() : null);
+  }
+
+  protected abstract Value value();
 }

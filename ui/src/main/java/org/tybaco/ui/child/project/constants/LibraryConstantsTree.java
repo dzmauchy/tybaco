@@ -21,22 +21,14 @@ package org.tybaco.ui.child.project.constants;
  * #L%
  */
 
-import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.scene.control.*;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.Meta;
 import org.tybaco.editors.control.Tables;
-import org.tybaco.editors.model.LibConst;
 import org.tybaco.editors.text.Texts;
 import org.tybaco.ui.child.project.classpath.Editors;
 import org.tybaco.ui.child.project.classpath.ProjectClasspath;
-import org.tybaco.ui.model.Constant;
-import org.tybaco.ui.model.Project;
 
 import java.util.List;
 
@@ -80,45 +72,5 @@ public final class LibraryConstantsTree extends TreeTableView<Meta> {
     col.textProperty().bind(text("Description"));
     col.setCellValueFactory(f -> Texts.text(classLoader, f.getValue().getValue().description()));
     return col;
-  }
-
-  @Scope(SCOPE_PROTOTYPE)
-  @Component
-  public final class Win extends Dialog<Constant> {
-
-    public Win(@Autowired(required = false) Stage primaryStage, Project project) {
-      setWidth(1024);
-      setHeight(768);
-      initModality(Modality.APPLICATION_MODAL);
-      initOwner(primaryStage);
-      setResizable(true);
-      var textArea = new TextArea();
-      var titledPane = new TitledPane(null, textArea);
-      titledPane.textProperty().bind(text("Value").map(v -> v + ":"));
-      var splitPane = new SplitPane(LibraryConstantsTree.this, titledPane);
-      splitPane.setPadding(Insets.EMPTY);
-      splitPane.setOrientation(Orientation.VERTICAL);
-      splitPane.setDividerPosition(0, 0.7);
-      getDialogPane().setContent(splitPane);
-      headerTextProperty().bind(text("Select a constant").map(v -> v + ":"));
-      titleProperty().bind(text("Constants"));
-      getDialogPane().getButtonTypes().addAll(ButtonType.APPLY, ButtonType.CLOSE);
-      var applyButton = getDialogPane().lookupButton(ButtonType.APPLY);
-      applyButton.setDisable(true);
-      getSelectionModel().selectedItemProperty().addListener((o, ov, nv) ->
-        applyButton.setDisable(nv == null || !(nv.getValue() instanceof LibConst))
-      );
-      setResultConverter(t -> switch (t.getButtonData()) {
-        case APPLY -> {
-          var item = getSelectionModel().getSelectedItem();
-          if (item != null && item.getValue() instanceof LibConst c) {
-            yield project.newConstant("x", "y", textArea.getText());
-          } else {
-            yield null;
-          }
-        }
-        default -> null;
-      });
-    }
   }
 }

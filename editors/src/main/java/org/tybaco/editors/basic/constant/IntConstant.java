@@ -23,17 +23,19 @@ package org.tybaco.editors.basic.constant;
 
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.IntegerLiteralExpr;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.TextField;
-import javafx.stage.*;
+import javafx.stage.Window;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.tybaco.editors.control.GridPanes;
+import org.tybaco.editors.dialog.ConstantEditDialog;
 import org.tybaco.editors.model.Descriptor;
 import org.tybaco.editors.model.LibConst;
+import org.tybaco.editors.util.SeqMap;
 import org.tybaco.editors.value.StringValue;
 import org.tybaco.editors.value.Value;
 
-import static javafx.scene.control.ButtonBar.ButtonData.APPLY;
+import java.util.Optional;
 
 @Qualifier("basic")
 @Component
@@ -41,14 +43,8 @@ import static javafx.scene.control.ButtonBar.ButtonData.APPLY;
 public final class IntConstant implements LibConst {
 
   @Override
-  public Value edit(Window window, Value old) {
-    var dialog = new Dialog<Value>();
-    dialog.initOwner(window);
-    dialog.initModality(Modality.WINDOW_MODAL);
-    dialog.initStyle(StageStyle.DECORATED);
-    var text = new TextField(old == null ? "0" : extractValue(old));
-    dialog.setResultConverter(t -> t.getButtonData() == APPLY ? new StringValue(text.getText()) : null);
-    return null;
+  public Optional<Value> edit(Window window, Value old) {
+    return new Dlg(window, old).showAndWait();
   }
 
   @Override
@@ -56,11 +52,26 @@ public final class IntConstant implements LibConst {
     return new IntegerLiteralExpr(extractValue(value));
   }
 
-  private String extractValue(Value value) {
+  private static String extractValue(Value value) {
     return switch (value) {
-      case null -> throw new NullPointerException("value");
-      case StringValue v -> v.value();
-      default -> throw new IllegalArgumentException(value.getClass().getName());
+      case StringValue(var v) -> v;
+      default -> throw new IllegalArgumentException(String.valueOf(value));
     };
+  }
+
+  private static class Dlg extends ConstantEditDialog {
+
+    private final TextField field;
+
+    public Dlg(Window window, Value old) {
+      super(window);
+      field = new TextField(old == null ? "0" : extractValue(old));
+      getDialogPane().setContent(GridPanes.twoColumnPane(getClass(), new SeqMap<>("Number", field)));
+    }
+
+    @Override
+    protected Value value() {
+      return new StringValue(field.getText());
+    }
   }
 }

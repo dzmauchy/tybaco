@@ -37,4 +37,9 @@ public record ArrayValue(List<Value> values) implements Value {
     element.setAttribute("type", "array");
     Xml.withChildren(element, "element", values, Value::save);
   }
+
+  @Override
+  public String toString() {
+    return values.toString();
+  }
 }

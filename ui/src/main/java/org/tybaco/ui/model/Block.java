@@ -70,11 +70,7 @@ public final class Block {
     element.setAttribute("y", Double.toString(y.get()));
   }
 
-  private Observable[] observables() {
-    return observables;
-  }
-
   public static ObservableList<Block> newList(Collection<Block> blocks) {
-    return FXCollections.observableList(new ArrayList<>(blocks), Block::observables);
+    return FXCollections.observableList(new ArrayList<>(blocks), b -> b.observables);
   }
 }

@@ -42,4 +42,9 @@ public record MapValue(Map<String, Value> map) implements Value {
       v.save(e);
     }));
   }
+
+  @Override
+  public String toString() {
+    return map.toString();
+  }
 }

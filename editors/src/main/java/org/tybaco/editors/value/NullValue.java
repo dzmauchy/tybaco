@@ -31,4 +31,9 @@ public record NullValue() implements Value {
   public void save(Element element) {
     element.setAttribute("type", "null");
   }
+
+  @Override
+  public String toString() {
+    return "null";
+  }
 }

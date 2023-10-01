@@ -21,6 +21,7 @@ package org.tybaco.editors.value;
  * #L%
  */
 
+import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 public record StringValue(String value) implements Value {
@@ -32,5 +33,10 @@ public record StringValue(String value) implements Value {
   @Override
   public void save(Element element) {
     element.setTextContent(value);
+  }
+
+  @Override
+  public String toString() {
+    return StringUtils.quote(value);
   }
 }

@@ -25,8 +25,6 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.tybaco.ui.Main;
@@ -70,7 +68,7 @@ public class MainApplication extends Application {
       updateSplash();
       UILogHandler.getInstance().flush();
       stage.setTitle("Tybaco IDE");
-      stage.setFullScreenExitKeyCombination(new KeyCodeCombination(KeyCode.ESCAPE));
+      stage.setUserData("primary");
       updateSplash();
       context.getDefaultListableBeanFactory().registerSingleton("primaryStage", stage);
       context.register(MainConfiguration.class);

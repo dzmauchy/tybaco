@@ -1,4 +1,4 @@
-package org.tybaco.ui.model;
+package org.tybaco.ui.main;
 
 /*-
  * #%L
@@ -21,17 +21,17 @@ package org.tybaco.ui.model;
  * #L%
  */
 
-import java.util.Map;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
-import static java.util.Objects.requireNonNullElse;
+public interface MainStage {
 
-public record Meta(String name, String icon, String description) {
-
-  public Meta(Map<String, Object> attrs) {
-    this(
-      requireNonNullElse(attrs.get("name"), "").toString(),
-      requireNonNullElse(attrs.get("icon"), "").toString(),
-      requireNonNullElse(attrs.get("description"), "").toString()
-    );
+  static Stage mainStage() {
+    return Window.getWindows().stream()
+      .filter(Stage.class::isInstance)
+      .map(Stage.class::cast)
+      .filter(s -> "primary".equals(s.getUserData()))
+      .findFirst()
+      .orElseThrow();
   }
 }

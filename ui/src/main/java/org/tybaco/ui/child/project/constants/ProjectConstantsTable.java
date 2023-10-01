@@ -22,11 +22,14 @@ package org.tybaco.ui.child.project.constants;
  */
 
 import javafx.beans.property.SimpleStringProperty;
-import javafx.scene.control.*;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.control.Tables;
 import org.tybaco.editors.text.Texts;
+import org.tybaco.editors.value.Value;
+import org.tybaco.ui.child.project.classpath.ConstCache;
 import org.tybaco.ui.model.Constant;
 import org.tybaco.ui.model.Project;
 
@@ -35,8 +38,11 @@ import java.util.List;
 @Component
 public class ProjectConstantsTable extends TableView<Constant> {
 
-  public ProjectConstantsTable(Project project) {
+  private final ConstCache constCache;
+
+  public ProjectConstantsTable(Project project, ConstCache constCache) {
     super(project.constants);
+    this.constCache = constCache;
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     setEditable(true);
     getColumns().addAll(List.of(nameColumn(), factoryColumn(), valueColumn()));
@@ -56,16 +62,19 @@ public class ProjectConstantsTable extends TableView<Constant> {
     var col = new TableColumn<Constant, String>();
     col.textProperty().bind(Texts.text("Factory"));
     col.setEditable(false);
-    col.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().factory));
+    col.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().factoryId));
     return col;
   }
 
   private TableColumn<Constant, String> valueColumn() {
     var col = new TableColumn<Constant, String>();
     col.textProperty().bind(Texts.text("Value"));
-    col.setEditable(true);
-    col.setCellFactory(TextFieldTableCell.forTableColumn());
-    col.setCellValueFactory(c -> c.getValue().value);
+    col.setEditable(false);
+    col.setCellValueFactory(c -> c.getValue().value.map(v -> {
+      var constant = c.getValue();
+      var libConst = constCache.cache.get(constant.factoryId);
+      return libConst == null ? v.toString() : libConst.build(v).toString();
+    }));
     return col;
   }
 }

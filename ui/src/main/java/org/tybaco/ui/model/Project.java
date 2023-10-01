@@ -25,6 +25,8 @@ import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
+import org.tybaco.editors.value.Value;
 import org.w3c.dom.Element;
 
 import java.util.*;
@@ -123,8 +125,8 @@ public final class Project {
     return block;
   }
 
-  public Constant newConstant(String name, String factory, String value) {
-    var constant = new Constant(nextId(), name, factory, value);
+  public Constant newConstant(@NotNull String name, @NotNull String factoryId, @NotNull Value value) {
+    var constant = new Constant(nextId(), name, factoryId, value);
     constants.add(constant);
     return constant;
   }

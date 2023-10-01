@@ -22,27 +22,29 @@ package org.tybaco.ui.model;
  */
 
 import javafx.beans.Observable;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.tybaco.editors.value.Value;
+import org.tybaco.xml.Xml;
 import org.w3c.dom.Element;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 public final class Constant {
 
   public final int id;
   public final SimpleStringProperty name;
-  public final String factory;
-  public final SimpleStringProperty value;
+  public final String factoryId;
+  public final SimpleObjectProperty<Value> value;
   private final Observable[] observables;
 
-  Constant(int id, String name, String factory, String value) {
+  Constant(int id, String name, String factoryId, Value value) {
     this.id = id;
     this.name = new SimpleStringProperty(this, "name", name);
-    this.factory = factory;
-    this.value = new SimpleStringProperty(this, "value", value);
+    this.factoryId = factoryId;
+    this.value = new SimpleObjectProperty<>(this, "value", value);
     this.observables = new Observable[] {this.name, this.value};
   }
 
@@ -51,22 +53,18 @@ public final class Constant {
       Integer.parseInt(element.getAttribute("id")),
       element.getAttribute("name"),
       element.getAttribute("factory"),
-      element.getAttribute("value")
+      Xml.elementByTag(element, "value").map(Value::load).orElseThrow(() -> new NoSuchElementException("value"))
     );
   }
 
   public void saveTo(Element element) {
     element.setAttribute("id", Integer.toString(id));
     element.setAttribute("name", name.get());
-    element.setAttribute("factory", factory);
-    element.setAttribute("value", value.get());
-  }
-
-  private Observable[] observables() {
-    return observables;
+    element.setAttribute("factoryId", factoryId);
+    Xml.withChild(element, "value", value.get()::save);
   }
 
   public static ObservableList<Constant> newList(Collection<Constant> constants) {
-    return FXCollections.observableList(new ArrayList<>(constants), Constant::observables);
+    return FXCollections.observableList(new ArrayList<>(constants), c -> c.observables);
   }
 }

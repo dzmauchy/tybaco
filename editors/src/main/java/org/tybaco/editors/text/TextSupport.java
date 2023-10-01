@@ -1,4 +1,4 @@
-package org.tybaco.editors.model;
+package org.tybaco.editors.text;
 
 /*-
  * #%L
@@ -21,14 +21,23 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-import com.github.javaparser.ast.expr.Expression;
-import javafx.stage.Window;
-import org.tybaco.editors.Meta;
-import org.tybaco.editors.value.Value;
+import javafx.beans.binding.StringBinding;
 
-import java.util.Optional;
+public interface TextSupport {
 
-public interface LibConst extends Meta {
-  Optional<Value> edit(Window window, Value old);
-  Expression build(Value value);
+  default StringBinding text(String text) {
+    return Texts.text(getClass().getClassLoader(), text);
+  }
+
+  default StringBinding text(String format, Object... args) {
+    return Texts.text(getClass().getClassLoader(), format, args);
+  }
+
+  default StringBinding msg(String text) {
+    return Texts.msg(getClass().getClassLoader(), text);
+  }
+
+  default StringBinding msg(String format, Object... args) {
+    return Texts.msg(getClass().getClassLoader(), format, args);
+  }
 }
