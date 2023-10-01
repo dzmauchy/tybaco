@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import org.tybaco.editors.Meta;
 import org.tybaco.editors.control.Tables;
 import org.tybaco.editors.model.LibConst;
+import org.tybaco.editors.text.TextSupport;
 import org.tybaco.editors.text.Texts;
 import org.tybaco.ui.child.project.classpath.Editors;
 import org.tybaco.ui.child.project.classpath.ProjectClasspath;
@@ -41,11 +42,10 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 import static org.tybaco.editors.icon.Icons.icon;
-import static org.tybaco.editors.text.Texts.text;
 
 @Scope(SCOPE_PROTOTYPE)
 @Component
-public final class LibraryConstantsTree extends TreeTableView<Meta> {
+public final class LibraryConstantsTree extends TreeTableView<Meta> implements TextSupport {
 
   private final ClassLoader classLoader;
   public final BooleanBinding nonConstantSelected;
@@ -67,16 +67,16 @@ public final class LibraryConstantsTree extends TreeTableView<Meta> {
 
   private void fill(Editors editors) {
     editors.constLibs.get().stream().sorted().forEach(lib -> {
-      var libElem = new TreeItem<Meta>(lib, icon(lib.icon(), 20));
+      var libElem = new TreeItem<Meta>(lib);
       getRoot().getChildren().add(libElem);
       lib.constants().stream()
         .sorted()
         .collect(groupingBy(c -> Meta.meta(c.getClass().getPackage()), TreeMap::new, toList()))
         .forEach((g, cs) -> {
-            var pkgElem = new TreeItem<>(g, icon(g.icon(), 20));
+            var pkgElem = new TreeItem<>(g);
             libElem.getChildren().add(pkgElem);
             cs.forEach(c -> {
-              var elem = new TreeItem<Meta>(c, icon(classLoader, c.icon(), 20));
+              var elem = new TreeItem<Meta>(c);
               pkgElem.getChildren().add(elem);
             });
         });
@@ -87,6 +87,20 @@ public final class LibraryConstantsTree extends TreeTableView<Meta> {
   private TreeTableColumn<Meta, String> nameColumn() {
     var col = new TreeTableColumn<Meta, String>();
     col.textProperty().bind(text("Name"));
+    col.setCellFactory(c -> new TreeTableCell<>() {
+      @Override
+      protected void updateItem(String item, boolean empty) {
+        super.updateItem(item, empty);
+        if (empty) {
+          setText(null);
+          setGraphic(null);
+        } else {
+          var e = getTableRow().getTreeItem().getValue();
+          setText(getItem());
+          setGraphic(icon(classLoader, e.icon(), 20));
+        }
+      }
+    });
     col.setCellValueFactory(f -> Texts.text(classLoader, f.getValue().getValue().name()));
     return col;
   }

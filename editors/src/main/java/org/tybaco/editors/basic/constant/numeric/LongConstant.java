@@ -27,8 +27,7 @@ import javafx.stage.Window;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.dialog.ConstantEditDialog;
-import org.tybaco.editors.model.Descriptor;
-import org.tybaco.editors.model.LibConst;
+import org.tybaco.editors.model.*;
 import org.tybaco.editors.util.SeqMap;
 import org.tybaco.editors.value.StringValue;
 import org.tybaco.editors.value.Value;
@@ -40,7 +39,7 @@ import static org.tybaco.editors.control.GridPanes.twoColumnPane;
 @Qualifier("basic")
 @Component
 @Descriptor(id = "long", name = "Long", icon = "mdi2n-numeric-1", description = "64 bit signed integer number")
-public final class LongConstant implements LibConst {
+public final class LongConstant implements SimpleLibBlock {
 
   @Override
   public Optional<Value> edit(Window window, Value old) {
@@ -57,12 +56,5 @@ public final class LongConstant implements LibConst {
   @Override
   public Value defaultValue() {
     return new StringValue("0L");
-  }
-
-  private static String extractValue(Value value) {
-    return switch (value) {
-      case StringValue(var v) -> v;
-      default -> throw new IllegalArgumentException(String.valueOf(value));
-    };
   }
 }

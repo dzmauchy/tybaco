@@ -1,5 +1,5 @@
-@Descriptor(id = "numerics", name = "Numerics", icon = "mdi2n-numeric", description = "Numeric constants")
-package org.tybaco.editors.basic.constant.numeric;
+@Descriptor(id = "network", name = "Network", icon = "eli-network", description = "Network-oriented constants")
+package org.tybaco.editors.basic.constant.network;
 
 /*-
  * #%L

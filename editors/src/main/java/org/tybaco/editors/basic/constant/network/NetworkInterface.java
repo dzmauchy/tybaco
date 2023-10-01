@@ -1,4 +1,4 @@
-package org.tybaco.editors.basic.constant.numeric;
+package org.tybaco.editors.basic.constant.network;
 
 /*-
  * #%L
@@ -21,14 +21,16 @@ package org.tybaco.editors.basic.constant.numeric;
  * #L%
  */
 
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.IntegerLiteralExpr;
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import javafx.scene.control.TextField;
 import javafx.stage.Window;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.dialog.ConstantEditDialog;
-import org.tybaco.editors.model.*;
+import org.tybaco.editors.model.Descriptor;
+import org.tybaco.editors.model.SimpleLibBlock;
 import org.tybaco.editors.util.SeqMap;
 import org.tybaco.editors.value.StringValue;
 import org.tybaco.editors.value.Value;
@@ -39,23 +41,27 @@ import static org.tybaco.editors.control.GridPanes.twoColumnPane;
 
 @Qualifier("basic")
 @Component
-@Descriptor(id = "int", name = "Integer", icon = "mdi2n-numeric-0", description = "32 bit signed integer number")
-public final class IntConstant implements SimpleLibBlock {
+@Descriptor(id = "net_itf", name = "Network interface", icon = "fas-network-wired", description = "Network interface")
+public final class NetworkInterface implements SimpleLibBlock {
 
   @Override
   public Optional<Value> edit(Window window, Value old) {
     var field = new TextField(extractValue(old));
-    return new ConstantEditDialog(this, window, twoColumnPane(new SeqMap<>(text("Number"), field)))
+    return new ConstantEditDialog(this, window, twoColumnPane(new SeqMap<>(text("Network interface"), field)))
       .showAndWait(() -> new StringValue(field.getText()));
   }
 
   @Override
   public Expression build(Value value) {
-    return new IntegerLiteralExpr(extractValue(value));
+    return new MethodCallExpr(
+      new TypeExpr(new ClassOrInterfaceType(null, "java.net.NetworkInterface")),
+      "getByName",
+      NodeList.nodeList(new StringLiteralExpr(extractValue(value)))
+    );
   }
 
   @Override
   public Value defaultValue() {
-    return new StringValue("0");
+    return new StringValue("loopback");
   }
 }

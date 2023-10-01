@@ -1,5 +1,4 @@
-@Descriptor(id = "numerics", name = "Numerics", icon = "mdi2n-numeric", description = "Numeric constants")
-package org.tybaco.editors.basic.constant.numeric;
+package org.tybaco.editors.model;
 
 /*-
  * #%L
@@ -22,4 +21,15 @@ package org.tybaco.editors.basic.constant.numeric;
  * #L%
  */
 
-import org.tybaco.editors.model.Descriptor;
+import org.tybaco.editors.value.StringValue;
+import org.tybaco.editors.value.Value;
+
+public interface SimpleLibBlock extends LibConst {
+
+  default String extractValue(Value value) {
+    return switch (value) {
+      case StringValue(var v) -> v;
+      default -> throw new IllegalArgumentException(String.valueOf(value));
+    };
+  }
+}

@@ -55,7 +55,7 @@ public final class ListBlock implements LibBlock {
   public BlockResult build(Map<String, List<Expression>> inputs) {
     return new BlockResult(
       new MethodCallExpr(
-        new ClassExpr(new ClassOrInterfaceType(null, "java.util.List")),
+        new TypeExpr(new ClassOrInterfaceType(null, "java.util.List")),
         "of",
         NodeList.nodeList()
       ),
