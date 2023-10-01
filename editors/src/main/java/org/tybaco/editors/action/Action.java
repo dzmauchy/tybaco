@@ -271,7 +271,7 @@ public final class Action {
     menu.graphicProperty().bind(graphic(20));
     menu.acceleratorProperty().bind(accelerator);
     menu.onActionProperty().bind(handler);
-    menu.setUserData(new ActionUserData(this));
+    menu.setUserData(new ActionUserData());
     for (var consumer : consumers) {
       consumer.accept(menu);
     }
@@ -286,7 +286,7 @@ public final class Action {
     menuItem.graphicProperty().bind(graphic(20));
     menuItem.acceleratorProperty().bind(accelerator);
     menuItem.onActionProperty().bind(handler);
-    menuItem.setUserData(new ActionUserData(this));
+    menuItem.setUserData(new ActionUserData());
     for (var consumer : consumers) {
       consumer.accept(menuItem);
     }
@@ -302,7 +302,7 @@ public final class Action {
     menuItem.acceleratorProperty().bind(accelerator);
     menuItem.onActionProperty().bind(handler);
     menuItem.selectedProperty().bindBidirectional(selected);
-    menuItem.setUserData(new ActionUserData(this));
+    menuItem.setUserData(new ActionUserData());
     for (var consumer : consumers) {
       consumer.accept(menuItem);
     }
@@ -318,7 +318,7 @@ public final class Action {
     menuItem.acceleratorProperty().bind(accelerator);
     menuItem.onActionProperty().bind(handler);
     menuItem.selectedProperty().bindBidirectional(selected);
-    menuItem.setUserData(new ActionUserData(this));
+    menuItem.setUserData(new ActionUserData());
     for (var consumer : consumers) {
       consumer.accept(menuItem);
     }
@@ -333,7 +333,7 @@ public final class Action {
     button.graphicProperty().bind(graphic(24));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
-    button.setUserData(new ActionUserData(this));
+    button.setUserData(new ActionUserData());
     for (var consumer : consumers) {
       consumer.accept(button);
     }
@@ -349,7 +349,7 @@ public final class Action {
     button.graphicProperty().bind(graphic(24));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
-    button.setUserData(new ActionUserData(this));
+    button.setUserData(new ActionUserData());
     for (var consumer : consumers) {
       consumer.accept(button);
     }
@@ -365,7 +365,7 @@ public final class Action {
     button.graphicProperty().bind(graphic(24));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
-    button.setUserData(new ActionUserData(this));
+    button.setUserData(new ActionUserData());
     for (var consumer : consumers) {
       consumer.accept(button);
     }
@@ -380,7 +380,7 @@ public final class Action {
     button.graphicProperty().bind(graphic(24));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
-    button.setUserData(new ActionUserData(this));
+    button.setUserData(new ActionUserData());
     for (var consumer : consumers) {
       consumer.accept(button);
     }
@@ -394,7 +394,7 @@ public final class Action {
     tab.disableProperty().bind(disabled);
     tab.graphicProperty().bind(graphic(20));
     tab.tooltipProperty().bind(tooltip());
-    tab.setUserData(new ActionUserData(this));
+    tab.setUserData(new ActionUserData());
     for (var consumer : consumers) {
       consumer.accept(tab);
     }
@@ -472,19 +472,26 @@ public final class Action {
         var button = toMenuButton(consumers);
         var data = (ActionUserData) button.getUserData();
         data.invalidationListener = o -> {
+          var m = new TreeMap<String, LinkedList<MenuItem>>();
+          var groups = new TreeMap<String, ToggleGroup>();
           var newItems = new ArrayList<MenuItem>();
           for (var action : (Collection<Action>) o) {
-            newItems.add(action.toSmartMenuItem(consumers));
-          }
-          button.getItems().setAll(newItems);
-          var groups = new TreeMap<String, ToggleGroup>();
-          button.getItems().forEach(menuItem -> {
+            var menuItem = action.toSmartMenuItem(consumers);
+            m.computeIfAbsent(action.separatorGroup, k -> new LinkedList<>()).addLast(menuItem);
             if (menuItem instanceof RadioMenuItem i) {
-              var d = (ActionUserData) i.getUserData();
-              var group = groups.computeIfAbsent(d.action.group.get(), g -> new ToggleGroup());
+              var group = groups.computeIfAbsent(action.group.get(), g -> new ToggleGroup());
               i.setToggleGroup(group);
             }
-          });
+          }
+          var firstSeparatorGroup = m.pollFirstEntry();
+          if (firstSeparatorGroup != null) {
+            newItems.addAll(firstSeparatorGroup.getValue());
+            m.forEach((k, v) -> {
+              newItems.add(new SeparatorMenuItem());
+              newItems.addAll(v);
+            });
+          }
+          button.getItems().setAll(newItems);
         };
         actions.addListener(new WeakInvalidationListener(data.invalidationListener));
         data.invalidationListener.invalidated(actions);
@@ -515,12 +522,6 @@ public final class Action {
   }
 
   private static final class ActionUserData {
-
-    private final Action action;
     private InvalidationListener invalidationListener;
-
-    private ActionUserData(Action action) {
-      this.action = action;
-    }
   }
 }
