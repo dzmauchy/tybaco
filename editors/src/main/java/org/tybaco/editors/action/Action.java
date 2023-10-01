@@ -427,8 +427,7 @@ public final class Action {
           for (var action : (Collection<Action>) o) {
             var menuItem = action.toSmartMenuItem(consumers);
             if (menuItem instanceof RadioMenuItem i) {
-              var d = (ActionUserData) i.getUserData();
-              i.setToggleGroup(groups.computeIfAbsent(d.action.group.get(), g -> new ToggleGroup()));
+              i.setToggleGroup(groups.computeIfAbsent(action.group.get(), g -> new ToggleGroup()));
             }
             map.computeIfAbsent(action.separatorGroup, v -> new LinkedList<>()).addLast(menuItem);
             count++;
