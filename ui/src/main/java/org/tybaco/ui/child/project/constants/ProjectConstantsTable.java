@@ -21,6 +21,7 @@ package org.tybaco.ui.child.project.constants;
  * #L%
  */
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -28,7 +29,6 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.control.Tables;
 import org.tybaco.editors.text.Texts;
-import org.tybaco.editors.value.Value;
 import org.tybaco.ui.child.project.classpath.ConstCache;
 import org.tybaco.ui.model.Constant;
 import org.tybaco.ui.model.Project;
@@ -70,11 +70,13 @@ public class ProjectConstantsTable extends TableView<Constant> {
     var col = new TableColumn<Constant, String>();
     col.textProperty().bind(Texts.text("Value"));
     col.setEditable(false);
-    col.setCellValueFactory(c -> c.getValue().value.map(v -> {
+    col.setCellValueFactory(c -> Bindings.createStringBinding(() -> {
       var constant = c.getValue();
-      var libConst = constCache.cache.get(constant.factoryId);
-      return libConst == null ? v.toString() : libConst.build(v).toString();
-    }));
+      var v = constant.value.get();
+      return constCache.constById(constant.factoryId)
+        .map(l -> l.build(v).toString())
+        .orElseGet(v::toString);
+    }, constCache.cache, c.getValue().value));
     return col;
   }
 }

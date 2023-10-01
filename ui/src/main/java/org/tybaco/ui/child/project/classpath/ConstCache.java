@@ -21,29 +21,31 @@ package org.tybaco.ui.child.project.classpath;
  * #L%
  */
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import javafx.beans.property.SimpleObjectProperty;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.model.LibConst;
 
-import java.util.HashMap;
+import java.util.*;
 
 @Component
 public final class ConstCache {
 
-  public final ObservableMap<String, LibConst> cache = FXCollections.observableHashMap();
+  public final SimpleObjectProperty<Map<String, LibConst>> cache = new SimpleObjectProperty<>(this, "cache", Map.of());
 
   public ConstCache(Editors editors) {
     editors.constLibs.addListener((o, ov, nv) -> {
       if (nv == null) {
-        cache.clear();
+        cache.set(Map.of());
         return;
       }
       var count = nv.stream().mapToInt(l -> l.constants().size()).sum();
       var map = HashMap.<String, LibConst>newHashMap(count);
       nv.forEach(l -> l.constants().forEach(c -> map.put(c.id(), c)));
-      cache.keySet().retainAll(map.keySet());
-      cache.putAll(map);
+      cache.set(Map.copyOf(map));
     });
+  }
+
+  public Optional<LibConst> constById(String id) {
+    return Optional.ofNullable(cache.get().get(id));
   }
 }

@@ -68,14 +68,10 @@ public final class ProjectClasspath implements AutoCloseable {
 
   private void onChangeLibs(Observable observable) {
     var newLibs = Set.copyOf(project.dependencies);
-    if (newLibs.equals(libs)) {
-      return;
-    }
+    if (newLibs.equals(libs)) return;
     libs = newLibs;
     try (var old = classPath.get()) {
-      if (old != null) {
-        info(getClass(), "Closing old classpath");
-      }
+      if (old != null) info(getClass(), "Closing old classpath");
       classPath.set(null);
     } catch (Throwable e) {
       warn(getClass(), "Unable to close the old classpath");
