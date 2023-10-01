@@ -38,12 +38,11 @@ import static org.tybaco.ui.main.MainStage.mainStage;
 public final class LibraryConstantsWindow extends Dialog<Constant> {
 
   public LibraryConstantsWindow(LibraryConstantsTree tree, Project project) {
-    setWidth(1024);
-    setHeight(768);
     initModality(Modality.APPLICATION_MODAL);
     initOwner(mainStage());
     setResizable(true);
     getDialogPane().setContent(tree);
+    getDialogPane().setPrefSize(900, 700);
     headerTextProperty().bind(text("Select a constant").map(v -> v + ":"));
     titleProperty().bind(text("Constants"));
     getDialogPane().getButtonTypes().addAll(ButtonType.APPLY, ButtonType.CLOSE);
