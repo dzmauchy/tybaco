@@ -1,4 +1,4 @@
-package org.tybaco.editors.basic.constant;
+package org.tybaco.editors.basic.constant.numeric;
 
 /*-
  * #%L
@@ -27,7 +27,6 @@ import javafx.scene.control.TextField;
 import javafx.stage.Window;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.control.GridPanes;
 import org.tybaco.editors.dialog.ConstantEditDialog;
 import org.tybaco.editors.model.Descriptor;
 import org.tybaco.editors.model.LibConst;
@@ -37,6 +36,8 @@ import org.tybaco.editors.value.Value;
 
 import java.util.Optional;
 
+import static org.tybaco.editors.control.GridPanes.twoColumnPane;
+
 @Qualifier("basic")
 @Component
 @Descriptor(id = "int", name = "Integer", icon = "mdi2n-numeric-0", description = "32 bit signed integer number")
@@ -44,7 +45,9 @@ public final class IntConstant implements LibConst {
 
   @Override
   public Optional<Value> edit(Window window, Value old) {
-    return new Dlg(window, old).showAndWait();
+    var field = new TextField(extractValue(old));
+    return new ConstantEditDialog(this, window, twoColumnPane(new SeqMap<>(text("Number"), field)))
+      .showAndWait(() -> new StringValue(field.getText()));
   }
 
   @Override
@@ -52,26 +55,15 @@ public final class IntConstant implements LibConst {
     return new IntegerLiteralExpr(extractValue(value));
   }
 
+  @Override
+  public Value defaultValue() {
+    return new StringValue("0");
+  }
+
   private static String extractValue(Value value) {
     return switch (value) {
       case StringValue(var v) -> v;
       default -> throw new IllegalArgumentException(String.valueOf(value));
     };
-  }
-
-  private static class Dlg extends ConstantEditDialog {
-
-    private final TextField field;
-
-    public Dlg(Window window, Value old) {
-      super(window);
-      field = new TextField(old == null ? "0" : extractValue(old));
-      getDialogPane().setContent(GridPanes.twoColumnPane(getClass(), new SeqMap<>("Number", field)));
-    }
-
-    @Override
-    protected Value value() {
-      return new StringValue(field.getText());
-    }
   }
 }

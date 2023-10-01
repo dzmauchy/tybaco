@@ -21,48 +21,29 @@ package org.tybaco.ui.child.project.constants;
  * #L%
  */
 
-import javafx.scene.control.*;
-import javafx.stage.Modality;
+import javafx.scene.control.ButtonType;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.tybaco.editors.dialog.ModalDialog;
 import org.tybaco.editors.model.LibConst;
+import org.tybaco.editors.text.Texts;
 import org.tybaco.ui.model.Constant;
 import org.tybaco.ui.model.Project;
 
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
-import static org.tybaco.editors.text.Texts.text;
 import static org.tybaco.ui.main.MainStage.mainStage;
 
 @Scope(SCOPE_PROTOTYPE)
 @Component
-public final class LibraryConstantsWindow extends Dialog<Constant> {
+public final class LibraryConstantsWindow extends ModalDialog<Constant> {
 
   public LibraryConstantsWindow(LibraryConstantsTree tree, Project project) {
-    initModality(Modality.APPLICATION_MODAL);
-    initOwner(mainStage());
-    setResizable(true);
-    getDialogPane().setContent(tree);
-    getDialogPane().setPrefSize(900, 700);
+    super(Texts.text("Constants"), mainStage(), tree, ButtonType.OK, ButtonType.CLOSE);
     headerTextProperty().bind(text("Select a constant").map(v -> v + ":"));
-    titleProperty().bind(text("Constants"));
-    getDialogPane().getButtonTypes().addAll(ButtonType.APPLY, ButtonType.CLOSE);
-    var applyButton = getDialogPane().lookupButton(ButtonType.APPLY);
-    applyButton.setDisable(true);
-    tree.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) ->
-      applyButton.setDisable(nv == null || !(nv.getValue() instanceof LibConst))
-    );
-    setResultConverter(t -> t.getButtonData() == ButtonBar.ButtonData.APPLY ? constant(tree, project) : null);
-  }
-
-  private Constant constant(LibraryConstantsTree tree, Project project) {
-    var item = tree.getSelectionModel().getSelectedItem();
-    if (item != null && item.getValue() instanceof LibConst c) {
-      var window = getDialogPane().getScene().getWindow();
-      return c.edit(window, null)
-        .map(v -> project.newConstant("name1", c.id(), v))
-        .orElse(null);
-    } else {
-      return null;
-    }
+    withDefaultButton(b -> b.disableProperty().bind(tree.nonConstantSelected));
+    setResultConverter(() -> {
+      var c = (LibConst) tree.getSelectionModel().getSelectedItem().getValue();
+      return project.newConstant(c.id(), c.id(), c.defaultValue());
+    });
   }
 }

@@ -1,4 +1,5 @@
-package org.tybaco.editors.model;
+@Descriptor(id = "numeric", name = "Numerics", icon = "mdi2n-numeric", description = "Numeric constants")
+package org.tybaco.editors.basic.constant.numeric;
 
 /*-
  * #%L
@@ -10,27 +11,15 @@ package org.tybaco.editors.model;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
 
-import com.github.javaparser.ast.expr.Expression;
-import javafx.stage.Window;
-import org.tybaco.editors.Meta;
-import org.tybaco.editors.text.TextSupport;
-import org.tybaco.editors.value.Value;
-
-import java.util.Optional;
-
-public interface LibConst extends Meta, TextSupport {
-  Optional<Value> edit(Window window, Value old);
-  Expression build(Value value);
-  Value defaultValue();
-}
+import org.tybaco.editors.model.Descriptor;

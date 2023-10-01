@@ -21,22 +21,22 @@ package org.tybaco.editors.control;
  * #L%
  */
 
+import javafx.beans.binding.StringBinding;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
-import org.tybaco.editors.text.Texts;
 import org.tybaco.editors.util.SeqMap;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 public interface GridPanes {
 
-  static GridPane twoColumnPane(Class<?> caller, SeqMap<String, Node> nodes) {
+  static GridPane twoColumnPane(SeqMap<StringBinding, Node> nodes) {
     var pane = new GridPane(5, 5);
     var counter = new AtomicInteger();
     nodes.forEach((k, v) -> {
       var label = new Label();
-      label.textProperty().bind(Texts.text(caller.getClassLoader(), k));
+      label.textProperty().bind(k);
       pane.addRow(counter.getAndIncrement(), label, v);
     });
     return pane;

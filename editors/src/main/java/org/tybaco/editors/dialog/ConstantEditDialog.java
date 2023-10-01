@@ -21,25 +21,37 @@ package org.tybaco.editors.dialog;
  * #L%
  */
 
-import javafx.scene.control.*;
-import javafx.stage.Modality;
+import javafx.scene.Node;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.stage.Window;
-import org.tybaco.editors.text.TextSupport;
+import org.tybaco.editors.model.LibConst;
 import org.tybaco.editors.value.Value;
 
-public abstract class ConstantEditDialog extends Dialog<Value> implements TextSupport {
+import java.util.function.BiConsumer;
 
-  public ConstantEditDialog(Window window) {
-    initOwner(window);
-    initModality(Modality.WINDOW_MODAL);
-    setWidth(1024);
-    setHeight(768);
-    setResizable(true);
-    getDialogPane().getButtonTypes().addAll(ButtonType.APPLY, ButtonType.CLOSE);
+public final class ConstantEditDialog extends ModalDialog<Value> {
+
+  private final ClassLoader classLoader;
+
+  public ConstantEditDialog(LibConst libConst, Window window) {
+    super(libConst.text(libConst.name()), window, ButtonType.OK, ButtonType.CLOSE);
+    classLoader = libConst.textClassLoader();
     headerTextProperty().bind(text("Edit the constant").map(v -> v + ":"));
-    titleProperty().bind(text("Constant"));
-    setResultConverter(t -> t.getButtonData() == ButtonBar.ButtonData.APPLY ? value() : null);
   }
 
-  protected abstract Value value();
+  public ConstantEditDialog(LibConst libConst, Window window, Node content) {
+    this(libConst, window);
+    getDialogPane().setContent(content);
+  }
+
+  public ConstantEditDialog withDialogPane(BiConsumer<ConstantEditDialog, DialogPane> consumer) {
+    consumer.accept(this, getDialogPane());
+    return this;
+  }
+
+  @Override
+  public ClassLoader textClassLoader() {
+    return classLoader;
+  }
 }

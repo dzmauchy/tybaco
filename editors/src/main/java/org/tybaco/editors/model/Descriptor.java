@@ -23,8 +23,9 @@ package org.tybaco.editors.model;
 
 import java.lang.annotation.*;
 
-@Target({ElementType.TYPE})
+@Target({ElementType.TYPE, ElementType.PACKAGE})
 @Retention(RetentionPolicy.RUNTIME)
+@Inherited
 public @interface Descriptor {
   String id();
   String name();

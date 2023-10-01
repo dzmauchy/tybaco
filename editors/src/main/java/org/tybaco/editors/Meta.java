@@ -21,28 +21,57 @@ package org.tybaco.editors;
  * #L%
  */
 
+import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignU;
 import org.tybaco.editors.model.Descriptor;
 
-public interface Meta {
+import java.lang.reflect.AnnotatedElement;
+
+public interface Meta extends Comparable<Meta> {
 
   default String id() {
-    var descriptor = getClass().getAnnotation(Descriptor.class);
-    return descriptor != null ? descriptor.id() : getClass().getSimpleName();
+    var descriptor = metaAnnotatedElement().getAnnotation(Descriptor.class);
+    return descriptor != null ? descriptor.id() : defaultName();
   }
 
   default String name() {
-    var descriptor = getClass().getAnnotation(Descriptor.class);
-    return descriptor != null ? descriptor.name() : getClass().getSimpleName();
+    var descriptor = metaAnnotatedElement().getAnnotation(Descriptor.class);
+    return descriptor != null ? descriptor.name() : defaultName();
   }
 
   default String icon() {
-    var descriptor = getClass().getAnnotation(Descriptor.class);
+    var descriptor = metaAnnotatedElement().getAnnotation(Descriptor.class);
     return descriptor != null ? descriptor.icon() : MaterialDesignU.UFO.getDescription();
   }
 
   default String description() {
-    var description = getClass().getAnnotation(Descriptor.class);
+    var description = metaAnnotatedElement().getAnnotation(Descriptor.class);
     return description != null ? description.description() : "";
+  }
+
+  default AnnotatedElement metaAnnotatedElement() {
+    return getClass();
+  }
+
+  private String defaultName() {
+    return switch (metaAnnotatedElement()) {
+      case Class<?> c -> c.getSimpleName();
+      case Package p -> p.getName();
+      default -> throw new IllegalArgumentException(metaAnnotatedElement().getClass().getName());
+    };
+  }
+
+  @Override
+  default int compareTo(@NotNull Meta o) {
+    return name().compareTo(o.name());
+  }
+
+  static Meta meta(Package p) {
+    return new Meta() {
+      @Override
+      public AnnotatedElement metaAnnotatedElement() {
+        return p;
+      }
+    };
   }
 }

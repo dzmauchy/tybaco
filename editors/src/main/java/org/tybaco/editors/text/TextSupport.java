@@ -26,18 +26,22 @@ import javafx.beans.binding.StringBinding;
 public interface TextSupport {
 
   default StringBinding text(String text) {
-    return Texts.text(getClass().getClassLoader(), text);
+    return Texts.text(textClassLoader(), text);
   }
 
   default StringBinding text(String format, Object... args) {
-    return Texts.text(getClass().getClassLoader(), format, args);
+    return Texts.text(textClassLoader(), format, args);
   }
 
   default StringBinding msg(String text) {
-    return Texts.msg(getClass().getClassLoader(), text);
+    return Texts.msg(textClassLoader(), text);
   }
 
   default StringBinding msg(String format, Object... args) {
-    return Texts.msg(getClass().getClassLoader(), format, args);
+    return Texts.msg(textClassLoader(), format, args);
+  }
+
+  default ClassLoader textClassLoader() {
+    return getClass().getClassLoader();
   }
 }
