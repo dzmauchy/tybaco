@@ -21,10 +21,8 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
-import javafx.stage.FileChooser;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignB;
-import org.kordamp.ikonli.materialdesign2.MaterialDesignS;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -64,9 +62,9 @@ public class ProjectActions {
   @Bean
   @Qualifier("projectAction")
   @Order(1001)
-  public Action saveProjectAction(ObjectProvider<ProjectSaveDialog> dialog, Project project) {
+  public Action saveProjectAction(ProjectSaveDialog dialog, Project project) {
     return new Action(null, BootstrapIcons.SAVE, "Save project", ev ->
-      dialog.ifAvailable(d -> d.showAndWait().ifPresent(f -> Xml.saveTo(f, "project", project::saveTo)))
+      dialog.showAndWait().ifPresent(f -> Xml.saveTo(f, "project", project::saveTo))
     ).separatorGroup("file");
   }
 
