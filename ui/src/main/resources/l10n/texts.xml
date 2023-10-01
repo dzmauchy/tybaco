@@ -45,6 +45,9 @@
   <key value="Languages">
     <val lang="es">Idiomas</val>
   </key>
+  <key value="Load project">
+    <val lang="es">Abrir proyecto</val>
+  </key>
   <key value="Name">
     <val lang="es">Nombre</val>
   </key>

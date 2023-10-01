@@ -1,4 +1,4 @@
-package org.tybaco.ui.main.services;
+package org.tybaco.ui.main.project;
 
 /*-
  * #%L

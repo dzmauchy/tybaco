@@ -30,7 +30,7 @@ import javafx.scene.web.WebView;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.main.services.ProjectServer;
+import org.tybaco.ui.main.project.ProjectServer;
 import org.tybaco.ui.model.Project;
 
 import java.util.logging.Logger;

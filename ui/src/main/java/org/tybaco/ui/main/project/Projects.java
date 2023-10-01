@@ -1,4 +1,4 @@
-package org.tybaco.ui.main.services;
+package org.tybaco.ui.main.project;
 
 /*-
  * #%L
@@ -29,6 +29,8 @@ import org.tybaco.ui.model.Project;
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class Projects implements AutoCloseable {
@@ -42,12 +44,11 @@ public class Projects implements AutoCloseable {
 
   public void newProject() {
     var prefix = "Project ";
+    var pattern = Pattern.compile("Project (\\d++)");
     var nextNum = projects.stream()
-      .map(p -> p.name.get())
-      .filter(name -> name.startsWith(prefix))
-      .map(name -> name.substring(prefix.length()))
-      .filter(s -> s.chars().allMatch(Character::isDigit))
-      .map(BigInteger::new)
+      .map(p -> pattern.matcher(p.name.get()))
+      .filter(Matcher::matches)
+      .map(m -> new BigInteger(m.group(1)))
       .max(BigInteger::compareTo)
       .orElse(BigInteger.ZERO)
       .add(BigInteger.ONE);

@@ -33,7 +33,7 @@ import org.tybaco.ui.child.project.ProjectBean;
 import org.tybaco.ui.child.project.ProjectPane;
 import org.tybaco.ui.lib.context.ChildContext;
 import org.tybaco.editors.icon.Icons;
-import org.tybaco.ui.main.services.Projects;
+import org.tybaco.ui.main.project.Projects;
 import org.tybaco.ui.model.Project;
 
 @Component

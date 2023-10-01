@@ -74,6 +74,14 @@ public class Xml {
     }
   }
 
+  public static <T> T loadFrom(File file, Schema schema, Function<Element, T> func) {
+    var inputSource = new InputSource();
+    inputSource.setEncoding("UTF-8");
+    inputSource.setSystemId(file.toURI().toString());
+    inputSource.setPublicId(file.getName());
+    return loadFrom(inputSource, schema, func);
+  }
+
   public static <T> T loadFrom(URL url, Schema schema, Function<Element, T> func) {
     try (var inputStream = url.openStream()) {
       var inputSource = new InputSource(inputStream);

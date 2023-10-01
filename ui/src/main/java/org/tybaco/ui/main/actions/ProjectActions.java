@@ -21,13 +21,16 @@ package org.tybaco.ui.main.actions;
  * #L%
  */
 
+import org.kordamp.ikonli.ionicons4.Ionicons4IOS;
 import org.kordamp.ikonli.materialdesign2.*;
+import org.kordamp.ikonli.unicons.UniconsLine;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.action.Action;
-import org.tybaco.ui.main.services.Projects;
+import org.tybaco.ui.main.project.ProjectLoadDialog;
+import org.tybaco.ui.main.project.Projects;
 
 @Component
 public class ProjectActions {
@@ -36,20 +39,23 @@ public class ProjectActions {
   @Bean
   @Qualifier("projectMenu")
   public Action projectNewAction(Projects projects) {
-    return new Action("New project", MaterialDesignP.PACKAGE_VARIANT, ev -> projects.newProject());
+    return new Action("New project", MaterialDesignP.PACKAGE_VARIANT, ev -> projects.newProject())
+      .separatorGroup("add");
   }
 
   @Order(2)
   @Bean
   @Qualifier("projectMenu")
-  public Action projectNewActionSeparator() {
-    return new Action();
+  public Action projectLoadAction(ProjectLoadDialog dialog) {
+    return new Action("Load project", Ionicons4IOS.OPEN, ev -> dialog.load())
+      .separatorGroup("add");
   }
 
   @Order(3)
   @Bean
   @Qualifier("projectMenu")
   public Action closeAllProjectsAction(Projects projects) {
-    return new Action("Close all projects", MaterialDesignC.CLOSE, ev -> projects.projects.clear());
+    return new Action("Close all projects", UniconsLine.BRUSH_ALT, ev -> projects.projects.clear())
+      .separatorGroup("misc");
   }
 }
