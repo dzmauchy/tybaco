@@ -21,8 +21,7 @@ package org.tybaco.ui.main.actions;
  * #L%
  */
 
-import org.kordamp.ikonli.materialdesign2.MaterialDesignD;
-import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
+import org.kordamp.ikonli.materialdesign2.*;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
@@ -50,8 +49,7 @@ public class ProjectActions {
   @Order(3)
   @Bean
   @Qualifier("projectMenu")
-  public Action saveAllProjectsAction() {
-    return new Action("Save all projects", MaterialDesignD.DISC, ev -> {
-    });
+  public Action closeAllProjectsAction(Projects projects) {
+    return new Action("Close all projects", MaterialDesignC.CLOSE, ev -> projects.projects.clear());
   }
 }

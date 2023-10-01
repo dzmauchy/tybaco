@@ -421,19 +421,28 @@ public final class Action {
         var menu = toMenu(consumers);
         var data = (ActionUserData) menu.getUserData();
         data.invalidationListener = o -> {
-          var newItems = new ArrayList<MenuItem>();
-          for (var action : (Collection<Action>) o) {
-            newItems.add(action.toSmartMenuItem(consumers));
-          }
-          menu.getItems().setAll(newItems);
+          var map = new TreeMap<String, LinkedList<MenuItem>>();
           var groups = new TreeMap<String, ToggleGroup>();
-          menu.getItems().forEach(menuItem -> {
+          var count = 0;
+          for (var action : (Collection<Action>) o) {
+            var menuItem = action.toSmartMenuItem(consumers);
             if (menuItem instanceof RadioMenuItem i) {
               var d = (ActionUserData) i.getUserData();
-              var group = groups.computeIfAbsent(d.action.group.get(), g -> new ToggleGroup());
-              i.setToggleGroup(group);
+              i.setToggleGroup(groups.computeIfAbsent(d.action.group.get(), g -> new ToggleGroup()));
             }
-          });
+            map.computeIfAbsent(action.separatorGroup, v -> new LinkedList<>()).addLast(menuItem);
+            count++;
+          }
+          var newItems = new ArrayList<MenuItem>(count + map.size());
+          var lastSeparatorGroup = map.pollFirstEntry();
+          if (lastSeparatorGroup != null) {
+            newItems.addAll(lastSeparatorGroup.getValue());
+            map.forEach((k, v) -> {
+              newItems.add(new SeparatorMenuItem());
+              newItems.addAll(v);
+            });
+            menu.getItems().setAll(newItems);
+          }
         };
         actions.addListener(new WeakInvalidationListener(data.invalidationListener));
         data.invalidationListener.invalidated(actions);

@@ -24,6 +24,9 @@
   <key value="Add a dependency">
     <val lang="es">Añadir una dependencia</val>
   </key>
+  <key value="Close all projects">
+    <val lang="es">Cerrar todos los proyectos</val>
+  </key>
   <key value="Constants">
     <val lang="es">Constantes</val>
   </key>
@@ -59,9 +62,6 @@
   </key>
   <key value="Save the project">
     <val lang="es">Guardar el proyecto</val>
-  </key>
-  <key value="Save all projects">
-    <val lang="es">Guardar todos los proyectos</val>
   </key>
   <key value="Select a constant">
     <val lang="es">Elija una constante</val>

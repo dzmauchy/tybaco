@@ -45,10 +45,11 @@ public class MainTabPane extends TabPane {
     this.context = context;
     projects.projects.addListener((Change<? extends Project> c) -> {
       while (c.next()) {
+        if (c.wasRemoved()) {
+          c.getRemoved().forEach(this::onRemoveProject);
+        }
         if (c.wasAdded()) {
           c.getAddedSubList().forEach(this::onAddProject);
-        } else if (c.wasRemoved()) {
-          c.getRemoved().forEach(this::onRemoveProject);
         }
       }
     });
@@ -75,7 +76,7 @@ public class MainTabPane extends TabPane {
           t.setGraphic(Icons.icon(MaterialDesignP.PACKAGE_VARIANT, 24));
           t.setOnCloseRequest(e -> child.stop());
           t.setOnClosed(e -> child.close());
-          p.setId(project.id);
+          t.setId(project.id);
           getTabs().add(t);
           return t;
         });
