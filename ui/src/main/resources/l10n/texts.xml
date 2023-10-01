@@ -57,6 +57,9 @@
   <key value="Right pane visibility">
     <val lang="es">Visibilidad de la pestaña derecha</val>
   </key>
+  <key value="Save the project">
+    <val lang="es">Guardar el proyecto</val>
+  </key>
   <key value="Save all projects">
     <val lang="es">Guardar todos los proyectos</val>
   </key>

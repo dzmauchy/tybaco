@@ -21,7 +21,10 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
+import javafx.stage.FileChooser;
+import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignB;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignS;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +34,7 @@ import org.tybaco.editors.action.Action;
 import org.tybaco.ui.child.project.classpath.Editors;
 import org.tybaco.ui.child.project.constants.LibraryConstantsWindow;
 import org.tybaco.ui.model.Project;
+import org.tybaco.xml.Xml;
 
 import static org.tybaco.logging.Log.info;
 
@@ -60,6 +64,15 @@ public class ProjectActions {
   @Bean
   @Qualifier("projectAction")
   @Order(1001)
+  public Action saveProjectAction(ObjectProvider<ProjectSaveDialog> dialog, Project project) {
+    return new Action(null, BootstrapIcons.SAVE, "Save project", ev ->
+      dialog.ifAvailable(d -> d.showAndWait().ifPresent(f -> Xml.saveTo(f, "project", project::saveTo)))
+    ).separatorGroup("file");
+  }
+
+  @Bean
+  @Qualifier("projectAction")
+  @Order(10001)
   public Action accordionVisibleAction(ProjectAccordion accordion) {
     return new Action(null, MaterialDesignB.BOOK_OPEN, "Accordion visibility")
       .selectionBoundTo(accordion.visibleProperty(), true)

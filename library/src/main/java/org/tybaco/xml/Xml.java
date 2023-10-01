@@ -33,8 +33,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -111,6 +110,10 @@ public class Xml {
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  public static void saveTo(File file, String tag, Consumer<Element> consumer) {
+    saveTo(new StreamResult(file), tag, consumer);
   }
 
   public static void saveTo(Result result, String tag, Consumer<Element> consumer) {

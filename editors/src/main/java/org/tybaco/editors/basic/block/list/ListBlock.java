@@ -29,8 +29,7 @@ import org.springframework.stereotype.Component;
 import org.tybaco.editors.model.*;
 import org.tybaco.editors.util.SeqMap;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Qualifier("basic")
 @Component
@@ -52,16 +51,14 @@ public final class ListBlock implements LibBlock {
   }
 
   @Override
-  public BlockResult build(Map<String, List<Expression>> inputs) {
+  public BlockResult build(String var, Map<String, List<Expression>> inputs) {
     return new BlockResult(
       new MethodCallExpr(
         new TypeExpr(new ClassOrInterfaceType(null, "java.util.List")),
         "of",
-        NodeList.nodeList()
+        NodeList.nodeList(inputs.getOrDefault("elements", List.of()))
       ),
-      new SeqMap<>(
-        "self", new ThisExpr()
-      )
+      new SeqMap<>("self", new NameExpr(var))
     );
   }
 }

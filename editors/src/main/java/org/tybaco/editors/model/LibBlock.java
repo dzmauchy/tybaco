@@ -31,5 +31,5 @@ import java.util.Map;
 public interface LibBlock extends Meta {
   SeqMap<String, LibInput> inputs();
   SeqMap<String, LibOutput> outputs();
-  BlockResult build(Map<String, List<Expression>> inputs);
+  BlockResult build(String var, Map<String, List<Expression>> inputs);
 }

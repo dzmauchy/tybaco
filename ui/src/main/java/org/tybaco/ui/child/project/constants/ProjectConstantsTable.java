@@ -46,7 +46,7 @@ public class ProjectConstantsTable extends TableView<Constant> {
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     setEditable(true);
     getColumns().addAll(List.of(nameColumn(), factoryColumn(), valueColumn()));
-    Tables.initColumnWidths(this, 150, 200, 200);
+    Tables.initColumnWidths(this, 130, 130, 300);
   }
 
   private TableColumn<Constant, String> nameColumn() {
