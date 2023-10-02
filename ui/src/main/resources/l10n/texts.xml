@@ -20,9 +20,12 @@
   #L%
   -->
 
-<localization xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="l10n.xsd">
+<localization xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="classpath://l10n/l10n.xsd">
   <key value="Add a dependency">
     <val lang="es">Añadir una dependencia</val>
+  </key>
+  <key value="Blocks">
+    <val lang="es">Blocos</val>
   </key>
   <key value="Close all projects">
     <val lang="es">Cerrar todos los proyectos</val>

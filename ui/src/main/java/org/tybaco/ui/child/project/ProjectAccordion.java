@@ -24,15 +24,16 @@ package org.tybaco.ui.child.project;
 import javafx.scene.Node;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.text.Texts;
 
+import java.util.List;
+
 @Component
 public class ProjectAccordion extends Accordion {
 
-  public ProjectAccordion(@Qualifier("forProjectAccordion") ObjectProvider<? extends Node> accordionNodes) {
+  public ProjectAccordion(@Qualifier("forProjectAccordion") List<? extends Node> accordionNodes) {
     for (var node : accordionNodes) {
       var pane = new TitledPane(null, node);
       pane.textProperty().bind(Texts.text(node.getId()));

@@ -1,4 +1,4 @@
-package org.tybaco.ui.child.project;
+package org.tybaco.ui.child.project.blocks;
 
 /*-
  * #%L
@@ -21,20 +21,18 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
-import javafx.geometry.Orientation;
-import javafx.scene.control.ToolBar;
+import javafx.scene.layout.BorderPane;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.action.Action;
-import org.tybaco.editors.control.Toolbars;
 
-import java.util.List;
-
+@Order(3)
+@Qualifier("forProjectAccordion")
 @Component
-public class ProjectToolbar extends ToolBar {
+public final class BlocksPane extends BorderPane {
 
-  public ProjectToolbar(@Qualifier("projectAction") List<Action> actions) {
-    setOrientation(Orientation.VERTICAL);
-    Toolbars.fillToolbar(this, actions);
+  public BlocksPane(BlocksTable table) {
+    super(table);
+    setId("Blocks");
   }
 }

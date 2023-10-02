@@ -22,16 +22,17 @@ package org.tybaco.ui.child.project.deps;
  */
 
 import javafx.scene.control.ToolBar;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.action.Action;
 import org.tybaco.editors.control.Toolbars;
 
+import java.util.List;
+
 @Component
 public class ProjectDepsToolbar extends ToolBar {
 
-  public ProjectDepsToolbar(@Qualifier("depsAction") ObjectProvider<Action> actions) {
+  public ProjectDepsToolbar(@Qualifier("depsAction") List<Action> actions) {
     Toolbars.fillToolbar(this, actions);
   }
 }
