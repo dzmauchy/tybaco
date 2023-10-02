@@ -37,7 +37,7 @@ public interface Tables {
     }
   }
 
-  static void initColumnWidth(TreeTableView<?> table, int... widths) {
+  static void initColumnWidths(TreeTableView<?> table, int... widths) {
     var columns = table.getColumns();
     for (int i = 0; i < widths.length; i++) {
       var width = widths[i];

@@ -61,7 +61,7 @@ public final class LibraryConstantsTree extends TreeTableView<Meta> implements T
     setPadding(Insets.EMPTY);
     setShowRoot(false);
     getColumns().addAll(List.of(nameColumn(), descriptionColumn()));
-    Tables.initColumnWidth(this, 300, 500);
+    Tables.initColumnWidths(this, 300, 500);
     fill(editors);
   }
 
