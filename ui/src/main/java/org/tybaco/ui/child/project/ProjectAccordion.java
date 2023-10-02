@@ -21,25 +21,23 @@ package org.tybaco.ui.child.project;
  * #L%
  */
 
+import javafx.scene.Node;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.child.project.constants.ProjectConstantsPane;
-import org.tybaco.ui.child.project.deps.ProjectDepsPane;
 import org.tybaco.editors.text.Texts;
 
 @Component
 public class ProjectAccordion extends Accordion {
 
-  private final TitledPane constantsPane;
-  private final TitledPane librariesPane;
-
-  public ProjectAccordion(ProjectConstantsPane constants, ProjectDepsPane libraries) {
-    constantsPane = new TitledPane(null, constants);
-    constantsPane.textProperty().bind(Texts.text("Constants"));
-    librariesPane = new TitledPane(null, libraries);
-    librariesPane.textProperty().bind(Texts.text("Dependencies"));
-    getPanes().addAll(constantsPane, librariesPane);
-    setExpandedPane(constantsPane);
+  public ProjectAccordion(@Qualifier("forProjectAccordion") ObjectProvider<? extends Node> accordionNodes) {
+    for (var node : accordionNodes) {
+      var pane = new TitledPane(null, node);
+      pane.textProperty().bind(Texts.text(node.getId()));
+      getPanes().add(pane);
+    }
+    setExpandedPane(getPanes().getFirst());
   }
 }

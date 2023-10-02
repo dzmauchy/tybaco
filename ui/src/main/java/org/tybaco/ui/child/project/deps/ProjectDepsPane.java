@@ -22,12 +22,17 @@ package org.tybaco.ui.child.project.deps;
  */
 
 import javafx.scene.layout.BorderPane;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+@Order(2)
+@Qualifier("forProjectAccordion")
 @Component
 public class ProjectDepsPane extends BorderPane {
 
   public ProjectDepsPane(ProjectDepsTable table, ProjectDepsToolbar toolbar) {
     super(table, toolbar, null, null, null);
+    setId("Dependencies");
   }
 }

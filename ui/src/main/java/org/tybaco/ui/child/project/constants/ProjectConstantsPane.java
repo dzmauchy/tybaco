@@ -22,12 +22,17 @@ package org.tybaco.ui.child.project.constants;
  */
 
 import javafx.scene.layout.BorderPane;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+@Order(1)
+@Qualifier("forProjectAccordion")
 @Component
 public class ProjectConstantsPane extends BorderPane {
 
   public ProjectConstantsPane(ProjectConstantsTable constantsTable) {
     super(constantsTable);
+    setId("Constants");
   }
 }

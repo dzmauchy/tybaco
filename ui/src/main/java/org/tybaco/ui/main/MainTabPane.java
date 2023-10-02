@@ -71,8 +71,8 @@ public class MainTabPane extends TabPane {
           }
         });
         return child.refreshAndStart(c -> {
-          var p = c.getBean(ProjectPane.class);
-          var t = new Tab(project.name.get(), p);
+          var t = new Tab(null, c.getBean(ProjectPane.class));
+          t.textProperty().bind(project.name);
           t.setGraphic(Icons.icon(MaterialDesignP.PACKAGE_VARIANT, 24));
           t.setOnCloseRequest(e -> child.stop());
           t.setOnClosed(e -> child.close());
