@@ -52,7 +52,7 @@ public final class Constant {
     this(
       Integer.parseInt(element.getAttribute("id")),
       element.getAttribute("name"),
-      element.getAttribute("factory"),
+      element.getAttribute("factoryId"),
       Xml.elementByTag(element, "value").map(Value::load).orElseThrow(() -> new NoSuchElementException("value"))
     );
   }

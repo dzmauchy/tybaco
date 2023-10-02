@@ -33,6 +33,7 @@ import java.io.File;
 import java.util.List;
 import java.util.prefs.Preferences;
 
+import static java.util.Objects.requireNonNullElse;
 import static org.tybaco.logging.Log.info;
 import static org.tybaco.logging.Log.warn;
 
@@ -53,7 +54,11 @@ public final class ProjectLoadDialog {
     chooser.titleProperty().bind(Texts.text("Load project"));
     chooser.setInitialDirectory(dir.isDirectory() ? dir : new File(System.getProperty("user.dir")));
     chooser.getExtensionFilters().add(new ExtensionFilter("*.xml", "*.xml"));
-    return chooser.showOpenMultipleDialog(MainStage.mainStage());
+    var files = requireNonNullElse(chooser.showOpenMultipleDialog(MainStage.mainStage()), List.<File>of());
+    if (!files.isEmpty()) {
+      PREFERENCES.put("loadDir", files.getFirst().getParent());
+    }
+    return files;
   }
 
   public void load() {
