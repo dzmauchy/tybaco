@@ -44,10 +44,7 @@ public final class SequentialBiSink<K, V> extends AbstractSink {
   @Override
   void run() {
     try {
-      source.apply((k, v) -> {
-        if (thread.isInterrupted()) throw Break.BREAK;
-        consumer.accept(k, v);
-      });
+      source.apply(consumer);
     } catch (Break ignore) {
     } catch (Throwable e) {
       onError.accept(e);

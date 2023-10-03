@@ -21,9 +21,13 @@ package org.tybaco.runtime.plugins;
  * #L%
  */
 
-public interface Plugin extends Runnable, AutoCloseable {
+import org.tybaco.runtime.application.ApplicationContext;
+
+public interface Plugin {
 
   default int getPriority() {
     return Integer.MAX_VALUE;
   }
+
+  void run(ApplicationContext context);
 }

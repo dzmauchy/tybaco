@@ -52,7 +52,6 @@ public final class BiSink<K, V> extends AbstractSink {
     var state = new AtomicInteger();
     try {
       source.apply((k, v) -> {
-        if (thread.isInterrupted()) throw Break.BREAK;
         state.incrementAndGet();
         try {
           var executor = executors.executorByKey(k);

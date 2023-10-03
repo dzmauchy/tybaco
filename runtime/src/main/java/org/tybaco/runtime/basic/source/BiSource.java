@@ -25,5 +25,5 @@ import java.util.function.BiConsumer;
 
 @FunctionalInterface
 public interface BiSource<K, V> {
-  void apply(BiConsumer<K, V> consumer);
+  void apply(BiConsumer<? super K, ? super V> consumer);
 }

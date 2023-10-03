@@ -1,4 +1,4 @@
-package org.tybaco.runtime.exception;
+package org.tybaco.runtime.application;
 
 /*-
  * #%L
@@ -21,11 +21,15 @@ package org.tybaco.runtime.exception;
  * #L%
  */
 
-import org.tybaco.runtime.application.ApplicationLink;
+public record ApplicationCloseables(AutoCloseable closeable, ApplicationCloseables previous) {
 
-public final class InvalidLinkException extends RuntimeException {
+  @Override
+  public int hashCode() {
+    return System.identityHashCode(this);
+  }
 
-  public InvalidLinkException(ApplicationLink link, String error) {
-    super("Invalid " + link + ": " + error, null, true, false);
+  @Override
+  public boolean equals(Object obj) {
+    return obj == this;
   }
 }

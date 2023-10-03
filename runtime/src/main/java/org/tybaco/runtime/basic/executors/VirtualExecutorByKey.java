@@ -21,6 +21,7 @@ package org.tybaco.runtime.basic.executors;
  * #L%
  */
 
+import java.util.LinkedList;
 import java.util.concurrent.*;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -29,6 +30,7 @@ public final class VirtualExecutorByKey<K> implements ExecutorByKey<K>, AutoClos
 
   private final String name;
   private final ConcurrentHashMap<K, ThreadPoolExecutor> executors;
+  private volatile boolean closed;
 
   public VirtualExecutorByKey(String name, int expectedSize) {
     this.name = name;
@@ -45,6 +47,7 @@ public final class VirtualExecutorByKey<K> implements ExecutorByKey<K>, AutoClos
   }
 
   private ThreadPoolExecutor newExecutor(K key) {
+    if (closed) throw new RejectedExecutionException(name + " is closed and cannot invoke new tasks");
     var queue = new SynchronousQueue<Runnable>();
     return new ThreadPoolExecutor(1, 1, 0L, SECONDS, queue, threadFactory(key), (r, e) -> {
       var thread = Thread.currentThread();
@@ -61,7 +64,44 @@ public final class VirtualExecutorByKey<K> implements ExecutorByKey<K>, AutoClos
 
   @Override
   public void close() {
-    executors.forEach((k, v) -> v.shutdown());
-    executors.clear();
+    closed = true;
+    var exceptions = new LinkedList<Throwable>();
+    executors.forEach((k, v) -> {
+      try {
+        v.shutdown();
+      } catch (Throwable e) {
+        try {
+          v.shutdownNow();
+        } catch (Throwable x) {
+          e.addSuppressed(x);
+        }
+        exceptions.addLast(new IllegalStateException("Unable to close " + key(k), e));
+      }
+    });
+    executors.entrySet().removeIf(e -> {
+      var k = e.getKey();
+      var v = e.getValue();
+      try {
+        v.close();
+      } catch (Throwable x) {
+        exceptions.addLast(new IllegalStateException("Unable to close " + key(k), x));
+      }
+      return true;
+    });
+    if (!exceptions.isEmpty()) {
+      var x = new IllegalStateException("Unable to close " + name);
+      for (var e : exceptions) {
+        x.addSuppressed(e);
+      }
+      throw x;
+    }
+  }
+
+  private static String key(Object k) {
+    try {
+      return String.valueOf(k);
+    } catch (Throwable e) {
+      return k.getClass().getName() + "[" + e + "]";
+    }
   }
 }

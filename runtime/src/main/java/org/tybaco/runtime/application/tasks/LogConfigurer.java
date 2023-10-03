@@ -22,6 +22,8 @@ package org.tybaco.runtime.application.tasks;
  */
 
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.tybaco.runtime.application.ApplicationContext;
+import org.tybaco.runtime.application.ApplicationTask;
 import org.tybaco.runtime.logging.LoggingManager;
 
 public final class LogConfigurer implements ApplicationTask {

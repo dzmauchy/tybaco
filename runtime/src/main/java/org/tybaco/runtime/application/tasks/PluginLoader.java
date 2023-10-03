@@ -21,6 +21,8 @@ package org.tybaco.runtime.application.tasks;
  * #L%
  */
 
+import org.tybaco.runtime.application.ApplicationContext;
+import org.tybaco.runtime.application.ApplicationTask;
 import org.tybaco.runtime.plugins.Plugin;
 import org.tybaco.runtime.plugins.PluginException;
 
@@ -44,7 +46,7 @@ public final class PluginLoader implements ApplicationTask {
         .sorted(Comparator.comparingInt(Plugin::getPriority))
         .forEachOrdered(plugin -> {
           try {
-            plugin.run();
+            plugin.run(context);
           } catch (Throwable e) {
             throw new PluginException(plugin.getClass(), e);
           }

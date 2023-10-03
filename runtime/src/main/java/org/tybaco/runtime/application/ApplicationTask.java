@@ -1,4 +1,4 @@
-package org.tybaco.runtime.exception;
+package org.tybaco.runtime.application;
 
 /*-
  * #%L
@@ -21,11 +21,8 @@ package org.tybaco.runtime.exception;
  * #L%
  */
 
-import org.tybaco.runtime.application.ApplicationBlock;
+import org.tybaco.runtime.application.ApplicationContext;
 
-public final class NullBlockResolutionException extends RuntimeException {
-
-  public NullBlockResolutionException(ApplicationBlock block) {
-    super("Null result of " + block, null, true, false);
-  }
+public interface ApplicationTask {
+  void run(ApplicationContext context) throws Exception;
 }

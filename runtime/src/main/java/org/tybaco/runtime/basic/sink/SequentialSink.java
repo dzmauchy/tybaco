@@ -43,10 +43,7 @@ public final class SequentialSink<E> extends AbstractSink {
   @Override
   void run() {
     try {
-      source.apply(e -> {
-        if (thread.isInterrupted()) throw Break.BREAK;
-        consumer.accept(e);
-      });
+      source.apply(consumer);
     } catch (Break ignore) {
     } catch (Throwable e) {
       onError.accept(e);

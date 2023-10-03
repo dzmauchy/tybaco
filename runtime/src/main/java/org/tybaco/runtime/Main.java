@@ -21,6 +21,8 @@ package org.tybaco.runtime;
  * #L%
  */
 
+import org.tybaco.runtime.application.ApplicationContext;
+import org.tybaco.runtime.application.ApplicationTask;
 import org.tybaco.runtime.application.tasks.*;
 import org.tybaco.runtime.exception.BootstrapException;
 
@@ -39,20 +41,18 @@ public final class Main {
       var watchdog = new Thread(() -> watch(latch), "application-watchdog");
       watchdog.setDaemon(true);
       watchdog.start();
-      var context = requireNonNull(run(args), "Application initialization error");
-      Runtime.getRuntime().addShutdownHook(new Thread(context));
+      var context = requireNonNull(run(), "Application initialization error");
+      Runtime.getRuntime().addShutdownHook(new Thread(context::close));
     } finally {
       latch.countDown();
     }
   }
 
-  public static Runnable run(String... args) {
+  public static ApplicationContext run() {
     var context = new ApplicationContext();
     execute("initLogging", context, new LogConfigurer());
     execute("loadPlugins", context, new PluginLoader());
-    execute("loadApplication", context, new ApplicationLoader(args));
-    execute("runApplication", context, new ApplicationRunner());
-    return context.closeable;
+    return context;
   }
 
   private static void execute(String step, ApplicationContext context, ApplicationTask task) {
