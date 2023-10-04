@@ -21,6 +21,7 @@ package org.tybaco.runtime.basic.sink;
  * #L%
  */
 
+import org.tybaco.runtime.application.ApplicationContext;
 import org.tybaco.runtime.basic.Break;
 import org.tybaco.runtime.basic.executors.ExecutorByKey;
 import org.tybaco.runtime.basic.source.BiSource;
@@ -38,8 +39,8 @@ public final class BiSink<K, V> extends AbstractSink {
   private final BiConsumer<? super K, ? super V> consumer;
   private final Consumer<? super Throwable> onError;
 
-  public BiSink(ThreadFactory tf, BiSource<K, V> source, ExecutorByKey<K> exs, BiConsumer<? super K, ? super V> consumer, Consumer<? super Throwable> onError) {
-    super(tf);
+  public BiSink(ApplicationContext context, ThreadFactory tf, BiSource<K, V> source, ExecutorByKey<K> exs, BiConsumer<? super K, ? super V> consumer, Consumer<? super Throwable> onError) {
+    super(context, tf);
     this.source = source;
     this.executors = exs;
     this.consumer = consumer;
@@ -51,7 +52,7 @@ public final class BiSink<K, V> extends AbstractSink {
     var exceptions = new ConcurrentLinkedQueue<Throwable>();
     var state = new AtomicInteger();
     try {
-      source.apply((k, v) -> {
+      source.apply(context, (k, v) -> {
         state.incrementAndGet();
         try {
           var executor = executors.executorByKey(k);

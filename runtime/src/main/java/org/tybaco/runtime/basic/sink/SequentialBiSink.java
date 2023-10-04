@@ -21,6 +21,7 @@ package org.tybaco.runtime.basic.sink;
  * #L%
  */
 
+import org.tybaco.runtime.application.ApplicationContext;
 import org.tybaco.runtime.basic.Break;
 import org.tybaco.runtime.basic.source.BiSource;
 
@@ -34,8 +35,8 @@ public final class SequentialBiSink<K, V> extends AbstractSink {
   private final BiConsumer<? super K, ? super V> consumer;
   private final Consumer<? super Throwable> onError;
 
-  public SequentialBiSink(ThreadFactory tf, BiSource<K, V> source, BiConsumer<? super K, ? super V> consumer, Consumer<? super Throwable> onError) {
-    super(tf);
+  public SequentialBiSink(ApplicationContext context, ThreadFactory tf, BiSource<K, V> source, BiConsumer<? super K, ? super V> consumer, Consumer<? super Throwable> onError) {
+    super(context, tf);
     this.source = source;
     this.consumer = consumer;
     this.onError = onError;
@@ -44,7 +45,7 @@ public final class SequentialBiSink<K, V> extends AbstractSink {
   @Override
   void run() {
     try {
-      source.apply(consumer);
+      source.apply(context, consumer);
     } catch (Break ignore) {
     } catch (Throwable e) {
       onError.accept(e);

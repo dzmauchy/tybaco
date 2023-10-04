@@ -22,6 +22,7 @@ package org.tybaco.runtime.basic.source;
  */
 
 import org.junit.jupiter.api.Test;
+import org.tybaco.runtime.application.ApplicationContext;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,7 +37,7 @@ class SyncSourceTest {
   void syncSourceWithoutLoad() {
     var warmupCount = 10;
     var count = 10;
-    var source = (Source<String>) c -> {
+    var source = (Source<String>) (ctx, c) -> {
       for (int i = 0; i < warmupCount; i++) {
         c.accept("warmup");
       }
@@ -47,7 +48,7 @@ class SyncSourceTest {
     var times = new long[count];
     var counter = new AtomicInteger();
     var syncSource = syncSource(source, Duration.ofMillis(10L));
-    syncSource.apply(v -> {
+    syncSource.apply(new ApplicationContext(), v -> {
       if (v == null) {
         times[counter.getAndIncrement()] = System.nanoTime();
       }
@@ -63,7 +64,7 @@ class SyncSourceTest {
   void syncSourceWithLoad() {
     var warmupCount = 10;
     var count = 10;
-    var source = (Source<String>) c -> {
+    var source = (Source<String>) (ctx, c) -> {
       for (int i = 0; i < warmupCount; i++) {
         c.accept("warmup");
       }
@@ -74,7 +75,7 @@ class SyncSourceTest {
     var times = new long[count];
     var counter = new AtomicInteger();
     var syncSource = syncSource(source, Duration.ofMillis(10L));
-    syncSource.apply(v -> {
+    syncSource.apply(new ApplicationContext(), v -> {
       if (v == null) {
         times[counter.getAndIncrement()] = System.nanoTime();
         LockSupport.parkNanos(5_000_000L);

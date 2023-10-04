@@ -24,6 +24,7 @@ package org.tybaco.runtime.basic.source;
 import org.tybaco.runtime.basic.Break;
 
 import java.time.Duration;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.*;
 
@@ -32,18 +33,18 @@ import static java.util.concurrent.locks.LockSupport.parkNanos;
 public interface Sources {
 
   static <I, O> Source<O> transform(Source<I> source, Function<I, O> transform) {
-    return consumer -> source.apply(transform::apply);
+    return (ctx, consumer) -> source.apply(ctx, transform::apply);
   }
 
   static <E> Source<E> untilSource(Source<E> source, Predicate<E> predicate) {
-    return consumer -> source.apply(e -> {
+    return (ctx, consumer) -> source.apply(ctx, e -> {
       if (predicate.test(e)) throw Break.BREAK;
       else consumer.accept(e);
     });
   }
 
   static <E> Source<E> whileSource(Source<E> source, Predicate<E> predicate) {
-    return consumer -> source.apply(e -> {
+    return (ctx, consumer) -> source.apply(ctx, e -> {
       if (predicate.test(e)) consumer.accept(e);
       else throw Break.BREAK;
     });
@@ -52,7 +53,7 @@ public interface Sources {
   static <E> Source<E> syncSource(Source<E> source, Duration period) {
     var nanos = period.toNanos();
     var lastTime = new AtomicLong(System.nanoTime() - nanos);
-    return consumer -> source.apply(e -> waitIfNecessary(lastTime, nanos, () -> consumer.accept(e)));
+    return (ctx, consumer) -> source.apply(ctx, e -> waitIfNecessary(lastTime, nanos, () -> consumer.accept(e)));
   }
 
   private static void waitIfNecessary(AtomicLong lastTime, long period, Runnable task) {
@@ -63,10 +64,36 @@ public interface Sources {
   }
 
   static <E, K, V> BiSource<K, V> biSource(Source<E> source, Function<? super E, ? extends K> key, Function<? super E, ? extends V> value) {
-    return consumer -> source.apply(e -> consumer.accept(key.apply(e), value.apply(e)));
+    return (ctx, consumer) -> source.apply(ctx, e -> consumer.accept(key.apply(e), value.apply(e)));
   }
 
   static <K, V> BiSource<K, V> sourceWithKey(Source<V> source, Function<? super V, ? extends K> key) {
-    return consumer -> source.apply(e -> consumer.accept(key.apply(e), e));
+    return (ctx, consumer) -> source.apply(ctx, e -> consumer.accept(key.apply(e), e));
+  }
+
+  static <E> Source<E> limited(Source<E> source, long limit) {
+    return (ctx, consumer) -> {
+      var counter = new AtomicLong();
+      source.apply(ctx, e -> {
+        if (counter.incrementAndGet() > limit) throw Break.BREAK;
+        else consumer.accept(e);
+      });
+    };
+  }
+
+  static Source<Void> infinite() {
+    return (ctx, consumer) -> {
+      while (ctx.isRunning()) {
+        consumer.accept(null);
+      }
+    };
+  }
+
+  static Source<UUID> uuidSource() {
+    return (ctx, consumer) -> {
+      while (ctx.isRunning()) {
+        consumer.accept(UUID.randomUUID());
+      }
+    };
   }
 }

@@ -21,6 +21,7 @@ package org.tybaco.runtime.basic.sink;
  * #L%
  */
 
+import org.tybaco.runtime.application.ApplicationContext;
 import org.tybaco.runtime.basic.Break;
 import org.tybaco.runtime.basic.source.Source;
 
@@ -33,8 +34,8 @@ public final class SequentialSink<E> extends AbstractSink {
   private final Consumer<? super E> consumer;
   private final Consumer<? super Throwable> onError;
 
-  public SequentialSink(ThreadFactory tf, Source<E> source, Consumer<? super E> consumer, Consumer<? super Throwable> onError) {
-    super(tf);
+  public SequentialSink(ApplicationContext context, ThreadFactory tf, Source<E> source, Consumer<? super E> consumer, Consumer<? super Throwable> onError) {
+    super(context, tf);
     this.source = source;
     this.consumer = consumer;
     this.onError = onError;
@@ -43,7 +44,7 @@ public final class SequentialSink<E> extends AbstractSink {
   @Override
   void run() {
     try {
-      source.apply(consumer);
+      source.apply(context, consumer);
     } catch (Break ignore) {
     } catch (Throwable e) {
       onError.accept(e);

@@ -21,9 +21,11 @@ package org.tybaco.runtime.basic.source;
  * #L%
  */
 
+import org.tybaco.runtime.application.ApplicationContext;
+
 import java.util.function.BiConsumer;
 
 @FunctionalInterface
 public interface BiSource<K, V> {
-  void apply(BiConsumer<? super K, ? super V> consumer);
+  void apply(ApplicationContext context, BiConsumer<? super K, ? super V> consumer);
 }

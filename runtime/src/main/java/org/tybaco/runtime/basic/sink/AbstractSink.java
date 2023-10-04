@@ -21,6 +21,7 @@ package org.tybaco.runtime.basic.sink;
  * #L%
  */
 
+import org.tybaco.runtime.application.ApplicationContext;
 import org.tybaco.runtime.basic.Break;
 import org.tybaco.runtime.basic.Startable;
 
@@ -32,9 +33,11 @@ import java.util.function.Consumer;
 
 abstract class AbstractSink implements Startable, AutoCloseable {
 
+  final ApplicationContext context;
   final Thread thread;
 
-  AbstractSink(ThreadFactory tf) {
+  AbstractSink(ApplicationContext context, ThreadFactory tf) {
+    this.context = context;
     this.thread = tf.newThread(this::run);
   }
 

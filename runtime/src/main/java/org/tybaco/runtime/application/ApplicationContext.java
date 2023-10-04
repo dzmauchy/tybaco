@@ -33,6 +33,11 @@ public final class ApplicationContext {
   private final AtomicReference<ApplicationCloseables> closeables = new AtomicReference<>();
   private final ConcurrentHashMap<String, Object> blocks = new ConcurrentHashMap<>(1024, 0.75f);
   private final ConcurrentHashMap<String, ConcurrentHashMap<String, Object>> outputs = new ConcurrentHashMap<>(1024, 0.75f);
+  private volatile boolean running = true;
+
+  public boolean isRunning() {
+    return running;
+  }
 
   @SuppressWarnings("unchecked")
   public <T> T block(String block) {
@@ -58,6 +63,7 @@ public final class ApplicationContext {
   }
 
   public void close() {
+    running = false;
     var closeException = new ApplicationCloseException();
     for (var c = closeables.get(); c != null; c = c.previous()) {
       try {

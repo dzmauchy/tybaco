@@ -21,9 +21,11 @@ package org.tybaco.runtime.basic.source;
  * #L%
  */
 
+import org.tybaco.runtime.application.ApplicationContext;
+
 import java.util.function.Consumer;
 
 @FunctionalInterface
 public interface Source<E> {
-  void apply(Consumer<? super E> consumer);
+  void apply(ApplicationContext context, Consumer<? super E> consumer);
 }
