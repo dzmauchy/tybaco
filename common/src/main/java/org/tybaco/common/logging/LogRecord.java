@@ -1,8 +1,8 @@
-package org.tybaco.runtime.logging;
+package org.tybaco.common.logging;
 
 /*-
  * #%L
- * runtime
+ * common
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,17 +21,7 @@ package org.tybaco.runtime.logging;
  * #L%
  */
 
-import org.slf4j.Marker;
-import org.slf4j.event.Level;
+import java.lang.System.Logger.Level;
 
-record LogRecord(
-  Level level,
-  Thread thread,
-  long time,
-  String logger,
-  Marker marker,
-  String msg,
-  Object[] args,
-  Throwable throwable
-) {
+public record LogRecord(Level level, long time, String logger, ThreadInfo threadInfo, String message, LogContext context, LogError error) {
 }

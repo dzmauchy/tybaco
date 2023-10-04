@@ -10,12 +10,12 @@ package org.tybaco.runtime.logging;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -23,7 +23,8 @@ package org.tybaco.runtime.logging;
 
 import org.slf4j.*;
 import org.slf4j.event.Level;
-import org.slf4j.helpers.*;
+import org.slf4j.helpers.AbstractLogger;
+import org.slf4j.helpers.MessageFormatter;
 import org.slf4j.spi.SLF4JServiceProvider;
 
 import java.io.*;
@@ -32,23 +33,29 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.SynchronousQueue;
 
 import static java.util.Objects.requireNonNullElse;
-import static org.slf4j.helpers.MessageFormatter.arrayFormat;
 
 public final class LoggingServiceProvider implements SLF4JServiceProvider {
 
-  private static final int MAX_MARKER_LENGTH = 1024;
   static volatile boolean initialized;
 
   private final SynchronousQueue<LogRecord> queue = new SynchronousQueue<>(true);
   private final FastMarkerFactory markerFactory = new FastMarkerFactory();
   private final FastMDCAdapter mdcAdapter = new FastMDCAdapter();
   private final ConcurrentHashMap<String, Logger> loggers = new ConcurrentHashMap<>(128, 0.5f);
-  private final PrintStream outputStream = System.err;
-  private final DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-  private final Thread logThread = new Thread(this::run, "_LOG_");
-  private final LogFactory logFactory = new LogFactory();
+  private final PrintStream outputStream;
+  private final DataOutputStream dataOutputStream;
+  private final Thread logThread;
+  private final LogFactory logFactory;
 
   public LoggingServiceProvider() {
+    this(System.err);
+  }
+
+  public LoggingServiceProvider(PrintStream outputStream) {
+    this.outputStream = outputStream;
+    this.dataOutputStream = new DataOutputStream(outputStream);
+    this.logThread = new Thread(this::run, "__LOG__");
+    this.logFactory = new LogFactory();
     logThread.setDaemon(true);
   }
 
@@ -80,8 +87,7 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider {
 
   private void processRecord() {
     try {
-      var rec = queue.take();
-      log(rec.level(), rec.marker(), arrayFormat(rec.msg(), rec.args(), rec.throwable()));
+      log(queue.take());
     } catch (Throwable ignore) {
     }
   }
@@ -98,59 +104,76 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider {
       dataOutputStream.write(0);
       return false;
     }
-    var name = marker.getName();
-    if (name.length() > MAX_MARKER_LENGTH) {
-      dataOutputStream.write(0);
-      return false;
-    }
     dataOutputStream.write(1);
-    dataOutputStream.writeUTF(name);
+    dataOutputStream.writeUTF(marker.getName());
     for (var it = marker.iterator(); it.hasNext(); ) {
       writeMarkers(it.next());
     }
     return true;
   }
 
-  private void log(Level level, Marker marker, FormattingTuple tuple) {
+  private int threadState(Thread thread) {
+    var state = 0;
+    if (thread.isDaemon()) state |= 0x01;
+    if (thread.isInterrupted()) state |= 0x02;
+    if (thread.isVirtual()) state |= 0x04;
+    return state;
+  }
+
+  private void writeThreadInfo(Thread thread) throws IOException {
+    var group = thread.getThreadGroup();
+    dataOutputStream.writeUTF(group == null ? "" : requireNonNullElse(group.getName(), ""));
+    dataOutputStream.writeUTF(requireNonNullElse(thread.getName(), ""));
+    dataOutputStream.writeLong(thread.threadId());
+    dataOutputStream.writeInt(thread.getPriority());
+    outputStream.write(threadState(thread));
+  }
+
+  private void log(LogRecord record) {
     try {
-      var msg = tuple.getMessage();
-      synchronized (this) {
-        dataOutputStream.writeInt(level.toInt());
-        if (writeMarkers(marker)) dataOutputStream.write(0);
-        dataOutputStream.writeInt(msg == null ? 0 : msg.length());
-        if (msg != null) dataOutputStream.writeChars(msg);
-        writeThrowable(tuple.getThrowable(), new IdentityHashMap<>(8));
-        mdcAdapter.map.get().forEach((k, v) -> {
-          if (k != null && v != null && k.length() <= MAX_MARKER_LENGTH && v.length() <= MAX_MARKER_LENGTH) {
-            try {
-              dataOutputStream.write(1);
-              dataOutputStream.writeUTF(k);
-              dataOutputStream.writeUTF(v);
-            } catch (Throwable ignore) {
-            }
+      var tuple = MessageFormatter.arrayFormat(record.msg(), record.args(), record.throwable());
+      var msg = requireNonNullElse(tuple.getMessage(), "");
+      outputStream.write(0);
+      outputStream.write(record.level().toInt());
+      dataOutputStream.writeUTF(record.logger());
+      dataOutputStream.writeLong(record.time());
+      writeThreadInfo(record.thread());
+      if (writeMarkers(record.marker())) outputStream.write(0);
+      dataOutputStream.writeInt(msg.length());
+      dataOutputStream.writeChars(msg);
+      writeThrowable(tuple.getThrowable());
+      mdcAdapter.map.get().forEach((k, v) -> {
+        try {
+          outputStream.write(1);
+          dataOutputStream.writeUTF(k);
+          dataOutputStream.writeUTF(v);
+        } catch (Throwable ignore) {
+        }
+      });
+      outputStream.write(0);
+      mdcAdapter.queues.get().forEach((k, q) -> {
+        try {
+          outputStream.write(1);
+          dataOutputStream.writeUTF(k);
+          for (var v : q) {
+            outputStream.write(1);
+            dataOutputStream.writeUTF(v);
           }
-        });
-        dataOutputStream.write(0);
-        mdcAdapter.queues.get().forEach((k, q) -> {
-          if (k != null && k.length() <= MAX_MARKER_LENGTH) {
-            try {
-              dataOutputStream.write(1);
-              dataOutputStream.writeUTF(k);
-              for (var v : q) {
-                if (v != null && v.length() <= MAX_MARKER_LENGTH) {
-                  dataOutputStream.write(1);
-                  dataOutputStream.writeUTF(v);
-                }
-              }
-              dataOutputStream.write(0);
-            } catch (Throwable ignore) {
-            }
-          }
-        });
-        dataOutputStream.write(0);
-        outputStream.flush();
-      }
+          dataOutputStream.write(0);
+        } catch (Throwable ignore) {
+        }
+      });
+      outputStream.write(0);
+      outputStream.flush();
     } catch (Throwable ignore) {
+    }
+  }
+
+  private void writeThrowable(Throwable t) throws IOException {
+    if (t == null) {
+      outputStream.write(0);
+    } else {
+      writeThrowable(t, new IdentityHashMap<>(8));
     }
   }
 
@@ -165,21 +188,22 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider {
     outputStream.write(msg.length());
     dataOutputStream.writeChars(msg);
     writeThrowable(t.getCause(), passed);
-    var suppressed = t.getSuppressed();
-    dataOutputStream.writeInt(suppressed.length);
-    for (var s : suppressed) writeThrowable(s, passed);
-    var st = t.getStackTrace();
-    dataOutputStream.writeInt(st.length);
-    for (var s : st) {
+    for (var s : t.getSuppressed()) {
+      outputStream.write(1);
+      writeThrowable(s, passed);
+    }
+    outputStream.write(0);
+    for (var s : t.getStackTrace()) {
+      outputStream.write(1);
       dataOutputStream.writeUTF(requireNonNullElse(s.getClassLoaderName(), ""));
       dataOutputStream.writeUTF(requireNonNullElse(s.getModuleName(), ""));
       dataOutputStream.writeUTF(requireNonNullElse(s.getModuleVersion(), ""));
       dataOutputStream.writeUTF(s.getClassName());
       dataOutputStream.writeUTF(requireNonNullElse(s.getFileName(), ""));
       dataOutputStream.writeUTF(s.getMethodName());
-      dataOutputStream.writeBoolean(s.isNativeMethod());
       dataOutputStream.writeInt(s.getLineNumber());
     }
+    outputStream.write(1);
   }
 
   final class LogFactory implements ILoggerFactory {
@@ -215,7 +239,9 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider {
     @Override
     protected void handleNormalizedLoggingCall(Level level, Marker marker, String messagePattern, Object[] arguments, Throwable throwable) {
       try {
-        queue.put(new LogRecord(level, marker, messagePattern, arguments, throwable));
+        var thread = Thread.currentThread();
+        var time = System.currentTimeMillis();
+        queue.put(new LogRecord(level, thread, time, name, marker, messagePattern, arguments, throwable));
       } catch (Throwable ignore) {
       }
     }

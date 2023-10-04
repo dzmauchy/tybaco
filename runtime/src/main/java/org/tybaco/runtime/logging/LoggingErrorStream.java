@@ -43,7 +43,9 @@ final class LoggingErrorStream extends PrintStream {
           count = 0;
           if (initialized && LoggerFactory.getILoggerFactory() instanceof LogFactory f) {
             var queue = f.queue();
-            queue.put(new LogRecord(Level.ERROR, null, message, null, null));
+            var thread = Thread.currentThread();
+            var time = System.currentTimeMillis();
+            queue.put(new LogRecord(Level.ERROR, thread, time, "stderr", null, message, new Object[0], null));
           }
         } catch (Throwable ignore) {
         }
