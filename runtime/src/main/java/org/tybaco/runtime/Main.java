@@ -23,12 +23,12 @@ package org.tybaco.runtime;
 
 import org.tybaco.runtime.application.ApplicationContext;
 import org.tybaco.runtime.application.ApplicationTask;
-import org.tybaco.runtime.application.tasks.*;
+import org.tybaco.runtime.application.tasks.LogConfigurer;
+import org.tybaco.runtime.application.tasks.PluginLoader;
 import org.tybaco.runtime.exception.BootstrapException;
 
 import java.util.concurrent.CountDownLatch;
 
-import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.locks.LockSupport.parkNanos;
 import static org.tybaco.runtime.util.Settings.booleanSetting;
 import static org.tybaco.runtime.util.Settings.longSetting;
@@ -41,15 +41,14 @@ public final class Main {
       var watchdog = new Thread(() -> watch(latch), "application-watchdog");
       watchdog.setDaemon(true);
       watchdog.start();
-      var context = requireNonNull(run(), "Application initialization error");
-      Runtime.getRuntime().addShutdownHook(new Thread(context::close));
+      Runtime.getRuntime().addShutdownHook(new Thread(run()::close));
     } finally {
       latch.countDown();
     }
   }
 
-  public static ApplicationContext run() {
-    var context = new ApplicationContext();
+  static ApplicationContext run() {
+    var context = new ApplicationContext(Thread.currentThread());
     execute("initLogging", context, new LogConfigurer());
     execute("loadPlugins", context, new PluginLoader());
     return context;

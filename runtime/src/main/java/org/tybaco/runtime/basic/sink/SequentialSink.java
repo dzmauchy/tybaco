@@ -34,7 +34,13 @@ public final class SequentialSink<E> extends AbstractSink {
   private final Consumer<? super E> consumer;
   private final Consumer<? super Throwable> onError;
 
-  public SequentialSink(ApplicationContext context, ThreadFactory tf, Source<E> source, Consumer<? super E> consumer, Consumer<? super Throwable> onError) {
+  public SequentialSink(
+    ApplicationContext context,
+    ThreadFactory tf,
+    Source<E> source,
+    Consumer<? super E> consumer,
+    Consumer<? super Throwable> onError
+  ) {
     super(context, tf);
     this.source = source;
     this.consumer = consumer;

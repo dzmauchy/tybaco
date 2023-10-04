@@ -89,6 +89,7 @@
   <modules>
     <module>library</module>
     <module>editors</module>
+    <module>common</module>
     <module>runtime</module>
     <module>ui</module>
     <module>test</module>

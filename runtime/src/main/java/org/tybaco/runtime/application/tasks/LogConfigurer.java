@@ -21,16 +21,21 @@ package org.tybaco.runtime.application.tasks;
  * #L%
  */
 
+import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.tybaco.runtime.application.ApplicationContext;
 import org.tybaco.runtime.application.ApplicationTask;
 import org.tybaco.runtime.logging.LoggingManager;
+import org.tybaco.runtime.logging.LoggingServiceProvider;
 
 public final class LogConfigurer implements ApplicationTask {
 
   @Override
   public void run(ApplicationContext context) {
     System.setProperty("java.util.logging.manager", LoggingManager.class.getName());
+    System.setProperty("slf4j.provider", LoggingServiceProvider.class.getName());
     if (!SLF4JBridgeHandler.isInstalled()) SLF4JBridgeHandler.install();
+    var loggerFactory = LoggerFactory.getILoggerFactory();
+    if (loggerFactory == null) throw new IllegalStateException("Logger factory cannot be null");
   }
 }

@@ -30,10 +30,19 @@ import java.util.function.Supplier;
 
 public final class ApplicationContext {
 
+  public final Thread mainThread;
   private final AtomicReference<ApplicationCloseables> closeables = new AtomicReference<>();
   private final ConcurrentHashMap<String, Object> blocks = new ConcurrentHashMap<>(1024, 0.75f);
   private final ConcurrentHashMap<String, ConcurrentHashMap<String, Object>> outputs = new ConcurrentHashMap<>(1024, 0.75f);
   private volatile boolean running = true;
+
+  public ApplicationContext(Thread thread) {
+    mainThread = thread;
+  }
+
+  public ApplicationContext() {
+    this(Thread.currentThread());
+  }
 
   public boolean isRunning() {
     return running;

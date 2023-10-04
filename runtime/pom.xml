@@ -29,9 +29,14 @@
     </dependency>
 
     <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>1.4.11</version>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.montoni</groupId>
+      <artifactId>tybaco-common</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>

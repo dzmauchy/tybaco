@@ -39,7 +39,14 @@ public final class BiSink<K, V> extends AbstractSink {
   private final BiConsumer<? super K, ? super V> consumer;
   private final Consumer<? super Throwable> onError;
 
-  public BiSink(ApplicationContext context, ThreadFactory tf, BiSource<K, V> source, ExecutorByKey<K> exs, BiConsumer<? super K, ? super V> consumer, Consumer<? super Throwable> onError) {
+  public BiSink(
+    ApplicationContext context,
+    ThreadFactory tf,
+    BiSource<K, V> source,
+    ExecutorByKey<K> exs,
+    BiConsumer<? super K, ? super V> consumer,
+    Consumer<? super Throwable> onError
+  ) {
     super(context, tf);
     this.source = source;
     this.executors = exs;
