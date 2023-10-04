@@ -131,7 +131,7 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider {
           }
         });
         dataOutputStream.write(0);
-        mdcAdapter.deques.get().forEach((k, q) -> {
+        mdcAdapter.queues.get().forEach((k, q) -> {
           if (k != null && k.length() <= MAX_MARKER_LENGTH) {
             try {
               dataOutputStream.write(1);

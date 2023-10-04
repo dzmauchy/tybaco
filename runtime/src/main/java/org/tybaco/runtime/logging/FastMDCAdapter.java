@@ -38,7 +38,7 @@ public class FastMDCAdapter implements MDCAdapter {
       return parentValue == null ? new TreeMap<>() : new TreeMap<>(parentValue);
     }
   };
-  final ThreadLocal<TreeMap<String, LinkedList<String>>> deques = ThreadLocal.withInitial(TreeMap::new);
+  final ThreadLocal<TreeMap<String, LinkedList<String>>> queues = ThreadLocal.withInitial(TreeMap::new);
 
   @Override
   public void put(String key, String val) {
@@ -76,14 +76,14 @@ public class FastMDCAdapter implements MDCAdapter {
 
   @Override
   public void pushByKey(String key, String value) {
-    deques.get()
+    queues.get()
       .computeIfAbsent(key, k -> new LinkedList<>())
       .addFirst(value);
   }
 
   @Override
   public String popByKey(String key) {
-    var m = deques.get();
+    var m = queues.get();
     var q = m.get(key);
     if (q == null) return null;
     var e = q.pollFirst();
@@ -97,13 +97,13 @@ public class FastMDCAdapter implements MDCAdapter {
 
   @Override
   public Deque<String> getCopyOfDequeByKey(String key) {
-    var m = deques.get();
+    var m = queues.get();
     var q = m.get(key);
     return q == null ? null : new LinkedList<>(q);
   }
 
   @Override
   public void clearDequeByKey(String key) {
-    deques.get().remove(key);
+    queues.get().remove(key);
   }
 }
