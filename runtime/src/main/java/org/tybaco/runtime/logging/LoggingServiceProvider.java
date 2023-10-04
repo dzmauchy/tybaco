@@ -28,40 +28,79 @@ import org.slf4j.helpers.MessageFormatter;
 import org.slf4j.spi.SLF4JServiceProvider;
 
 import java.io.*;
-import java.util.IdentityHashMap;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 
 import static java.util.Objects.requireNonNullElse;
+import static org.tybaco.runtime.util.Settings.intSetting;
 
-public final class LoggingServiceProvider implements SLF4JServiceProvider {
+public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoCloseable {
 
-  static volatile boolean initialized;
+  final HashMap<String, System.Logger.Level> markerFilters = new HashMap<>(16, 0.5f);
+  final HashMap<Pattern, System.Logger.Level> patternFilters = new HashMap<>(16, 0.5f);
 
-  private final SynchronousQueue<LogRecord> queue = new SynchronousQueue<>(true);
+  private final ReferenceQueue<StdLogger> referenceQueue = new ReferenceQueue<>();
+  private final int queueSize = intSetting("TY_LOG_QUEUE_SIZE").orElse(64);
+  private final ArrayBlockingQueue<LogRecord> queue = new ArrayBlockingQueue<>(queueSize, true);
   private final FastMarkerFactory markerFactory = new FastMarkerFactory();
   private final FastMDCAdapter mdcAdapter = new FastMDCAdapter();
-  private final ConcurrentHashMap<String, Logger> loggers = new ConcurrentHashMap<>(128, 0.5f);
-  private final PrintStream outputStream;
+  private final ConcurrentHashMap<String, LoggerRef> loggers = new ConcurrentHashMap<>(128, 0.5f);
+  private final OutputStream outputStream;
   private final DataOutputStream dataOutputStream;
   private final Thread logThread;
-  private final LogFactory logFactory;
 
   public LoggingServiceProvider() {
     this(System.err);
   }
 
-  public LoggingServiceProvider(PrintStream outputStream) {
+  public LoggingServiceProvider(OutputStream outputStream) {
     this.outputStream = outputStream;
     this.dataOutputStream = new DataOutputStream(outputStream);
     this.logThread = new Thread(this::run, "__LOG__");
-    this.logFactory = new LogFactory();
     logThread.setDaemon(true);
   }
 
   @Override
   public ILoggerFactory getLoggerFactory() {
-    return logFactory;
+    return name -> {
+      var ref = new AtomicReference<StdLogger>();
+      loggers.compute(name, (k, o) -> {
+        if (o == null) {
+          clean();
+          var l = new StdLogger(k);
+          ref.set(l);
+          return new LoggerRef(l, referenceQueue);
+        } else {
+          var l = o.get();
+          if (l == null) {
+            clean();
+            l = new StdLogger(k);
+            ref.set(l);
+            return new LoggerRef(l, referenceQueue);
+          } else {
+            ref.set(l);
+            return o;
+          }
+        }
+      });
+      return ref.get();
+    };
+  }
+
+  private void clean() {
+    while (true) {
+      var ref = referenceQueue.poll();
+      if (ref == null) break;
+      if (ref instanceof LoggerRef r) {
+        loggers.remove(r.name);
+      }
+    }
   }
 
   @Override
@@ -81,22 +120,86 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider {
 
   private void run() {
     while (true) {
-      processRecord();
+      try {
+        processRecord();
+      } catch (InterruptedException ignore) {
+        logThread.interrupt();
+        break;
+      } catch (Throwable ignore) {
+      }
     }
   }
 
-  private void processRecord() {
-    try {
+  private void processRecord() throws InterruptedException {
+    var array = new ArrayList<LogRecord>(queueSize);
+    var count = queue.drainTo(array, queueSize);
+    if (count > 0) {
+      array.forEach(this::log);
+      if (logThread.isInterrupted()) throw new InterruptedException();
+    } else {
+      clean();
       log(queue.take());
-    } catch (Throwable ignore) {
     }
   }
 
   @Override
   public void initialize() {
-    System.setErr(new LoggingErrorStream());
+    if (outputStream == System.err) {
+      var initialized = new AtomicBoolean();
+      var errorStream = new LoggingErrorStream(queue, initialized);
+      System.setErr(errorStream);
+      Thread.startVirtualThread(() -> {
+        var f = LoggerFactory.getILoggerFactory();
+        initialized.set(f != null);
+      });
+      var classLoader = Thread.currentThread().getContextClassLoader();
+      try {
+        for (var e = classLoader.getResources("tybaco/logging.properties"); e.hasMoreElements(); ) {
+          var url = e.nextElement();
+          var properties = new Properties();
+          try {
+            try (var is = url.openStream(); var r = new InputStreamReader(is)) {
+              properties.load(r);
+            }
+            properties.forEach((ko, vo) -> {
+              if (ko instanceof String k && vo instanceof String v) {
+                if (k.startsWith("pattern.")) {
+                  var idx = v.indexOf(',');
+                  if (idx >= 0) {
+                    try {
+                      var level = System.Logger.Level.valueOf(v.substring(0, idx));
+                      var pattern = Pattern.compile(v.substring(idx + 1));
+                      patternFilters.put(pattern, level);
+                    } catch (Throwable x) {
+                      throw new IllegalStateException("Unable to process " + k + " of " + url, x);
+                    }
+                  }
+                } else if (k.startsWith("marker.")) {
+                  try {
+                    var level = System.Logger.Level.valueOf(v);
+                    var marker = k.substring("marker.".length());
+                    markerFilters.put(marker, level);
+                  } catch (Throwable x) {
+                    throw new IllegalStateException("Unable to process " + k + " of " + url, x);
+                  }
+                }
+              }
+            });
+          } catch (IOException x) {
+            throw new UncheckedIOException("Unable to process " + url, x);
+          }
+        }
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
     logThread.start();
-    initialized = true;
+  }
+
+  @Override
+  public void close() throws Exception {
+    logThread.interrupt();
+    logThread.join();
   }
 
   private boolean writeMarkers(Marker marker) throws IOException {
@@ -133,7 +236,7 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider {
     try {
       var tuple = MessageFormatter.arrayFormat(record.msg(), record.args(), record.throwable());
       var msg = requireNonNullElse(tuple.getMessage(), "");
-      outputStream.write(0);
+      outputStream.write(0); // protocol
       outputStream.write(record.level().toInt());
       dataOutputStream.writeUTF(record.logger());
       dataOutputStream.writeLong(record.time());
@@ -206,24 +309,17 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider {
     outputStream.write(1);
   }
 
-  final class LogFactory implements ILoggerFactory {
-
-    @Override
-    public Logger getLogger(String name) {
-      return loggers.computeIfAbsent(name, StdLogger::new);
-    }
-
-    SynchronousQueue<LogRecord> queue() {
-      return queue;
-    }
-  }
-
   private final class StdLogger extends AbstractLogger {
 
-    private final String name;
+    private final int effectiveLevel;
 
     private StdLogger(String name) {
       this.name = name;
+      this.effectiveLevel = patternFilters.entrySet().parallelStream()
+        .filter(p -> p.getKey().matcher(name).matches())
+        .mapToInt(e -> e.getValue().getSeverity())
+        .max()
+        .orElseGet(System.Logger.Level.ALL::getSeverity);
     }
 
     @Override
@@ -248,52 +344,75 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider {
 
     @Override
     public boolean isTraceEnabled() {
-      return true;
+      return levelEnabled(System.Logger.Level.TRACE);
     }
 
     @Override
     public boolean isTraceEnabled(Marker marker) {
-      return true;
+      return markerEnabled(System.Logger.Level.TRACE, marker) && levelEnabled(System.Logger.Level.TRACE);
     }
 
     @Override
     public boolean isDebugEnabled() {
-      return true;
+      return levelEnabled(System.Logger.Level.DEBUG);
     }
 
     @Override
     public boolean isDebugEnabled(Marker marker) {
-      return true;
+      return markerEnabled(System.Logger.Level.DEBUG, marker) && levelEnabled(System.Logger.Level.DEBUG);
     }
 
     @Override
     public boolean isInfoEnabled() {
-      return true;
+      return levelEnabled(System.Logger.Level.INFO);
     }
 
     @Override
     public boolean isInfoEnabled(Marker marker) {
-      return true;
+      return markerEnabled(System.Logger.Level.INFO, marker) && levelEnabled(System.Logger.Level.INFO);
     }
 
     @Override
     public boolean isWarnEnabled() {
-      return true;
+      return levelEnabled(System.Logger.Level.WARNING);
     }
 
     @Override
     public boolean isWarnEnabled(Marker marker) {
-      return true;
+      return markerEnabled(System.Logger.Level.WARNING, marker) && levelEnabled(System.Logger.Level.WARNING);
     }
 
     @Override
     public boolean isErrorEnabled() {
-      return true;
+      return levelEnabled(System.Logger.Level.ERROR);
     }
 
     @Override
     public boolean isErrorEnabled(Marker marker) {
+      return markerEnabled(System.Logger.Level.ERROR, marker) && levelEnabled(System.Logger.Level.ERROR);
+    }
+
+    private boolean markerEnabled(System.Logger.Level level, Marker marker) {
+      var l = markerFilters.get(marker.getName());
+      if (l != null && level.getSeverity() < l.getSeverity()) return false;
+      for (var it = marker.iterator(); it.hasNext(); ) {
+        if (!markerEnabled(level, it.next())) return false;
+      }
       return true;
+    }
+
+    private boolean levelEnabled(System.Logger.Level level) {
+      return level.getSeverity() >= effectiveLevel;
+    }
+  }
+
+  private static final class LoggerRef extends WeakReference<StdLogger> {
+
+    private final String name;
+
+    public LoggerRef(StdLogger referent, ReferenceQueue<StdLogger> queue) {
+      super(referent, queue);
+      this.name = referent.getName();
     }
   }
 }

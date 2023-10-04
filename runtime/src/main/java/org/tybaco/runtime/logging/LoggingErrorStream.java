@@ -21,28 +21,25 @@ package org.tybaco.runtime.logging;
  * #L%
  */
 
-import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import org.tybaco.runtime.logging.LoggingServiceProvider.LogFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-
-import static org.tybaco.runtime.logging.LoggingServiceProvider.initialized;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 final class LoggingErrorStream extends PrintStream {
 
-  LoggingErrorStream() {
+  LoggingErrorStream(ArrayBlockingQueue<LogRecord> queue, AtomicBoolean initialized) {
     super(new ByteArrayOutputStream() {
       @Override
-      public void flush() {
+      public synchronized void flush() {
         try {
           var message = new String(buf, 0, count, StandardCharsets.UTF_8);
           buf = new byte[0];
           count = 0;
-          if (initialized && LoggerFactory.getILoggerFactory() instanceof LogFactory f) {
-            var queue = f.queue();
+          if (initialized.get()) {
             var thread = Thread.currentThread();
             var time = System.currentTimeMillis();
             queue.put(new LogRecord(Level.ERROR, thread, time, "stderr", null, message, new Object[0], null));
