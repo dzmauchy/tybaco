@@ -25,8 +25,7 @@ import java.io.*;
 import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.*;
 import java.nio.file.Files;
 import java.util.EnumSet;
 import java.util.stream.IntStream;
@@ -39,10 +38,8 @@ final class FileBuffer implements Closeable {
   private final char[] buf = new char[4];
   private final byte[] tempBuf = new byte[8192];
   private final StringBuilder builder = new StringBuilder(64);
-  private final FileChannel cch;
   private final FileChannel bch;
   private final MappedByteBuffer byteBuffer;
-  private final CharBuffer charBuffer;
   private final CharsetEncoder encoder;
 
   public FileBuffer(int maxFileSize) {
@@ -51,31 +48,39 @@ final class FileBuffer implements Closeable {
       var bFile = Files.createTempFile("blog", ".log");
       Files.deleteIfExists(bFile);
       bch = FileChannel.open(bFile, opts);
-      var cFile = Files.createTempFile("clog", ".log");
-      Files.deleteIfExists(cFile);
-      cch = FileChannel.open(cFile, opts);
       byteBuffer = bch.map(READ_WRITE, 0L, maxFileSize);
-      charBuffer = cch.map(READ_WRITE, 0L, maxFileSize * 2L).asCharBuffer();
       encoder = StandardCharsets.UTF_8.newEncoder();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
   }
 
+  void write(CharBuffer buffer) {
+    var result = encoder.encode(buffer, byteBuffer, true);
+    if (!result.isUnderflow()) {
+      try {
+        result.throwException();
+      } catch (CharacterCodingException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+  }
+
   void write(char c) {
-    charBuffer.put(c);
+    buf[0] = c;
+    write(CharBuffer.wrap(buf, 0, 1));
   }
 
   void writeQuotedString(String v) {
-    charBuffer.put('"');
+    write('"');
     v.codePoints().flatMap(FileBuffer::escape).forEach(this::append);
-    charBuffer.put('"');
+    write('"');
   }
 
   void writeKey(String v) {
-    charBuffer.put('"');
-    charBuffer.append(v);
-    charBuffer.put('"');
+    write('"');
+    write(CharBuffer.wrap(v));
+    write('"');
   }
 
   void writeInt(int v) {
@@ -85,22 +90,17 @@ final class FileBuffer implements Closeable {
   }
 
   void writeMarker(String v) {
-    charBuffer.put('"');
+    write('"');
     v.codePoints().map(FileBuffer::markerMap).filter(e -> e > 0).forEach(this::append);
-    charBuffer.put('"');
+    write('"');
   }
 
   private void append(int cp) {
-    var buf = this.buf;
     var n = Character.toChars(cp, buf, 0);
-    charBuffer.put(buf, 0, n);
+    write(CharBuffer.wrap(buf, 0, n));
   }
 
   void rewind(OutputStream stream) throws IOException {
-    charBuffer.flip();
-    encoder.reset();
-    var result = encoder.encode(charBuffer, byteBuffer, false);
-    if (!result.isUnderflow()) result.throwException();
     byteBuffer.flip();
     var buf = tempBuf;
     while (true) {
@@ -109,13 +109,15 @@ final class FileBuffer implements Closeable {
       byteBuffer.get(buf, 0, l);
       stream.write(buf, 0, l);
     }
+  }
+
+  void reset() {
     byteBuffer.clear();
-    charBuffer.clear();
   }
 
   @Override
   public void close() {
-    try (cch; bch) {
+    try (bch) {
       builder.setLength(0);
       builder.trimToSize();
     } catch (Throwable e) {

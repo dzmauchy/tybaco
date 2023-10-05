@@ -239,6 +239,8 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
       outputStream.flush();
     } catch (Throwable e) {
       e.printStackTrace(System.err);
+    } finally {
+      buffer.reset();
     }
   }
 
