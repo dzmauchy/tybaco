@@ -60,7 +60,6 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
 
   public LoggingServiceProvider() {
     this(System.out);
-    Runtime.getRuntime().addShutdownHook(new Thread(this::close));
   }
 
   public LoggingServiceProvider(OutputStream outputStream) {
