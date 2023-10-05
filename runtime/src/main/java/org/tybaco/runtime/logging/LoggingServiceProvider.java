@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import static java.lang.System.Logger.Level.valueOf;
+import static java.util.concurrent.locks.LockSupport.parkNanos;
 import static org.tybaco.runtime.util.Settings.intSetting;
 
 public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoCloseable {
@@ -54,6 +55,8 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
   private final ConcurrentHashMap<String, LoggerRef> loggers = new ConcurrentHashMap<>(128, 0.5f);
   private final OutputStream outputStream;
   private final Thread logThread;
+
+  private volatile boolean running = true;
 
   public LoggingServiceProvider() {
     this(System.out);
@@ -119,27 +122,35 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
   }
 
   private void run() {
-    while (true) {
+    while (running) {
       try {
         processRecord();
-      } catch (InterruptedException ignore) {
-        logThread.interrupt();
-        break;
       } catch (Throwable e) {
         e.printStackTrace(System.err);
       }
     }
+    try {
+      drain();
+    } catch (Throwable e) {
+      e.printStackTrace(System.err);
+    }
   }
 
-  private void processRecord() throws InterruptedException {
+  private void processRecord() {
+    if (!drain()) {
+      clean();
+      parkNanos(1_000_000L);
+    }
+  }
+
+  private boolean drain() {
     var array = new ArrayList<LogRecord>(queueSize);
     var count = queue.drainTo(array, queueSize);
     if (count > 0) {
       array.forEach(this::log);
-      if (logThread.isInterrupted()) throw new InterruptedException();
+      return true;
     } else {
-      clean();
-      log(queue.take());
+      return false;
     }
   }
 
@@ -187,8 +198,8 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
 
   @Override
   public void close() {
+    running = false;
     try (buffer) {
-      logThread.interrupt();
       logThread.join();
     } catch (Throwable e) {
       e.printStackTrace(System.err);

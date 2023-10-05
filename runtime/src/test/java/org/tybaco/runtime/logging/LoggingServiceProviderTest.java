@@ -15,7 +15,13 @@ class LoggingServiceProviderTest {
     var loggerFactory = serviceProvider.getLoggerFactory();
     var logger = loggerFactory.getLogger("abc");
     logger.info("Hello");
+    Thread.sleep(100L);
     outputStream.writeTo(System.out);
+  }
+
+  @BeforeAll
+  void beforeAll() {
+    serviceProvider.initialize();
   }
 
   @AfterAll
