@@ -45,23 +45,30 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
   final HashMap<Pattern, System.Logger.Level> patternFilters = new HashMap<>(16, 0.5f);
 
   private final ReferenceQueue<Logger> referenceQueue = new ReferenceQueue<>();
-  private final FileBuffer buffer = new FileBuffer();
   private final FastMarkerFactory markerFactory = new FastMarkerFactory();
   private final FastMDCAdapter mdcAdapter = new FastMDCAdapter();
   private final ConcurrentHashMap<String, LoggerRef> loggers = new ConcurrentHashMap<>(128, 0.5f);
-  private final int queueSize = intSetting("TY_LOG_QUEUE_SIZE").orElse(64);
-  private final ArrayBlockingQueue<LogRecord> queue = new ArrayBlockingQueue<>(queueSize, true);
   private final OutputStream outputStream;
+  private final int queueSize;
+  private final ArrayBlockingQueue<LogRecord> queue;
+  private final FileBuffer buffer;
   private final Thread logThread;
 
   volatile boolean running = true;
 
   public LoggingServiceProvider() {
-    this(System.out);
+    this(
+      System.out,
+      intSetting("TY_MAX_LOG_RECORD_SIZE").orElse(1 << 24),
+      intSetting("TY_LOG_QUEUE_SIZE").orElse(64)
+    );
   }
 
-  public LoggingServiceProvider(OutputStream outputStream) {
+  public LoggingServiceProvider(OutputStream outputStream, int maxFileSize, int queueSize) {
     this.outputStream = outputStream;
+    this.queueSize = queueSize;
+    this.queue = new ArrayBlockingQueue<>(queueSize, true);
+    this.buffer = new FileBuffer(maxFileSize);
     this.logThread = new Thread(this::run, "__LOG__");
     logThread.setDaemon(true);
   }

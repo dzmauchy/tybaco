@@ -33,7 +33,7 @@ import static org.tybaco.testing.json.JsonStream.objectList;
 class LoggingServiceProviderTest implements Eventually {
 
   private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-  private final LoggingServiceProvider serviceProvider = new LoggingServiceProvider(outputStream);
+  private final LoggingServiceProvider serviceProvider = new LoggingServiceProvider(outputStream, 1 << 24, 64);
 
   @Test
   void logSimple() throws Exception {

@@ -45,7 +45,7 @@ final class FileBuffer implements Closeable {
   private final CharBuffer charBuffer;
   private final CharsetEncoder encoder;
 
-  public FileBuffer() {
+  public FileBuffer(int maxFileSize) {
     var opts = EnumSet.of(CREATE_NEW, SPARSE, DELETE_ON_CLOSE, WRITE, READ);
     try {
       var bFile = Files.createTempFile("blog", ".log");
@@ -54,8 +54,8 @@ final class FileBuffer implements Closeable {
       var cFile = Files.createTempFile("clog", ".log");
       Files.deleteIfExists(cFile);
       cch = FileChannel.open(cFile, opts);
-      byteBuffer = bch.map(READ_WRITE, 0L, 1 << 29);
-      charBuffer = cch.map(READ_WRITE, 0L, 1 << 29).asCharBuffer();
+      byteBuffer = bch.map(READ_WRITE, 0L, maxFileSize);
+      charBuffer = cch.map(READ_WRITE, 0L, maxFileSize * 2L).asCharBuffer();
       encoder = StandardCharsets.UTF_8.newEncoder();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
