@@ -34,5 +34,6 @@ record LogRecord(Level level, Thread thread, Instant time, String logger, Marker
     buffer.write(':');
     buffer.writeQuotedString(time.toString());
     buffer.write('}');
+    buffer.write('\n');
   }
 }

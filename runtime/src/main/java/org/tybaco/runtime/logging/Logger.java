@@ -10,12 +10,12 @@ package org.tybaco.runtime.logging;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -26,25 +26,20 @@ import org.slf4j.event.Level;
 import org.slf4j.helpers.AbstractLogger;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.regex.Pattern;
 
 final class Logger extends AbstractLogger {
 
-  private final ArrayBlockingQueue<LogRecord> queue;
   private final int effectiveLevel;
-  private final HashMap<String, System.Logger.Level> markers;
+  private final LoggingServiceProvider provider;
 
-  Logger(ArrayBlockingQueue<LogRecord> queue, String name, HashMap<Pattern, System.Logger.Level> patterns, HashMap<String, System.Logger.Level> markers) {
-    this.queue = queue;
+  Logger(LoggingServiceProvider provider, String name) {
+    this.provider = provider;
     this.name = name;
-    this.effectiveLevel = patterns.entrySet().parallelStream()
+    this.effectiveLevel = provider.patternFilters.entrySet().parallelStream()
       .filter(p -> p.getKey().matcher(name).matches())
       .mapToInt(e -> e.getValue().getSeverity())
       .max()
       .orElseGet(System.Logger.Level.ALL::getSeverity);
-    this.markers = markers;
   }
 
   @Override
@@ -59,12 +54,9 @@ final class Logger extends AbstractLogger {
 
   @Override
   protected void handleNormalizedLoggingCall(Level level, Marker marker, String messagePattern, Object[] arguments, Throwable throwable) {
-    try {
-      var thread = Thread.currentThread();
-      var time = Instant.ofEpochMilli(System.currentTimeMillis());
-      queue.put(new LogRecord(level, thread, time, name, marker, messagePattern, arguments, throwable));
-    } catch (Throwable ignore) {
-    }
+    var thread = Thread.currentThread();
+    var time = Instant.ofEpochMilli(System.currentTimeMillis());
+    provider.put(new LogRecord(level, thread, time, name, marker, messagePattern, arguments, throwable));
   }
 
   @Override
@@ -118,7 +110,7 @@ final class Logger extends AbstractLogger {
   }
 
   private boolean markerEnabled(System.Logger.Level level, Marker marker) {
-    var l = markers.get(marker.getName());
+    var l = provider.markerFilters.get(marker.getName());
     if (l != null && level.getSeverity() < l.getSeverity()) return false;
     for (var it = marker.iterator(); it.hasNext(); ) {
       if (!markerEnabled(level, it.next())) return false;

@@ -46,15 +46,15 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
 
   private final ReferenceQueue<Logger> referenceQueue = new ReferenceQueue<>();
   private final FileBuffer buffer = new FileBuffer();
-  private final int queueSize = intSetting("TY_LOG_QUEUE_SIZE").orElse(64);
-  private final ArrayBlockingQueue<LogRecord> queue = new ArrayBlockingQueue<>(queueSize, true);
   private final FastMarkerFactory markerFactory = new FastMarkerFactory();
   private final FastMDCAdapter mdcAdapter = new FastMDCAdapter();
   private final ConcurrentHashMap<String, LoggerRef> loggers = new ConcurrentHashMap<>(128, 0.5f);
+  private final int queueSize = intSetting("TY_LOG_QUEUE_SIZE").orElse(64);
+  private final ArrayBlockingQueue<LogRecord> queue = new ArrayBlockingQueue<>(queueSize, true);
   private final OutputStream outputStream;
   private final Thread logThread;
 
-  private volatile boolean running = true;
+  volatile boolean running = true;
 
   public LoggingServiceProvider() {
     this(System.out);
@@ -73,14 +73,14 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
       loggers.compute(name, (k, o) -> {
         if (o == null) {
           clean();
-          var l = new Logger(queue, k, patternFilters, markerFilters);
+          var l = new Logger(this, k);
           ref.set(l);
           return new LoggerRef(l, referenceQueue);
         } else {
           var l = o.get();
           if (l == null) {
             clean();
-            l = new Logger(queue, k, patternFilters, markerFilters);
+            l = new Logger(this, k);
             ref.set(l);
             return new LoggerRef(l, referenceQueue);
           } else {
@@ -156,6 +156,22 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
     }
   }
 
+  void put(LogRecord record) {
+    if (!queue.offer(record)) {
+      synchronized (this) {
+        if (running) {
+          try {
+            queue.put(record);
+          } catch (Throwable e) {
+            e.printStackTrace(System.err);
+          }
+        } else {
+          log(record);
+        }
+      }
+    }
+  }
+
   @Override
   public void initialize() {
     if (outputStream == System.out) {
@@ -199,10 +215,11 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
   }
 
   @Override
-  public void close() {
+  public synchronized void close() {
     running = false;
     try (buffer) {
       logThread.join();
+      drain();
     } catch (Throwable e) {
       e.printStackTrace(System.err);
     }
