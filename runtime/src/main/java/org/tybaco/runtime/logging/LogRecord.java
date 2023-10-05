@@ -24,14 +24,15 @@ package org.tybaco.runtime.logging;
 import org.slf4j.Marker;
 import org.slf4j.event.Level;
 
-record LogRecord(
-  Level level,
-  Thread thread,
-  long time,
-  String logger,
-  Marker marker,
-  String msg,
-  Object[] args,
-  Throwable throwable
-) {
+import java.time.Instant;
+
+record LogRecord(Level level, Thread thread, Instant time, String logger, Marker marker, String msg, Object[] args, Throwable throwable) {
+
+  void writeTo(FileBuffer buffer) {
+    buffer.write('{');
+    buffer.writeKey("@timestamp");
+    buffer.write(':');
+    buffer.writeQuotedString(time.toString());
+    buffer.write('}');
+  }
 }

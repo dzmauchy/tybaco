@@ -1,8 +1,8 @@
-package org.tybaco.common.logging;
+package org.tybaco.runtime.util;
 
 /*-
  * #%L
- * common
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,7 +21,21 @@ package org.tybaco.common.logging;
  * #L%
  */
 
-import java.lang.System.Logger.Level;
+import java.io.*;
+import java.net.URL;
+import java.util.Properties;
 
-public record LogRecord(Level level, long time, String logger, ThreadInfo threadInfo, String message, LogContext context, LogError error) {
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+public interface IO {
+
+  static Properties loadProperties(URL url) {
+    try (var is = url.openStream(); var r = new InputStreamReader(is, UTF_8)) {
+      var props = new Properties();
+      props.load(r);
+      return props;
+    } catch (IOException e) {
+      throw new UncheckedIOException("Unable to load " + url, e);
+    }
+  }
 }

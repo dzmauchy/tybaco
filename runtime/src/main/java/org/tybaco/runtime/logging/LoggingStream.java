@@ -26,12 +26,13 @@ import org.slf4j.event.Level;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-final class LoggingErrorStream extends PrintStream {
+final class LoggingStream extends PrintStream {
 
-  LoggingErrorStream(ArrayBlockingQueue<LogRecord> queue, AtomicBoolean initialized) {
+  LoggingStream(ArrayBlockingQueue<LogRecord> queue, AtomicBoolean initialized) {
     super(new ByteArrayOutputStream() {
       @Override
       public synchronized void flush() {
@@ -41,7 +42,7 @@ final class LoggingErrorStream extends PrintStream {
           count = 0;
           if (initialized.get()) {
             var thread = Thread.currentThread();
-            var time = System.currentTimeMillis();
+            var time = Instant.ofEpochMilli(System.currentTimeMillis());
             queue.put(new LogRecord(Level.ERROR, thread, time, "stderr", null, message, new Object[0], null));
           }
         } catch (Throwable ignore) {
