@@ -31,14 +31,12 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import static java.lang.System.Logger.Level.valueOf;
-import static java.util.concurrent.locks.LockSupport.parkNanos;
 import static org.tybaco.runtime.util.Settings.intSetting;
 
 public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoCloseable {
@@ -137,8 +135,13 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
 
   private void processRecord() {
     if (!drain()) {
-      clean();
-      parkNanos(1_000_000L);
+      try {
+        clean();
+        var r = queue.poll(100L, TimeUnit.MILLISECONDS);
+        if (r != null) log(r);
+      } catch (InterruptedException e) {
+        e.printStackTrace(System.err);
+      }
     }
   }
 

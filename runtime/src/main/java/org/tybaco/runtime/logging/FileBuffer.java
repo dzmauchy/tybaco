@@ -37,6 +37,7 @@ import static java.nio.file.StandardOpenOption.*;
 final class FileBuffer implements Closeable {
 
   private final char[] buf = new char[4];
+  private final byte[] tempBuf = new byte[8192];
   private final StringBuilder builder = new StringBuilder(64);
   private final FileChannel cch;
   private final FileChannel bch;
@@ -101,7 +102,7 @@ final class FileBuffer implements Closeable {
     var result = encoder.encode(charBuffer, byteBuffer, false);
     if (!result.isUnderflow()) result.throwException();
     byteBuffer.flip();
-    var buf = new byte[Math.min(8192, byteBuffer.remaining())];
+    var buf = tempBuf;
     while (true) {
       var l = Math.min(byteBuffer.remaining(), buf.length);
       if (l == 0) break;
