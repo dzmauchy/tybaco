@@ -25,8 +25,7 @@ import java.io.*;
 import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.CharsetEncoder;
+import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.EnumSet;
 import java.util.concurrent.ThreadLocalRandom;
@@ -48,7 +47,9 @@ final class FileBuffer implements Closeable {
     try {
       bch = createTempFile();
       byteBuffer = bch.map(READ_WRITE, 0L, maxFileSize);
-      encoder = UTF_8.newEncoder();
+      encoder = UTF_8.newEncoder()
+        .onMalformedInput(CodingErrorAction.IGNORE)
+        .onUnmappableCharacter(CodingErrorAction.IGNORE);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
