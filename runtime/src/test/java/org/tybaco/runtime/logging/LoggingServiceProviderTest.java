@@ -34,7 +34,7 @@ import static org.tybaco.testing.json.JsonStream.objectList;
 class LoggingServiceProviderTest implements Eventually {
 
   @Test
-  void log() {
+  void log() throws Exception {
     var os = new ByteArrayOutputStream();
     try (var provider = new LoggingServiceProvider(os)) {
       var loggerFactory = provider.getLoggerFactory();
@@ -53,6 +53,7 @@ class LoggingServiceProviderTest implements Eventually {
       });
       assertEquals(4, elements.size());
     }
+    os.writeTo(System.out);
   }
 
   @Test

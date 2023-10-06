@@ -25,10 +25,10 @@ import java.io.*;
 import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.*;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetEncoder;
 import java.nio.file.Files;
 import java.util.EnumSet;
-import java.util.stream.IntStream;
 
 import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -36,8 +36,8 @@ import static java.nio.file.StandardOpenOption.*;
 
 final class FileBuffer implements Closeable {
 
-  private final char[] buf = new char[4];
-  private final byte[] tempBuf = new byte[8192];
+  private final char[] buf = new char[2];
+  private final byte[] tempBuf = new byte[16384];
   private final StringBuilder builder = new StringBuilder(64);
   private final FileChannel bch;
   private final MappedByteBuffer byteBuffer;
@@ -74,7 +74,16 @@ final class FileBuffer implements Closeable {
 
   void writeQuotedString(String v) {
     write('"');
-    v.codePoints().flatMap(FileBuffer::escape).forEach(this::append);
+    int o = 0, l = v.length();
+    for (int i = 0; i < l; i++) {
+      var c = v.charAt(i);
+      if (escape(c)) {
+        if (o < i) write(CharBuffer.wrap(v, o, i));
+        write(CharBuffer.wrap(buf));
+        o = i + 1;
+      }
+    }
+    if (o < l) write(CharBuffer.wrap(v, o, l));
     write('"');
   }
 
@@ -117,24 +126,31 @@ final class FileBuffer implements Closeable {
   void writeInt(int v) {
     builder.setLength(0);
     builder.append(v);
-    builder.codePoints().forEach(this::append);
+    write(CharBuffer.wrap(builder));
   }
 
   void writeLong(long v) {
     builder.setLength(0);
     builder.append(v);
-    builder.codePoints().forEach(this::append);
+    write(CharBuffer.wrap(builder));
   }
 
   void writeMarker(String v) {
     write('"');
-    v.codePoints().map(FileBuffer::markerMap).filter(e -> e > 0).forEach(this::append);
+    int o = 0, l = v.length();
+    for (int i = 0; i < l; i++) {
+      char c = v.charAt(i);
+      if (Character.isLetterOrDigit(c)) continue;
+      switch (c) {
+        case '_', '-', '.' -> {}
+        default -> {
+          if (o < i) write(CharBuffer.wrap(v, o, i));
+          o = i + 1;
+        }
+      }
+    }
+    if (o < l) write(CharBuffer.wrap(v, o, l));
     write('"');
-  }
-
-  private void append(int cp) {
-    var n = Character.toChars(cp, buf, 0);
-    write(CharBuffer.wrap(buf, 0, n));
   }
 
   void rewind(OutputStream stream) throws IOException {
@@ -162,26 +178,22 @@ final class FileBuffer implements Closeable {
     }
   }
 
-  private static IntStream escape(int cp) {
-    return switch (cp) {
-      case '"' -> IntStream.of('\\', '"');
-      case '\b' -> IntStream.of('\\', 'b');
-      case '\f' -> IntStream.of('\\', 'f');
-      case '\n' -> IntStream.of('\\', 'n');
-      case '\r' -> IntStream.of('\\', 'r');
-      case '\t' -> IntStream.of('\\', 't');
-      case '\\' -> IntStream.of('\\', '\\');
-      default -> IntStream.of(cp);
+  private boolean escape(char c) {
+    return switch (c) {
+      case '"' -> escapeBuf('"');
+      case '\b' -> escapeBuf('b');
+      case '\f' -> escapeBuf('f');
+      case '\n' -> escapeBuf('n');
+      case '\r' -> escapeBuf('r');
+      case '\t' -> escapeBuf('t');
+      case '\\' -> escapeBuf('\\');
+      default -> false;
     };
   }
 
-  private static int markerMap(int cp) {
-    if (Character.isLetterOrDigit(cp)) {
-      return cp;
-    }
-    return switch (cp) {
-      case '.', '_', '-' -> cp;
-      default -> 0;
-    };
+  private boolean escapeBuf(char c) {
+    buf[0] = '\\';
+    buf[1] = c;
+    return true;
   }
 }
