@@ -46,10 +46,7 @@ record LogRecord(Level level, Thread thread, Instant time, String logger, Marker
   }
 
   private void writeBody(FileBuffer buffer, HostContext context) {
-    writeTimestamp(buffer);
-    writeLogLevel(buffer);
-    writeLogger(buffer);
-    writeMessage(buffer);
+    writeBasic(buffer);
     writeUser(buffer, context);
     writeLabels(buffer);
     writeTags(buffer);
@@ -57,23 +54,18 @@ record LogRecord(Level level, Thread thread, Instant time, String logger, Marker
     writePid(buffer, context);
   }
 
-  private void writeTimestamp(FileBuffer buffer) {
+  private void writeBasic(FileBuffer buffer) {
     buffer.writeSafePair("@timestamp", time.toString());
     buffer.write(',');
-  }
-
-  private void writeLogLevel(FileBuffer buffer) {
     buffer.writeSafePair("log.level", level.toString());
     buffer.write(',');
-  }
-
-  private void writeLogger(FileBuffer buffer) {
     buffer.writePair("log.logger", logger);
     buffer.write(',');
-  }
-
-  private void writeMessage(FileBuffer buffer) {
     buffer.writePair("message", msg);
+    buffer.write(',');
+    buffer.writePair("process.thread.id", thread.threadId());
+    buffer.write(',');
+    buffer.writePair("process.thread.name", thread.getName());
     buffer.write(',');
   }
 

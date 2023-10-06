@@ -22,7 +22,6 @@ package org.tybaco.runtime.logging;
  */
 
 import org.slf4j.ILoggerFactory;
-import org.slf4j.LoggerFactory;
 import org.slf4j.spi.SLF4JServiceProvider;
 import org.tybaco.runtime.util.IO;
 
@@ -31,7 +30,6 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
@@ -183,13 +181,7 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
   @Override
   public void initialize() {
     if (outputStream == System.out) {
-      var initialized = new AtomicBoolean();
-      var newStream = new LoggingStream(queue, initialized, mdcAdapter);
-      System.setOut(newStream);
-      Thread.startVirtualThread(() -> {
-        var f = LoggerFactory.getILoggerFactory();
-        initialized.set(f != null);
-      });
+      System.setErr(new LoggingStream(queue, mdcAdapter));
     }
     var classLoader = Thread.currentThread().getContextClassLoader();
     classLoader.resources("tybaco/logging.properties").forEach(url -> {

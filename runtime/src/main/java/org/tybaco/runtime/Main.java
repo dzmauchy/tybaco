@@ -27,6 +27,8 @@ import org.tybaco.runtime.application.tasks.LogConfigurer;
 import org.tybaco.runtime.application.tasks.PluginLoader;
 import org.tybaco.runtime.exception.BootstrapException;
 
+import java.io.ObjectOutputStream;
+import java.io.PrintStream;
 import java.util.concurrent.CountDownLatch;
 
 import static java.util.concurrent.locks.LockSupport.parkNanos;
@@ -36,6 +38,7 @@ import static org.tybaco.runtime.util.Settings.longSetting;
 public final class Main {
 
   public static void main(String... args) {
+    System.setErr(new PrintStream(ObjectOutputStream.nullOutputStream()));
     var latch = new CountDownLatch(1);
     try {
       var watchdog = new Thread(() -> watch(latch), "application-watchdog");
