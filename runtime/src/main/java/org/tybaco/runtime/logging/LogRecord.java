@@ -143,8 +143,13 @@ record LogRecord(
   }
 
   private static String msg(String fmt, Object[] args, Throwable e) {
-    var tuple = MessageFormatter.arrayFormat(fmt, args, e);
-    return tuple.getMessage();
+    try {
+      var tuple = MessageFormatter.arrayFormat(fmt, args, e);
+      return tuple.getMessage();
+    } catch (Throwable x) {
+      x.printStackTrace(System.err);
+      return fmt;
+    }
   }
 
   private static String stacktrace(Throwable error) {
