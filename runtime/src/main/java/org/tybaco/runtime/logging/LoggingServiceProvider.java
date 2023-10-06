@@ -33,6 +33,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
+import static java.lang.Integer.MAX_VALUE;
 import static java.lang.System.Logger.Level.valueOf;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.tybaco.runtime.util.Settings.intSetting;
@@ -150,7 +151,7 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
   }
 
   private boolean drain() {
-    var count = queue.drainTo(recordBuffer, Integer.MAX_VALUE);
+    var count = queue.drainTo(recordBuffer, MAX_VALUE);
     if (count > 0) {
       try {
         recordBuffer.forEach(this::log);
