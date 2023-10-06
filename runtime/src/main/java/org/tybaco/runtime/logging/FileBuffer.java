@@ -152,12 +152,12 @@ final class FileBuffer implements Closeable {
   }
 
   void rewind(OutputStream stream) throws IOException {
-    byteBuffer.flip();
+    var bb = byteBuffer.flip();
     var buf = tempBuf;
     while (true) {
-      var l = Math.min(byteBuffer.remaining(), buf.length);
+      var l = Math.min(bb.remaining(), buf.length);
       if (l == 0) break;
-      byteBuffer.get(buf, 0, l);
+      bb.get(buf, 0, l);
       stream.write(buf, 0, l);
     }
   }
