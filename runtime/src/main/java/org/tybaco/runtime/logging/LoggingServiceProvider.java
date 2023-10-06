@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import static java.lang.System.Logger.Level.valueOf;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.tybaco.runtime.util.Settings.intSetting;
 import static org.tybaco.runtime.util.Settings.sizeSetting;
 
@@ -53,7 +54,7 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
   private final FileBuffer buffer;
   private final Thread logThread;
 
-  private boolean running = true;
+  private volatile boolean running = true;
 
   public LoggingServiceProvider() {
     this(System.out);
@@ -140,7 +141,7 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
     if (!drain()) {
       try {
         clean();
-        var r = queue.poll(10L, TimeUnit.MILLISECONDS);
+        var r = queue.poll(10L, MILLISECONDS);
         if (r != null) log(r);
       } catch (InterruptedException e) {
         e.printStackTrace(System.err);
@@ -164,16 +165,16 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
 
   void put(LogRecord record) {
     if (!queue.offer(record)) {
-      synchronized (this) {
-        if (running) {
-          try {
-            queue.put(record);
-          } catch (Throwable e) {
-            e.printStackTrace(System.err);
-          }
-        } else {
-          log(record);
+      while (running) {
+        try {
+          if (queue.offer(record, 10L, MILLISECONDS)) return;
+        } catch (Throwable e) {
+          e.printStackTrace(System.err);
+          return;
         }
+      }
+      synchronized (this) {
+        log(record);
       }
     }
   }
@@ -215,11 +216,13 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
   }
 
   @Override
-  public synchronized void close() {
+  public void close() {
     running = false;
     try (buffer) {
       logThread.join();
-      drain();
+      synchronized (this) {
+        drain();
+      }
     } catch (Throwable e) {
       e.printStackTrace(System.err);
     }
