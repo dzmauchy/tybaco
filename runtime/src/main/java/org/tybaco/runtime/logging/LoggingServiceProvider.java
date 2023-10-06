@@ -150,7 +150,7 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
   }
 
   private boolean drain() {
-    var count = queue.drainTo(recordBuffer, recordBuffer.maxSize());
+    var count = queue.drainTo(recordBuffer, Integer.MAX_VALUE);
     if (count > 0) {
       try {
         recordBuffer.forEach(this::log);
