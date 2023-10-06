@@ -27,8 +27,9 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CharsetEncoder;
-import java.nio.file.Files;
+import java.nio.file.*;
 import java.util.EnumSet;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -44,11 +45,8 @@ final class FileBuffer implements Closeable {
   private final CharsetEncoder encoder;
 
   public FileBuffer(int maxFileSize) {
-    var opts = EnumSet.of(CREATE_NEW, SPARSE, DELETE_ON_CLOSE, WRITE, READ);
     try {
-      var bFile = Files.createTempFile("ty", ".log");
-      Files.deleteIfExists(bFile);
-      bch = FileChannel.open(bFile, opts);
+      bch = createTempFile();
       byteBuffer = bch.map(READ_WRITE, 0L, maxFileSize);
       encoder = UTF_8.newEncoder();
     } catch (IOException e) {
@@ -195,5 +193,21 @@ final class FileBuffer implements Closeable {
     buf[0] = '\\';
     buf[1] = c;
     return true;
+  }
+
+  private FileChannel createTempFile() {
+    var opts = EnumSet.of(CREATE_NEW, SPARSE, DELETE_ON_CLOSE, WRITE, READ);
+    var tmpDir = Path.of(System.getProperty("java.io.tmpdir"));
+    var random = ThreadLocalRandom.current();
+    while (true) {
+      var name = "ty-" + Long.toUnsignedString(random.nextLong(), 32) + ".log";
+      var file = tmpDir.resolve(name);
+      try {
+        return FileChannel.open(file, opts);
+      } catch (FileAlreadyExistsException ignore) {
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
   }
 }

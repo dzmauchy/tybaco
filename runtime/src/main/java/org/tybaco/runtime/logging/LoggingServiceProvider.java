@@ -53,7 +53,7 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
   private final FileBuffer buffer;
   private final Thread logThread;
 
-  volatile boolean running = true;
+  private boolean running = true;
 
   public LoggingServiceProvider() {
     this(System.out);

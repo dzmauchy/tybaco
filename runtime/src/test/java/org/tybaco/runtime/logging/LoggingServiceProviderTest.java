@@ -53,7 +53,6 @@ class LoggingServiceProviderTest implements Eventually {
       });
       assertEquals(4, elements.size());
     }
-    os.writeTo(System.out);
   }
 
   @Test
