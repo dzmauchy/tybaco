@@ -29,6 +29,7 @@ import org.tybaco.runtime.basic.source.BiSource;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -57,7 +58,7 @@ public final class BiSink<K, V> extends AbstractSink {
   @Override
   void run() {
     var exceptions = new ConcurrentLinkedQueue<Throwable>();
-    var state = new AtomicInteger();
+    var state = new AtomicLong();
     try {
       source.apply(context, (k, v) -> {
         state.incrementAndGet();
