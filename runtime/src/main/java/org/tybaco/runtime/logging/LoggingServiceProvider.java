@@ -184,7 +184,7 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
   public void initialize() {
     if (outputStream == System.out) {
       var initialized = new AtomicBoolean();
-      var newStream = new LoggingStream(queue, initialized);
+      var newStream = new LoggingStream(queue, initialized, mdcAdapter);
       System.setOut(newStream);
       Thread.startVirtualThread(() -> {
         var f = LoggerFactory.getILoggerFactory();

@@ -56,7 +56,7 @@ final class Logger extends AbstractLogger {
   protected void handleNormalizedLoggingCall(Level level, Marker marker, String messagePattern, Object[] arguments, Throwable throwable) {
     var thread = Thread.currentThread();
     var time = Instant.ofEpochMilli(System.currentTimeMillis());
-    provider.put(new LogRecord(level, thread, time, name, marker, messagePattern, arguments, throwable));
+    provider.put(new LogRecord(level, thread, time, name, marker, messagePattern, arguments, throwable, provider.getMDCAdapter()));
   }
 
   @Override

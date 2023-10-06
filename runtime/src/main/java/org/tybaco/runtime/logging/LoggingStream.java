@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 final class LoggingStream extends PrintStream {
 
-  LoggingStream(ArrayBlockingQueue<LogRecord> queue, AtomicBoolean initialized) {
+  LoggingStream(ArrayBlockingQueue<LogRecord> queue, AtomicBoolean initialized, FastMDCAdapter mdcAdapter) {
     super(new ByteArrayOutputStream() {
       @Override
       public synchronized void flush() {
@@ -43,9 +43,10 @@ final class LoggingStream extends PrintStream {
           if (initialized.get()) {
             var thread = Thread.currentThread();
             var time = Instant.ofEpochMilli(System.currentTimeMillis());
-            queue.put(new LogRecord(Level.ERROR, thread, time, "stderr", null, message, new Object[0], null));
+            queue.put(new LogRecord(Level.ERROR, thread, time, "stderr", null, message, new Object[0], null, mdcAdapter));
           }
-        } catch (Throwable ignore) {
+        } catch (Throwable e) {
+          e.printStackTrace(System.err);
         }
       }
     }, true, StandardCharsets.UTF_8);

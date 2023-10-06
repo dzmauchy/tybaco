@@ -21,7 +21,8 @@ package org.tybaco.runtime.logging;
  * #L%
  */
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.tybaco.testing.eventually.Eventually;
 
 import java.io.ByteArrayOutputStream;
@@ -38,11 +39,18 @@ class LoggingServiceProviderTest implements Eventually {
     try (var provider = new LoggingServiceProvider(os)) {
       var loggerFactory = provider.getLoggerFactory();
       var logger = loggerFactory.getLogger("abc");
+      var mdc = provider.getMDCAdapter();
+      mdc.put("a", "1");
       logger.info("Hello");
       logger.info("Hola");
+      logger.info("Hello {}", "World", new IllegalStateException("s", new IllegalArgumentException("abc")));
       try {
-        var elements = eventually(() -> objectList(os));
-        assertEquals(2, elements.size());
+        var elements = eventually(() -> {
+          var l = objectList(os);
+          assertEquals(3, l.size());
+          return l;
+        });
+        assertEquals(3, elements.size());
       } finally {
         os.writeTo(System.out);
       }
