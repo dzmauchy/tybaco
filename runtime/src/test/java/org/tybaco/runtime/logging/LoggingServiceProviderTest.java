@@ -32,30 +32,20 @@ import static org.tybaco.testing.json.JsonStream.objectList;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LoggingServiceProviderTest implements Eventually {
 
-  private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-  private final LoggingServiceProvider serviceProvider = new LoggingServiceProvider(outputStream, 1 << 24, 64);
-
   @Test
   void logSimple() throws Exception {
-    var loggerFactory = serviceProvider.getLoggerFactory();
-    var logger = loggerFactory.getLogger("abc");
-    logger.info("Hello");
-    logger.info("Hola");
-    try {
-      var elements = eventually(() -> objectList(outputStream));
-      assertEquals(2, elements.size());
-    } finally {
-      outputStream.writeTo(System.out);
+    var os = new ByteArrayOutputStream();
+    try (var provider = new LoggingServiceProvider(os)) {
+      var loggerFactory = provider.getLoggerFactory();
+      var logger = loggerFactory.getLogger("abc");
+      logger.info("Hello");
+      logger.info("Hola");
+      try {
+        var elements = eventually(() -> objectList(os));
+        assertEquals(2, elements.size());
+      } finally {
+        os.writeTo(System.out);
+      }
     }
-  }
-
-  @BeforeAll
-  void beforeAll() {
-    serviceProvider.initialize();
-  }
-
-  @AfterAll
-  void afterAll() {
-    serviceProvider.close();
   }
 }

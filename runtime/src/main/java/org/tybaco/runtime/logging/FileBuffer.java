@@ -31,6 +31,7 @@ import java.util.EnumSet;
 import java.util.stream.IntStream;
 
 import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.*;
 
 final class FileBuffer implements Closeable {
@@ -45,11 +46,11 @@ final class FileBuffer implements Closeable {
   public FileBuffer(int maxFileSize) {
     var opts = EnumSet.of(CREATE_NEW, SPARSE, DELETE_ON_CLOSE, WRITE, READ);
     try {
-      var bFile = Files.createTempFile("blog", ".log");
+      var bFile = Files.createTempFile("ty", ".log");
       Files.deleteIfExists(bFile);
       bch = FileChannel.open(bFile, opts);
       byteBuffer = bch.map(READ_WRITE, 0L, maxFileSize);
-      encoder = StandardCharsets.UTF_8.newEncoder();
+      encoder = UTF_8.newEncoder();
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -77,13 +78,49 @@ final class FileBuffer implements Closeable {
     write('"');
   }
 
+  void writeSafeQuotedString(String v) {
+    write('"');
+    write(CharBuffer.wrap(v));
+    write('"');
+  }
+
   void writeKey(String v) {
     write('"');
     write(CharBuffer.wrap(v));
     write('"');
   }
 
+  void writePair(String k, String v) {
+    writeKey(k);
+    write(':');
+    writeQuotedString(v);
+  }
+
+  void writePair(String k, int v) {
+    writeKey(k);
+    write(':');
+    writeInt(v);
+  }
+
+  void writePair(String k, long v) {
+    writeKey(k);
+    write(':');
+    writeLong(v);
+  }
+
+  void writeSafePair(String k, String v) {
+    writeKey(k);
+    write(':');
+    writeSafeQuotedString(v);
+  }
+
   void writeInt(int v) {
+    builder.setLength(0);
+    builder.append(v);
+    builder.codePoints().forEach(this::append);
+  }
+
+  void writeLong(long v) {
     builder.setLength(0);
     builder.append(v);
     builder.codePoints().forEach(this::append);

@@ -28,11 +28,17 @@ import java.time.Instant;
 
 record LogRecord(Level level, Thread thread, Instant time, String logger, Marker marker, String msg, Object[] args, Throwable throwable) {
 
-  void writeTo(FileBuffer buffer) {
+  void writeTo(FileBuffer buffer, HostContext context) {
     buffer.write('{');
-    buffer.writeKey("@timestamp");
-    buffer.write(':');
-    buffer.writeQuotedString(time.toString());
+    buffer.writeSafePair("@timestamp", time.toString());
+    buffer.write(',');
+    buffer.writeSafePair("log.level", level.toString());
+    buffer.write(',');
+    buffer.writePair("log.logger", logger);
+    buffer.write(',');
+    buffer.writePair("message", msg);
+    buffer.write(',');
+    buffer.writePair("user.name", context.users.getFirst());
     buffer.write('}');
     buffer.write('\n');
   }

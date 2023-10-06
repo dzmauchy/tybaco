@@ -29,7 +29,6 @@ import org.tybaco.runtime.util.IO;
 import java.io.OutputStream;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,6 +37,7 @@ import java.util.regex.Pattern;
 
 import static java.lang.System.Logger.Level.valueOf;
 import static org.tybaco.runtime.util.Settings.intSetting;
+import static org.tybaco.runtime.util.Settings.sizeSetting;
 
 public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoCloseable {
 
@@ -47,30 +47,28 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
   private final ReferenceQueue<Logger> referenceQueue = new ReferenceQueue<>();
   private final FastMarkerFactory markerFactory = new FastMarkerFactory();
   private final FastMDCAdapter mdcAdapter = new FastMDCAdapter();
+  private final HostContext hostContext = new HostContext();
   private final ConcurrentHashMap<String, LoggerRef> loggers = new ConcurrentHashMap<>(128, 0.5f);
   private final OutputStream outputStream;
-  private final int queueSize;
   private final ArrayBlockingQueue<LogRecord> queue;
+  private final LogRecordBuffer recordBuffer;
   private final FileBuffer buffer;
   private final Thread logThread;
 
   volatile boolean running = true;
 
   public LoggingServiceProvider() {
-    this(
-      System.out,
-      intSetting("TY_MAX_LOG_RECORD_SIZE").orElse(1 << 24),
-      intSetting("TY_LOG_QUEUE_SIZE").orElse(64)
-    );
+    this(System.out);
   }
 
-  public LoggingServiceProvider(OutputStream outputStream, int maxFileSize, int queueSize) {
+  public LoggingServiceProvider(OutputStream outputStream) {
     this.outputStream = outputStream;
-    this.queueSize = queueSize;
-    this.queue = new ArrayBlockingQueue<>(queueSize, true);
-    this.buffer = new FileBuffer(maxFileSize);
+    this.recordBuffer = new LogRecordBuffer(intSetting("TY_LOG_QUEUE_SIZE").orElse(64));
+    this.queue = new ArrayBlockingQueue<>(recordBuffer.maxSize(), true);
+    this.buffer = new FileBuffer(sizeSetting("TY_MAX_LOG_RECORD_SIZE").orElse(1 << 20));
     this.logThread = new Thread(this::run, "__LOG__");
-    logThread.setDaemon(true);
+    this.logThread.setDaemon(true);
+    if (outputStream != System.out) initialize();
   }
 
   @Override
@@ -144,7 +142,7 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
     if (!drain()) {
       try {
         clean();
-        var r = queue.poll(100L, TimeUnit.MILLISECONDS);
+        var r = queue.poll(10L, TimeUnit.MILLISECONDS);
         if (r != null) log(r);
       } catch (InterruptedException e) {
         e.printStackTrace(System.err);
@@ -153,10 +151,13 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
   }
 
   private boolean drain() {
-    var array = new ArrayList<LogRecord>(queueSize);
-    var count = queue.drainTo(array, queueSize);
+    var count = queue.drainTo(recordBuffer, recordBuffer.maxSize());
     if (count > 0) {
-      array.forEach(this::log);
+      try {
+        recordBuffer.forEach(this::log);
+      } finally {
+        recordBuffer.reset();
+      }
       return true;
     } else {
       return false;
@@ -234,7 +235,7 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
 
   private void log(LogRecord record) {
     try {
-      record.writeTo(buffer);
+      record.writeTo(buffer, hostContext);
       buffer.rewind(outputStream);
       outputStream.flush();
     } catch (Throwable e) {

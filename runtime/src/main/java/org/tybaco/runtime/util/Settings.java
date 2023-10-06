@@ -61,6 +61,26 @@ public interface Settings {
       .orElse(OptionalLong.empty());
   }
 
+  static OptionalInt sizeSetting(String name) {
+    return setting(name)
+      .filter(n -> !n.isBlank())
+      .map(v -> {
+        var suffix = Character.toLowerCase(v.charAt(v.length() - 1));
+        try {
+          if (Character.isLetter(suffix)) v = v.substring(0, v.length() - 1);
+          var rawSize = Integer.parseInt(v);
+          return OptionalInt.of(switch (suffix) {
+            case 'k' -> rawSize << 10;
+            case 'm' -> rawSize << 20;
+            default -> rawSize;
+          });
+        } catch (NumberFormatException e) {
+          throw new IllegalArgumentException("Unable to parse %s as size: %s".formatted(v, name), e);
+        }
+      })
+      .orElse(OptionalInt.empty());
+  }
+
   static Optional<Boolean> booleanSetting(String name) {
     return setting(name).map("true"::equalsIgnoreCase);
   }
