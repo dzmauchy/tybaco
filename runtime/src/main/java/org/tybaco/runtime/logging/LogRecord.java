@@ -27,45 +27,15 @@ import org.slf4j.helpers.MessageFormatter;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.*;
 
-record LogRecord(
-  Level level,
-  Thread thread,
-  Instant time,
-  String logger,
-  Marker marker,
-  String msg,
-  Throwable throwable,
-  TreeMap<String, String> mdc,
-  TreeMap<String, LinkedList<String>> stack,
-  String stacktrace
-) {
+record LogRecord(Level level, Thread thread, Instant time, String logger, Marker marker, String msg, Throwable throwable,
+                 TreeMap<String, String> mdc, TreeMap<String, LinkedList<String>> stack, String stacktrace) {
 
-  LogRecord(
-    Level level,
-    Thread thread,
-    Instant time,
-    String logger,
-    Marker marker,
-    String fmt,
-    Object[] args,
-    Throwable error,
-    FastMDCAdapter mdc
-  ) {
-    this(
-      level,
-      thread,
-      time,
-      logger,
-      marker,
-      msg(fmt, args, error),
-      error,
-      mdc.map.get(),
-      mdc.queues.get(),
-      stacktrace(error)
-    );
+  LogRecord(Level level, Thread thread, Instant time, String logger, Marker marker, String fmt, Object[] args, Throwable error, FastMDCAdapter mdc) {
+    this(level, thread, time, logger, marker, msg(fmt, args, error), error, mdc.map.get(), mdc.queues.get(), stacktrace(error));
   }
 
   void writeTo(FileBuffer buffer, HostContext context) {
@@ -82,6 +52,7 @@ record LogRecord(
     writeMessage(buffer);
     writeUser(buffer, context);
     writeLabels(buffer);
+    writeTags(buffer);
     writeError(buffer);
     writePid(buffer, context);
   }
@@ -131,7 +102,44 @@ record LogRecord(
     }
   }
 
+  private void writeTags(FileBuffer buffer) {
+    if (marker != null) {
+      buffer.writeKey("tags");
+      buffer.write(':');
+      buffer.write('[');
+      buffer.writeMarker(marker.getName());
+      for (var it = marker.iterator(); it.hasNext(); ) {
+        writeTags(buffer, it.next());
+      }
+      buffer.write(']');
+      buffer.write(',');
+    }
+  }
+
+  private void writeTags(FileBuffer buffer, Marker marker) {
+    buffer.write(',');
+    buffer.writeMarker(marker.getName());
+    for (var it = marker.iterator(); it.hasNext(); ) {
+      writeTags(buffer, it.next());
+    }
+  }
+
   private void writeError(FileBuffer buffer) {
+    if (throwable != null) {
+      var msg = throwable.getMessage();
+      if (msg != null) {
+        buffer.writePair("error.message", msg);
+        buffer.write(',');
+      }
+      buffer.writeSafePair("error.type", throwable.getClass().getName());
+      buffer.write(',');
+      if (throwable instanceof SQLException e) {
+        buffer.writePair("error.id", e.getErrorCode());
+        buffer.write(',');
+        buffer.writePair("error.code", e.getSQLState());
+        buffer.write(',');
+      }
+    }
     if (stacktrace != null) {
       buffer.writePair("error.stack_trace", stacktrace);
       buffer.write(',');

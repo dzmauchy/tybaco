@@ -40,17 +40,19 @@ class LoggingServiceProviderTest implements Eventually {
       var loggerFactory = provider.getLoggerFactory();
       var logger = loggerFactory.getLogger("abc");
       var mdc = provider.getMDCAdapter();
+      var markers = provider.getMarkerFactory();
       mdc.put("a", "1");
       logger.info("Hello");
       logger.info("Hola");
       logger.info("Hello {}", "World", new IllegalStateException("s", new IllegalArgumentException("abc")));
+      logger.info(markers.getMarker("a"), "Hi");
       try {
         var elements = eventually(() -> {
           var l = objectList(os);
-          assertEquals(3, l.size());
+          assertEquals(4, l.size());
           return l;
         });
-        assertEquals(3, elements.size());
+        assertEquals(4, elements.size());
       } finally {
         os.writeTo(System.out);
       }
