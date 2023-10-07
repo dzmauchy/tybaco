@@ -21,8 +21,11 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
+import javafx.collections.WeakListChangeListener;
 import org.springframework.stereotype.Component;
+import org.tybaco.editors.change.AddListChange;
 import org.tybaco.ui.child.project.classpath.BlockCache;
 import org.tybaco.ui.model.Block;
 import org.tybaco.ui.model.Project;
@@ -30,29 +33,39 @@ import org.tybaco.ui.model.Project;
 @Component
 public class ProjectDiagram extends AbstractProjectDiagram {
 
-  final Project project;
+  public final Project project;
+  public final BlockCache blockCache;
+  private final ListChangeListener<Block> blocksListener = this::onBlocksChange;
 
   public ProjectDiagram(Project project, BlockCache blockCache) {
     this.project = project;
-    project.blocks.addListener((Change<? extends Block> c) -> {
-      while (c.next()) {
-        if (c.wasRemoved()) {
-          for (var removed : c.getRemoved()) {
-            for (var i = blocks.getChildren().iterator(); i.hasNext(); ) {
-              var e = i.next();
-              if (e instanceof DiagramBlock db && db.block == removed) {
-                i.remove();
-                break;
-              }
+    this.blockCache = blockCache;
+    blocksListener.onChanged(new AddListChange<>(project.blocks, 0, project.blocks.size()));
+    initialize();
+  }
+
+  private void initialize() {
+    project.blocks.addListener(new WeakListChangeListener<>(blocksListener));
+  }
+
+  private void onBlocksChange(Change<? extends Block> change) {
+    while (change.next()) {
+      if (change.wasRemoved()) {
+        for (var removed : change.getRemoved()) {
+          for (var i = blocks.getChildren().iterator(); i.hasNext(); ) {
+            var e = i.next();
+            if (e instanceof DiagramBlock db && db.block == removed) {
+              i.remove();
+              break;
             }
           }
-        } else if (c.wasAdded()) {
-          for (var added : c.getAddedSubList()) {
-            var diagramBlock = new DiagramBlock(this, added, blockCache);
-            blocks.getChildren().add(diagramBlock);
-          }
+        }
+      } else if (change.wasAdded()) {
+        for (var added : change.getAddedSubList()) {
+          var diagramBlock = new DiagramBlock(this, added, blockCache);
+          blocks.getChildren().add(diagramBlock);
         }
       }
-    });
+    }
   }
 }
