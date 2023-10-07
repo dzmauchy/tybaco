@@ -21,20 +21,21 @@ package org.tybaco.ui.child.project.blocks;
  * #L%
  */
 
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeTableView;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.Meta;
-import org.tybaco.editors.text.TextSupport;
+import org.tybaco.editors.model.BlockLib;
+import org.tybaco.editors.model.LibBlock;
+import org.tybaco.ui.child.project.classpath.Editors;
+import org.tybaco.ui.child.project.classpath.ProjectClasspath;
+import org.tybaco.ui.child.project.meta.MetaTree;
 
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
 @Scope(SCOPE_PROTOTYPE)
 @Component
-public final class LibraryBlocksTree extends TreeTableView<Meta> implements TextSupport {
+public final class LibraryBlocksTree extends MetaTree<BlockLib> {
 
-  public LibraryBlocksTree() {
-    super(new TreeItem<>());
+  public LibraryBlocksTree(Editors editors, ProjectClasspath classpath) {
+    super(editors.blockLibs, classpath, m -> m instanceof LibBlock);
   }
 }

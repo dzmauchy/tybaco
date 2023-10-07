@@ -27,18 +27,18 @@ import org.springframework.stereotype.Component;
 import org.tybaco.editors.dialog.ModalDialog;
 import org.tybaco.editors.model.LibConst;
 import org.tybaco.editors.text.Texts;
+import org.tybaco.ui.main.MainStage;
 import org.tybaco.ui.model.Constant;
 import org.tybaco.ui.model.Project;
 
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
-import static org.tybaco.ui.main.MainStage.mainStage;
 
 @Scope(SCOPE_PROTOTYPE)
 @Component
 public final class LibraryConstantsWindow extends ModalDialog<Constant> {
 
   public LibraryConstantsWindow(LibraryConstantsTree tree, Project project) {
-    super(Texts.text("Constants"), mainStage(), tree, ButtonType.OK, ButtonType.CLOSE);
+    super(Texts.text("Constants"), MainStage.mainStage(), tree, ButtonType.OK, ButtonType.CLOSE);
     headerTextProperty().bind(text("Select a constant").map(v -> v + ":"));
     withDefaultButton(b -> b.disableProperty().bind(tree.nonLeafSelected));
     setResultConverter(() -> {

@@ -29,12 +29,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.action.Action;
+import org.tybaco.ui.child.project.blocks.LibraryBlocksWindow;
 import org.tybaco.ui.child.project.classpath.Editors;
 import org.tybaco.ui.child.project.constants.LibraryConstantsWindow;
 import org.tybaco.ui.model.Project;
 import org.tybaco.xml.Xml;
-
-import static org.tybaco.logging.Log.info;
 
 @Component
 public class ProjectActions {
@@ -42,10 +41,10 @@ public class ProjectActions {
   @Bean
   @Qualifier("projectAction")
   @Order(1)
-  public Action newBlockAction(Project project, Editors editors) {
+  public Action newBlockAction(ObjectProvider<LibraryBlocksWindow> win, Editors editors) {
     return new Action(null, MaterialDesignB.BABY_BOTTLE, "New block", ev -> {
-      var block = project.newBlock(project.guessBlockName(), "id", 0d, 0d);
-      info(getClass(), "Block {0} created", block.id);
+      var window = win.getObject();
+      window.show();
     }).separatorGroup("block").disabled(editors.blockLibs.isNull());
   }
 
