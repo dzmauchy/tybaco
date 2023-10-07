@@ -40,7 +40,7 @@ public final class LibraryConstantsWindow extends ModalDialog<Constant> {
   public LibraryConstantsWindow(LibraryConstantsTree tree, Project project) {
     super(Texts.text("Constants"), mainStage(), tree, ButtonType.OK, ButtonType.CLOSE);
     headerTextProperty().bind(text("Select a constant").map(v -> v + ":"));
-    withDefaultButton(b -> b.disableProperty().bind(tree.nonConstantSelected));
+    withDefaultButton(b -> b.disableProperty().bind(tree.nonLeafSelected));
     setResultConverter(() -> {
       var c = (LibConst) tree.getSelectionModel().getSelectedItem().getValue();
       return project.newConstant(c.id(), c.id(), c.defaultValue());

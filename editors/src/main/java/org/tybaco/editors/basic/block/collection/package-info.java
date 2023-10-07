@@ -1,4 +1,5 @@
-package org.tybaco.editors.basic;
+@Descriptor(id = "collections", name = "Collections", icon = "eva-list", description = "Collections")
+package org.tybaco.editors.basic.block.collection;
 
 /*-
  * #%L
@@ -21,24 +22,4 @@ package org.tybaco.editors.basic;
  * #L%
  */
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import org.tybaco.editors.model.*;
-
-import java.util.List;
-
-@Component
-@Descriptor(id = "basic", name = "Basic constants", icon = "ion4-ios-baseball", description = "Basic constants")
-public final class BasicConstants implements ConstLib {
-
-  private final List<? extends LibConst> constants;
-
-  public BasicConstants(@Qualifier("basic") List<? extends LibConst> constants) {
-    this.constants = constants;
-  }
-
-  @Override
-  public List<? extends LibConst> children() {
-    return constants;
-  }
-}
+import org.tybaco.editors.model.Descriptor;

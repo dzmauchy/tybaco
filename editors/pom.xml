@@ -12,16 +12,20 @@
   <name>editors</name>
   <artifactId>tybaco-editors</artifactId>
 
-  <properties>
-    <ikonli.version>12.3.1</ikonli.version>
-  </properties>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-framework-bom</artifactId>
         <version>6.0.12</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.kordamp.ikonli</groupId>
+        <artifactId>ikonli-bom</artifactId>
+        <version>12.3.1</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -55,91 +59,76 @@
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-javafx</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-evaicons-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-openiconic-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-octicons-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-materialdesign2-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-unicons-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-ionicons4-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-fontawesome5-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-maki2-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-mapicons-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-foundation-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-elusive-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-bootstrapicons-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-jamicons-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-typicons-pack</artifactId>
-      <version>${ikonli.version}</version>
     </dependency>
 
     <dependency>

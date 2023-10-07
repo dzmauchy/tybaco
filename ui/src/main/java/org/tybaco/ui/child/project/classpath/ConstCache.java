@@ -38,9 +38,9 @@ public final class ConstCache {
         cache.set(Map.of());
         return;
       }
-      var count = nv.stream().mapToInt(l -> l.constants().size()).sum();
+      var count = nv.stream().mapToInt(l -> l.children().size()).sum();
       var map = HashMap.<String, LibConst>newHashMap(count);
-      nv.forEach(l -> l.constants().forEach(c -> map.put(c.id(), c)));
+      nv.forEach(l -> l.children().forEach(c -> map.put(c.id(), c)));
       cache.set(Map.copyOf(map));
     });
   }

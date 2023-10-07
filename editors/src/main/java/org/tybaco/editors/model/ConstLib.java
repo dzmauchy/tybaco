@@ -21,10 +21,9 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-import org.tybaco.editors.Meta;
-
 import java.util.List;
 
-public interface ConstLib extends Meta {
-  List<? extends LibConst> constants();
+public interface ConstLib extends MetaLib {
+  @Override
+  List<? extends LibConst> children();
 }

@@ -1,4 +1,4 @@
-package org.tybaco.editors.basic;
+package org.tybaco.editors.model;
 
 /*-
  * #%L
@@ -21,24 +21,10 @@ package org.tybaco.editors.basic;
  * #L%
  */
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import org.tybaco.editors.model.*;
+import org.tybaco.editors.Meta;
 
 import java.util.List;
 
-@Component
-@Descriptor(id = "basic", name = "Basic constants", icon = "ion4-ios-baseball", description = "Basic constants")
-public final class BasicConstants implements ConstLib {
-
-  private final List<? extends LibConst> constants;
-
-  public BasicConstants(@Qualifier("basic") List<? extends LibConst> constants) {
-    this.constants = constants;
-  }
-
-  @Override
-  public List<? extends LibConst> children() {
-    return constants;
-  }
+public interface MetaLib extends Meta {
+  List<? extends Meta> children();
 }

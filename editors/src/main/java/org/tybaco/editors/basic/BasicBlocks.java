@@ -38,7 +38,7 @@ public final class BasicBlocks implements BlockLib {
   }
 
   @Override
-  public List<? extends LibBlock> blocks() {
+  public List<? extends LibBlock> children() {
     return blocks;
   }
 }

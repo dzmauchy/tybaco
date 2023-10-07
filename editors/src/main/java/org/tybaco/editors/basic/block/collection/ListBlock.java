@@ -1,4 +1,4 @@
-package org.tybaco.editors.basic.block.list;
+package org.tybaco.editors.basic.block.collection;
 
 /*-
  * #%L

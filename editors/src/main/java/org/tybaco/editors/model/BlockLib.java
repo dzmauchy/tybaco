@@ -21,10 +21,9 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-import org.tybaco.editors.Meta;
-
 import java.util.List;
 
-public interface BlockLib extends Meta {
-  List<? extends LibBlock> blocks();
+public interface BlockLib extends MetaLib {
+  @Override
+  List<? extends LibBlock> children();
 }
