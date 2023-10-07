@@ -50,6 +50,8 @@ abstract class AbstractDiagramBlock extends BorderPane {
     this.block = block;
     factory.setFocusTraversable(false);
     title.textProperty().bind(block.name);
+    setLayoutX(block.x.get());
+    setLayoutY(block.y.get());
     block.x.bindBidirectional(layoutXProperty());
     block.y.bindBidirectional(layoutYProperty());
     setTop(title);
