@@ -23,8 +23,7 @@ package org.tybaco.ui.model;
 
 import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.collections.*;
 import org.jetbrains.annotations.NotNull;
 import org.tybaco.editors.value.Value;
 import org.w3c.dom.Element;
@@ -45,7 +44,7 @@ public final class Project {
   public final SimpleStringProperty name;
   public final ObservableList<Block> blocks;
   public final ObservableList<Constant> constants;
-  public final ObservableList<Link> links;
+  public final ObservableSet<Link> links;
   public final ObservableList<Dependency> dependencies;
   private final Observable[] observables;
 
@@ -55,7 +54,7 @@ public final class Project {
     this.name = new SimpleStringProperty(this, "name", name);
     this.constants = Constant.newList(constants);
     this.blocks = Block.newList(blocks);
-    this.links = Link.newList(links);
+    this.links = FXCollections.observableSet(new HashSet<>(links));
     this.dependencies = Dependency.libs(dependencies);
     this.observables = new Observable[] {this.name, this.constants, this.blocks, this.dependencies};
   }

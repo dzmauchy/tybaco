@@ -21,38 +21,34 @@ package org.tybaco.ui.model;
  * #L%
  */
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.w3c.dom.Element;
 
-import java.util.Collection;
 import java.util.NoSuchElementException;
 
 import static org.tybaco.xml.Xml.elementByTag;
 import static org.tybaco.xml.Xml.withChild;
 
-public record Link(Connector out, Connector in, boolean arg) {
+public record Link(Connector out, Connector in, int index) {
 
   public Link(Element element) {
     this(
       new Connector(elementByTag(element, "out").orElseThrow(() -> new NoSuchElementException("out"))),
       new Connector(elementByTag(element, "in").orElseThrow(() -> new NoSuchElementException("in"))),
-      switch (element.getAttribute("arg")) {
-        case "", "true" -> true;
-        default -> false;
-      }
+      Integer.parseInt(element.getAttribute("index"))
     );
   }
 
   public void saveTo(Element element) {
     withChild(element, "out", out::saveTo);
     withChild(element, "in", in::saveTo);
-    if (!arg) {
-      element.setAttribute("arg", "false");
-    }
+    element.setAttribute("index", Integer.toString(index));
   }
 
-  public static ObservableList<Link> newList(Collection<Link> links) {
-    return FXCollections.observableArrayList(links);
+  public boolean inputMatches(Block block, String spot) {
+    return in.blockId() == block.id && in.spot().equals(spot);
+  }
+
+  public boolean outputMatches(Block block, String spot) {
+    return out.blockId() == block.id && out.spot().equals(spot);
   }
 }

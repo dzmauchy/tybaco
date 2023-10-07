@@ -1,8 +1,8 @@
-package org.tybaco.ui.model;
+package org.tybaco.editors.change;
 
 /*-
  * #%L
- * ui
+ * editors
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,16 +21,37 @@ package org.tybaco.ui.model;
  * #L%
  */
 
-import org.w3c.dom.Element;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 
-public record Connector(int blockId, String spot) {
+public final class SetChange<E> extends SetChangeListener.Change<E> {
 
-  public Connector(Element element) {
-    this(Integer.parseInt(element.getAttribute("block")), element.getAttribute("spot"));
+  private final E removed;
+  private final E added;
+
+  public SetChange(ObservableSet<E> set, E removed, E added) {
+    super(set);
+    this.added = added;
+    this.removed = removed;
   }
 
-  public void saveTo(Element element) {
-    element.setAttribute("block", Integer.toString(blockId));
-    element.setAttribute("spot", spot);
+  @Override
+  public boolean wasAdded() {
+    return added != null;
+  }
+
+  @Override
+  public boolean wasRemoved() {
+    return removed != null;
+  }
+
+  @Override
+  public E getElementAdded() {
+    return added;
+  }
+
+  @Override
+  public E getElementRemoved() {
+    return removed;
   }
 }
