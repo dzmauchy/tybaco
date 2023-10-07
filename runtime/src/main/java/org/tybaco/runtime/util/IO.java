@@ -26,6 +26,7 @@ import java.net.URL;
 import java.util.Properties;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.requireNonNull;
 
 public interface IO {
 
@@ -37,5 +38,11 @@ public interface IO {
     } catch (IOException e) {
       throw new UncheckedIOException("Unable to load " + url, e);
     }
+  }
+
+  static Properties loadProperties(String resource) {
+    var classLoader = Thread.currentThread().getContextClassLoader();
+    var url = requireNonNull(classLoader.getResource(resource), () -> "No such resource: " + resource);
+    return loadProperties(url);
   }
 }

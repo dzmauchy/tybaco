@@ -1,8 +1,8 @@
-package org.tybaco.editors.model;
+package org.tybaco.runtime.annotation;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,17 +21,10 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-public record LibInput(String name, String icon, String description, boolean vector, boolean optional) {
+import java.lang.annotation.*;
 
-  public static LibInput required(String name, String icon, String description) {
-    return new LibInput(name, icon, description, false, false);
-  }
-
-  public static LibInput optional(String name, String icon, String description) {
-    return new LibInput(name, icon, description, false, true);
-  }
-
-  public static LibInput vector(String name, String icon, String description) {
-    return new LibInput(name, icon, description, true, true);
-  }
+@Retention(RetentionPolicy.SOURCE)
+@Target({ElementType.LOCAL_VARIABLE})
+public @interface Block {
+  int value();
 }

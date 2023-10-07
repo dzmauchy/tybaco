@@ -1,8 +1,8 @@
-package org.tybaco.editors.model;
+package org.tybaco.runtime.basic.consumer;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,17 +21,16 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-public record LibInput(String name, String icon, String description, boolean vector, boolean optional) {
+import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
-  public static LibInput required(String name, String icon, String description) {
-    return new LibInput(name, icon, description, false, false);
+public interface LongConsumers {
+
+  static <T> Consumer<T> time(LongConsumer consumer) {
+    return e -> consumer.accept(System.currentTimeMillis());
   }
 
-  public static LibInput optional(String name, String icon, String description) {
-    return new LibInput(name, icon, description, false, true);
-  }
-
-  public static LibInput vector(String name, String icon, String description) {
-    return new LibInput(name, icon, description, true, true);
+  static <T> Consumer<T> nanoTime(LongConsumer consumer) {
+    return e -> consumer.accept(System.nanoTime());
   }
 }

@@ -1,8 +1,8 @@
-package org.tybaco.editors.model;
+package org.tybaco.runtime.basic.error;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,17 +21,21 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-public record LibInput(String name, String icon, String description, boolean vector, boolean optional) {
+import org.slf4j.LoggerFactory;
 
-  public static LibInput required(String name, String icon, String description) {
-    return new LibInput(name, icon, description, false, false);
-  }
+import java.util.function.Consumer;
 
-  public static LibInput optional(String name, String icon, String description) {
-    return new LibInput(name, icon, description, false, true);
-  }
+public interface ErrorConsumers {
 
-  public static LibInput vector(String name, String icon, String description) {
-    return new LibInput(name, icon, description, true, true);
+  static Consumer<? super Throwable> logErrorConsumer(String loggerName, String message) {
+    var logger = LoggerFactory.getLogger(loggerName);
+    return e -> {
+      switch (e) {
+        case null -> logger.error(message);
+        case RuntimeException x -> logger.error("Runtime error: {}", message, x);
+        case Exception x -> logger.error("Exception: {}", message, x);
+        case Throwable x -> logger.error("Error: {}", message, x);
+      }
+    };
   }
 }

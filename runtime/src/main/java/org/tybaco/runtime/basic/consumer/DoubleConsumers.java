@@ -1,8 +1,8 @@
-package org.tybaco.editors.model;
+package org.tybaco.runtime.basic.consumer;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,17 +21,20 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-public record LibInput(String name, String icon, String description, boolean vector, boolean optional) {
+import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 
-  public static LibInput required(String name, String icon, String description) {
-    return new LibInput(name, icon, description, false, false);
+public interface DoubleConsumers {
+
+  static <T> Consumer<T> clockSourceMillis(DoubleConsumer consumer) {
+    return v -> consumer.accept(System.currentTimeMillis() / 1e3d);
   }
 
-  public static LibInput optional(String name, String icon, String description) {
-    return new LibInput(name, icon, description, false, true);
+  static <T> Consumer<T> clockSourceNanos(DoubleConsumer consumer) {
+    return v -> consumer.accept(System.nanoTime() / 1e9d);
   }
 
-  public static LibInput vector(String name, String icon, String description) {
-    return new LibInput(name, icon, description, true, true);
+  static DoubleConsumer sin(DoubleConsumer consumer) {
+    return v -> consumer.accept(Math.sin(v));
   }
 }
