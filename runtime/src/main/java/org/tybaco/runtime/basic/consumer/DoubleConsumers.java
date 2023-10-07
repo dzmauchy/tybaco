@@ -37,4 +37,48 @@ public interface DoubleConsumers {
   static DoubleConsumer sin(DoubleConsumer consumer) {
     return v -> consumer.accept(Math.sin(v));
   }
+
+  static DoubleConsumer cos(DoubleConsumer consumer) {
+    return v -> consumer.accept(Math.cos(v));
+  }
+
+  static DoubleConsumer sinh(DoubleConsumer consumer) {
+    return v -> consumer.accept(Math.sinh(v));
+  }
+
+  static DoubleConsumer cosh(DoubleConsumer consumer) {
+    return v -> consumer.accept(Math.cosh(v));
+  }
+
+  static DoubleConsumer tan(DoubleConsumer consumer) {
+    return v -> consumer.accept(Math.tan(v));
+  }
+
+  static DoubleConsumer tanh(DoubleConsumer consumer) {
+    return v -> consumer.accept(Math.tanh(v));
+  }
+
+  static DoubleConsumer acos(DoubleConsumer consumer) {
+    return v -> consumer.accept(Math.acos(v));
+  }
+
+  static DoubleConsumer asin(DoubleConsumer consumer) {
+    return v -> consumer.accept(Math.asin(v));
+  }
+
+  static DoubleConsumer atan(DoubleConsumer consumer) {
+    return v -> consumer.accept(Math.atan(v));
+  }
+
+  static DoubleConsumer signum(DoubleConsumer consumer) {
+    return v -> consumer.accept(Math.signum(v));
+  }
+
+  static DoubleConsumer log(DoubleConsumer consumer) {
+    return v -> consumer.accept(Math.log(v));
+  }
+
+  static DoubleConsumer log10(DoubleConsumer consumer) {
+    return v -> consumer.accept(Math.log10(v));
+  }
 }
