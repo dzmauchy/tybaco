@@ -39,7 +39,7 @@ public final class ListBlock implements LibBlock {
   @Override
   public SeqMap<String, LibInput> inputs() {
     return new SeqMap<>(
-      "elements", LibInput.vector("Elements", "mdi2l-list-status", "Variable number of arguments")
+      "args", LibInput.vector("Elements", "mdi2l-list-status", "Variable number of arguments")
     );
   }
 

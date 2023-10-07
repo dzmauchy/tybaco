@@ -22,16 +22,18 @@ package org.tybaco.ui.child.project.diagram;
  */
 
 import javafx.collections.ListChangeListener.Change;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.tybaco.ui.child.project.classpath.BlockCache;
 import org.tybaco.ui.model.Block;
 import org.tybaco.ui.model.Project;
 
 @Component
 public class ProjectDiagram extends AbstractProjectDiagram {
 
-  @Autowired
-  public void initBlocks(Project project) {
+  final Project project;
+
+  public ProjectDiagram(Project project, BlockCache blockCache) {
+    this.project = project;
     project.blocks.addListener((Change<? extends Block> c) -> {
       while (c.next()) {
         if (c.wasRemoved()) {
@@ -46,7 +48,7 @@ public class ProjectDiagram extends AbstractProjectDiagram {
           }
         } else if (c.wasAdded()) {
           for (var added : c.getAddedSubList()) {
-            var diagramBlock = new DiagramBlock(added);
+            var diagramBlock = new DiagramBlock(this, added, blockCache);
             blocks.getChildren().add(diagramBlock);
           }
         }

@@ -21,49 +21,62 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import org.tybaco.ui.model.Block;
+
+import static javafx.scene.layout.BorderStrokeStyle.SOLID;
+import static javafx.scene.paint.Color.WHITE;
 
 abstract class AbstractDiagramBlock extends BorderPane {
 
+  protected final Block block;
   protected final Label title = new Label();
-  protected final Label factory = new Label();
-  protected final Label value = new Label();
-  protected final VBox args = new VBox();
-  protected final VBox outputs = new VBox();
-  protected final HBox inputs = new HBox();
-  protected final BorderPane content = new BorderPane(value, factory, outputs, inputs, args);
+  protected final Button factory = new Button();
+  protected final VBox inputs = new VBox(2);
+  protected final VBox outputs = new VBox(2);
+  protected final BorderPane content = new BorderPane(factory, null, outputs, null, inputs);
 
   protected double bx;
   protected double by;
 
-  AbstractDiagramBlock() {
+  AbstractDiagramBlock(Block block) {
+    this.block = block;
+    factory.setFocusTraversable(false);
+    title.textProperty().bind(block.name);
+    block.x.bindBidirectional(layoutXProperty());
+    block.y.bindBidirectional(layoutYProperty());
     setTop(title);
     setCenter(content);
-    getStyleClass().add("diagram-block");
-    title.getStyleClass().add("ty-title");
-    value.getStyleClass().add("ty-block-value");
-    factory.getStyleClass().add("ty-block-factory");
-    content.getStyleClass().add("ty-content");
-    outputs.getStyleClass().add("ty-outputs");
-    inputs.getStyleClass().add("ty-inputs");
-    args.getStyleClass().add("ty-args");
+    inputs.setAlignment(Pos.CENTER);
+    outputs.setAlignment(Pos.CENTER);
+    inputs.setFillWidth(true);
+    outputs.setFillWidth(true);
+    setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(5d), new BorderWidths(2d))));
+    title.setBorder(new Border(new BorderStroke(WHITE, SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 2, 0))));
+    title.setPadding(new Insets(5d));
+    title.setAlignment(Pos.CENTER);
+    title.setStyle("-fx-background-color: linear-gradient(to top, black, transparent);");
+    title.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
     title.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-    factory.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-    value.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     addEventHandler(MouseEvent.MOUSE_MOVED, this::onMouseMoved);
     addEventHandler(MouseEvent.MOUSE_DRAGGED, this::onMouseDragged);
   }
 
   protected void onMouseMoved(MouseEvent event) {
-    bx = -event.getX();
-    by = -event.getY();
+    bx = event.getX();
+    by = event.getY();
   }
 
   protected void onMouseDragged(MouseEvent event) {
     event.consume();
-    setLayoutX(bx + getLayoutX() + event.getX());
-    setLayoutY(by + getLayoutY() + event.getY());
+    setLayoutX(getLayoutX() + event.getX() - bx);
+    setLayoutY(getLayoutY() + event.getY() - by);
   }
 }

@@ -21,16 +21,41 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.beans.*;
+import org.tybaco.editors.icon.Icons;
+import org.tybaco.ui.child.project.classpath.BlockCache;
 import org.tybaco.ui.model.Block;
 
-public class DiagramBlock extends AbstractDiagramBlock {
+public final class DiagramBlock extends AbstractDiagramBlock {
 
-  final Block block;
+  final ProjectDiagram diagram;
+  private final InvalidationListener listener = this::update;
 
-  public DiagramBlock(Block block) {
-    this.block = block;
-    title.textProperty().bind(block.name);
-    block.x.bindBidirectional(layoutXProperty());
-    block.y.bindBidirectional(layoutYProperty());
+  public DiagramBlock(ProjectDiagram diagram, Block block, BlockCache cache) {
+    super(block);
+    this.diagram = diagram;
+    update(cache);
+    initialize(cache);
+  }
+
+  private void initialize(BlockCache cache) {
+    cache.addListener(new WeakInvalidationListener(listener));
+  }
+
+  private void update(Observable observable) {
+    var cache = (BlockCache) observable;
+    inputs.getChildren().clear();
+    outputs.getChildren().clear();
+    cache.blockById(block.factoryId).ifPresent(b -> {
+      factory.setGraphic(Icons.icon(b.icon(), 32));
+      b.inputs().forEach((name, i) -> {
+        var input = new DiagramBlockInput(this, i, name);
+        inputs.getChildren().add(input);
+      });
+      b.outputs().forEach((name, o) -> {
+        var output = new DiagramBlockOutput(this, o, name);
+        outputs.getChildren().add(output);
+      });
+    });
   }
 }

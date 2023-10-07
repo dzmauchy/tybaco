@@ -1,3 +1,5 @@
+package org.tybaco.ui.child.project.diagram;
+
 /*-
  * #%L
  * ui
@@ -19,13 +21,23 @@
  * #L%
  */
 
-.root {
-    -fx-base: #505050;
-    -fx-background: -fx-base;
-    -fx-control-inner-background: derive(-fx-base,20%);
-    -fx-control-inner-background-alt: derive(-fx-base,15%);
-}
+import javafx.scene.control.Button;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
+import org.tybaco.editors.model.LibInput;
 
-.tree-table-row-cell:odd {
-    -fx-background: -fx-control-inner-background-alt;
+public final class DiagramBlockInput extends BorderPane {
+
+  final DiagramBlock block;
+  final LibInput input;
+  private final VBox vectorInputs;
+  private final Button inputButton;
+
+  public DiagramBlockInput(DiagramBlock block, LibInput input, String name) {
+    this.block = block;
+    this.input = input;
+    setTop(inputButton = new Button(name));
+    inputButton.setFocusTraversable(false);
+    setCenter(vectorInputs = new VBox());
+  }
 }

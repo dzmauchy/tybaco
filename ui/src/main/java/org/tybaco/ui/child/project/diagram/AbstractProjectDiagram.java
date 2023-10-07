@@ -22,7 +22,6 @@ package org.tybaco.ui.child.project.diagram;
  */
 
 import jakarta.annotation.PostConstruct;
-import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;

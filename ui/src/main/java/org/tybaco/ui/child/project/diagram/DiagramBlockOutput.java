@@ -1,3 +1,5 @@
+package org.tybaco.ui.child.project.diagram;
+
 /*-
  * #%L
  * ui
@@ -19,13 +21,18 @@
  * #L%
  */
 
-.root {
-    -fx-base: #505050;
-    -fx-background: -fx-base;
-    -fx-control-inner-background: derive(-fx-base,20%);
-    -fx-control-inner-background-alt: derive(-fx-base,15%);
-}
+import javafx.scene.control.ToggleButton;
+import org.tybaco.editors.model.LibOutput;
 
-.tree-table-row-cell:odd {
-    -fx-background: -fx-control-inner-background-alt;
+public final class DiagramBlockOutput extends ToggleButton {
+
+  private final DiagramBlock block;
+  private final LibOutput output;
+
+  public DiagramBlockOutput(DiagramBlock block, LibOutput output, String name) {
+    super(name);
+    setFocusTraversable(false);
+    this.block = block;
+    this.output = output;
+  }
 }

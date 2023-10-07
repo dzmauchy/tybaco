@@ -43,7 +43,6 @@ import java.util.function.Consumer;
 
 import static javafx.beans.binding.Bindings.createObjectBinding;
 
-@SuppressWarnings("DuplicatedCode")
 public final class Action {
 
   private static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
@@ -61,6 +60,8 @@ public final class Action {
   private final ClassLoader classLoader;
   private String separatorGroup = "";
   private boolean selectionEnabled;
+  private int menuIconSize = 20;
+  private int buttonIconSize = 24;
 
   public Action() {
     classLoader = STACK_WALKER.getCallerClass().getClassLoader();
@@ -252,6 +253,16 @@ public final class Action {
     return disabled.isBound();
   }
 
+  public Action buttonIconSize(int size) {
+    buttonIconSize = size;
+    return this;
+  }
+
+  public Action menuIconSize(int size) {
+    menuIconSize = size;
+    return this;
+  }
+
   public ObjectBinding<Node> graphic(int size) {
     return Bindings.createObjectBinding(() -> Icons.icon(classLoader, icon.get(), size), icon);
   }
@@ -266,9 +277,9 @@ public final class Action {
   @SafeVarargs
   public final Menu toMenu(Consumer<? super Menu>... consumers) {
     var menu = new Menu();
-    menu.textProperty().bind(text);
     menu.disableProperty().bind(disabled);
-    menu.graphicProperty().bind(graphic(20));
+    menu.textProperty().bind(text);
+    menu.graphicProperty().bind(graphic(menuIconSize));
     menu.acceleratorProperty().bind(accelerator);
     menu.onActionProperty().bind(handler);
     menu.setUserData(new ActionUserData());
@@ -283,7 +294,7 @@ public final class Action {
     var menuItem = new MenuItem();
     menuItem.textProperty().bind(text);
     menuItem.disableProperty().bind(disabled);
-    menuItem.graphicProperty().bind(graphic(20));
+    menuItem.graphicProperty().bind(graphic(menuIconSize));
     menuItem.acceleratorProperty().bind(accelerator);
     menuItem.onActionProperty().bind(handler);
     menuItem.setUserData(new ActionUserData());
@@ -296,11 +307,11 @@ public final class Action {
   @SafeVarargs
   public final CheckMenuItem toCheckMenuItem(Consumer<? super CheckMenuItem>... consumers) {
     var menuItem = new CheckMenuItem();
-    menuItem.textProperty().bind(text);
     menuItem.disableProperty().bind(disabled);
-    menuItem.graphicProperty().bind(graphic(20));
-    menuItem.acceleratorProperty().bind(accelerator);
+    menuItem.graphicProperty().bind(graphic(menuIconSize));
+    menuItem.textProperty().bind(text);
     menuItem.onActionProperty().bind(handler);
+    menuItem.acceleratorProperty().bind(accelerator);
     menuItem.selectedProperty().bindBidirectional(selected);
     menuItem.setUserData(new ActionUserData());
     for (var consumer : consumers) {
@@ -314,7 +325,7 @@ public final class Action {
     var menuItem = new RadioMenuItem();
     menuItem.textProperty().bind(text);
     menuItem.disableProperty().bind(disabled);
-    menuItem.graphicProperty().bind(graphic(20));
+    menuItem.graphicProperty().bind(graphic(menuIconSize));
     menuItem.acceleratorProperty().bind(accelerator);
     menuItem.onActionProperty().bind(handler);
     menuItem.selectedProperty().bindBidirectional(selected);
@@ -328,11 +339,11 @@ public final class Action {
   @SafeVarargs
   public final Button toButton(Consumer<? super Button>... consumers) {
     var button = new Button();
-    button.textProperty().bind(text);
     button.disableProperty().bind(disabled);
-    button.graphicProperty().bind(graphic(24));
+    button.graphicProperty().bind(graphic(buttonIconSize));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
+    button.textProperty().bind(text);
     button.setUserData(new ActionUserData());
     for (var consumer : consumers) {
       consumer.accept(button);
@@ -346,7 +357,7 @@ public final class Action {
     button.selectedProperty().bindBidirectional(selected);
     button.textProperty().bind(text);
     button.disableProperty().bind(disabled);
-    button.graphicProperty().bind(graphic(24));
+    button.graphicProperty().bind(graphic(buttonIconSize));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
     button.setUserData(new ActionUserData());
@@ -362,7 +373,7 @@ public final class Action {
     button.selectedProperty().bindBidirectional(selected);
     button.disableProperty().bind(disabled);
     button.textProperty().bind(text);
-    button.graphicProperty().bind(graphic(24));
+    button.graphicProperty().bind(graphic(buttonIconSize));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
     button.setUserData(new ActionUserData());
@@ -377,10 +388,14 @@ public final class Action {
     var button = new MenuButton();
     button.textProperty().bind(text);
     button.disableProperty().bind(disabled);
-    button.graphicProperty().bind(graphic(24));
+    button.graphicProperty().bind(graphic(buttonIconSize));
     button.onActionProperty().bind(handler);
     button.tooltipProperty().bind(tooltip());
-    button.setUserData(new ActionUserData());
+    var userData = new ActionUserData();
+    button.setUserData(userData);
+    userData.invalidationListener = o -> button.getItems().setAll(groupItems());
+    actions.addListener(new WeakInvalidationListener(userData.invalidationListener));
+    userData.invalidationListener.invalidated(actions);
     for (var consumer : consumers) {
       consumer.accept(button);
     }
@@ -388,11 +403,21 @@ public final class Action {
   }
 
   @SafeVarargs
+  public final ContextMenu toContextMenu(Consumer<? super ContextMenu>... consumers) {
+    var contextMenu = new ContextMenu();
+    contextMenu.getItems().addAll(groupItems());
+    for (var consumer : consumers) {
+      consumer.accept(contextMenu);
+    }
+    return contextMenu;
+  }
+
+  @SafeVarargs
   public final Tab toTab(Consumer<? super Tab>... consumers) {
     var tab = new Tab();
     tab.textProperty().bind(text);
     tab.disableProperty().bind(disabled);
-    tab.graphicProperty().bind(graphic(20));
+    tab.graphicProperty().bind(graphic(menuIconSize));
     tab.tooltipProperty().bind(tooltip());
     tab.setUserData(new ActionUserData());
     for (var consumer : consumers) {
@@ -407,7 +432,6 @@ public final class Action {
     return menu instanceof Menu m ? m : toMenu(consumers);
   }
 
-  @SuppressWarnings("unchecked")
   @SafeVarargs
   public final MenuItem toSmartMenuItem(Consumer<? super MenuItem>... consumers) {
     if (selectionEnabled) {
@@ -420,29 +444,7 @@ public final class Action {
       if (actions.isBound()) {
         var menu = toMenu(consumers);
         var data = (ActionUserData) menu.getUserData();
-        data.invalidationListener = o -> {
-          var map = new TreeMap<String, LinkedList<MenuItem>>();
-          var groups = new TreeMap<String, ToggleGroup>();
-          var count = 0;
-          for (var action : (Collection<Action>) o) {
-            var menuItem = action.toSmartMenuItem(consumers);
-            if (menuItem instanceof RadioMenuItem i) {
-              i.setToggleGroup(groups.computeIfAbsent(action.group.get(), g -> new ToggleGroup()));
-            }
-            map.computeIfAbsent(action.separatorGroup, v -> new LinkedList<>()).addLast(menuItem);
-            count++;
-          }
-          var newItems = new ArrayList<MenuItem>(count + map.size());
-          var lastSeparatorGroup = map.pollFirstEntry();
-          if (lastSeparatorGroup != null) {
-            newItems.addAll(lastSeparatorGroup.getValue());
-            map.forEach((k, v) -> {
-              newItems.add(new SeparatorMenuItem());
-              newItems.addAll(v);
-            });
-            menu.getItems().setAll(newItems);
-          }
-        };
+        data.invalidationListener = o -> menu.getItems().setAll(groupItems(consumers));
         actions.addListener(new WeakInvalidationListener(data.invalidationListener));
         data.invalidationListener.invalidated(actions);
         return menu;
@@ -451,6 +453,33 @@ public final class Action {
       } else {
         return new SeparatorMenuItem();
       }
+    }
+  }
+
+  @SafeVarargs
+  private List<MenuItem> groupItems(Consumer<? super MenuItem>... consumers) {
+    var map = new TreeMap<String, LinkedList<MenuItem>>();
+    var groups = new TreeMap<String, ToggleGroup>();
+    var count = 0;
+    for (var action : actions) {
+      var menuItem = action.toSmartMenuItem(consumers);
+      if (menuItem instanceof RadioMenuItem i) {
+        i.setToggleGroup(groups.computeIfAbsent(action.group.get(), g -> new ToggleGroup()));
+      }
+      map.computeIfAbsent(action.separatorGroup, v -> new LinkedList<>()).addLast(menuItem);
+      count++;
+    }
+    var newItems = new ArrayList<MenuItem>(count + map.size());
+    var lastSeparatorGroup = map.pollFirstEntry();
+    if (lastSeparatorGroup != null) {
+      newItems.addAll(lastSeparatorGroup.getValue());
+      map.forEach((k, v) -> {
+        newItems.add(new SeparatorMenuItem());
+        newItems.addAll(v);
+      });
+      return newItems;
+    } else {
+      return List.of();
     }
   }
 
