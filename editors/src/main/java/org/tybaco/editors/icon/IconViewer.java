@@ -10,12 +10,12 @@ package org.tybaco.editors.icon;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -29,8 +29,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldListCell;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.DataFormat;
+import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
@@ -58,20 +57,35 @@ public class IconViewer extends BorderPane {
   private ListView<Ikon> listView(ObservableList<Ikon> icons) {
     var listView = new ListView<Ikon>();
     listView.setItems(icons);
+    var copyCombinations = List.of(
+      new KeyCodeCombination(KeyCode.COPY),
+      new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN),
+      new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN)
+    );
     listView.setCellFactory(param -> new TextFieldListCell<>() {
       @Override
       public void updateItem(Ikon item, boolean empty) {
         super.updateItem(item, empty);
         if (!empty) {
-          setText(item.getDescription());
-          var icon = new FontIcon(item);
-          icon.setIconSize(32);
-          icon.setIconColor(Color.WHITE);
-          setGraphic(icon);
+          setText((getIndex() + 1) + ": " + item.getDescription());
+          setGraphic(FontIcon.of(item, 32, Color.WHITE));
         }
       }
     });
+    listView.setOnKeyPressed(e -> {
+      if (copyCombinations.stream().anyMatch(c -> c.match(e))) {
+        copy(listView);
+      }
+    });
     return listView;
+  }
+
+  private void copy(ListView<Ikon> view) {
+    var item = view.getSelectionModel().getSelectedItem();
+    if (item != null) {
+      var clipboard = Clipboard.getSystemClipboard();
+      clipboard.setContent(Map.of(DataFormat.PLAIN_TEXT, item.getDescription()));
+    }
   }
 
   private HBox buttons(ListView<Ikon> view) {
@@ -110,13 +124,7 @@ public class IconViewer extends BorderPane {
       }
       view.getSelectionModel().clearSelection();
     });
-    copy.setOnAction(e -> {
-      var item = view.getSelectionModel().getSelectedItem();
-      if (item != null) {
-        var clipboard = Clipboard.getSystemClipboard();
-        clipboard.setContent(Map.of(DataFormat.PLAIN_TEXT, item.getDescription()));
-      }
-    });
+    copy.setOnAction(e -> copy(view));
     var box = new HBox(5,
       textField,
       new Separator(Orientation.VERTICAL),
@@ -129,19 +137,14 @@ public class IconViewer extends BorderPane {
   }
 
   private static List<Ikon> loadIcons() {
-    var list = new ArrayList<Ikon>();
-    var loader = ServiceLoader.load(IkonProvider.class);
-    for (var provider : loader) {
-      var values = provider.getIkon().getEnumConstants();
-      if (values != null) {
-        for (var v : values) {
-          if (v instanceof Ikon ikon) {
-            list.add(ikon);
-          }
-        }
-      }
-    }
-    return list;
+    return ServiceLoader.load(IkonProvider.class).stream().parallel()
+      .map(ServiceLoader.Provider::get)
+      .map(c -> c.getIkon().getEnumConstants())
+      .filter(Objects::nonNull)
+      .flatMap(Arrays::stream)
+      .filter(Ikon.class::isInstance)
+      .map(Ikon.class::cast)
+      .toList();
   }
 
   public static void show() {
