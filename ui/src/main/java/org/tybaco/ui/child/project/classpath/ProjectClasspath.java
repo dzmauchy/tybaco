@@ -55,7 +55,7 @@ public final class ProjectClasspath extends InvalidationListeners {
   private final ThreadPoolExecutor threads;
 
   private volatile ArtifactClassPath currentClassPath;
-  private Set<Dependency> oldDependencies;
+  private volatile Set<Dependency> deps;
 
   public ProjectClasspath(Project project, ArtifactResolver artifactResolver) {
     this.project = project;
@@ -71,8 +71,8 @@ public final class ProjectClasspath extends InvalidationListeners {
       parkNanos(MILLISECONDS.toNanos(100L));
       Platform.runLater(() -> {
         var newDeps = Set.copyOf(project.dependencies);
-        if (!newDeps.equals(oldDependencies)) {
-          oldDependencies = newDeps;
+        if (!newDeps.equals(deps)) {
+          deps = newDeps;
           threads.execute(this::update);
         }
       });
@@ -81,7 +81,7 @@ public final class ProjectClasspath extends InvalidationListeners {
 
   private void update() {
     try {
-      var cp = requireNonNull(artifactResolver.resolve(project.id, project.dependencies));
+      var cp = requireNonNull(artifactResolver.resolve(project.id, deps));
       currentClassPath = cp;
       Platform.runLater(() -> classPath.set(cp));
     } catch (Throwable e) {
