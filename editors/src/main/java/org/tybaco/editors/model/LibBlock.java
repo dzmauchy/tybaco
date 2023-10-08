@@ -23,13 +23,33 @@ package org.tybaco.editors.model;
 
 import com.github.javaparser.ast.expr.Expression;
 import org.tybaco.editors.Meta;
+import org.tybaco.editors.annotation.Input;
+import org.tybaco.editors.annotation.Output;
 import org.tybaco.editors.util.SeqMap;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public interface LibBlock extends Meta {
-  SeqMap<String, LibInput> inputs();
-  SeqMap<String, LibOutput> outputs();
+
+  default SeqMap<String, LibInput> inputs() {
+    var annotations = getClass().getAnnotationsByType(Input.class);
+    var map = LinkedHashMap.<String, LibInput>newLinkedHashMap(annotations.length);
+    for (var a : annotations) {
+      var input = new LibInput(a.name(), a.icon(), a.description(), a.vector(), a.defaultValue(), a.type());
+      map.put(a.id(), input);
+    }
+    return new SeqMap<>(map);
+  }
+
+  default SeqMap<String, LibOutput> outputs() {
+    var annotations = getClass().getAnnotationsByType(Output.class);
+    var map = LinkedHashMap.<String, LibOutput>newLinkedHashMap(annotations.length);
+    for (var a : annotations) {
+      var output = new LibOutput(a.name(), a.icon(), a.description());
+      map.put(a.id(), output);
+    }
+    return new SeqMap<>(map);
+  }
+
   BlockResult build(String var, Map<String, List<Expression>> inputs);
 }

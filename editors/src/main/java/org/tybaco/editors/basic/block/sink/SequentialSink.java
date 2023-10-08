@@ -24,36 +24,54 @@ package org.tybaco.editors.basic.block.sink;
 import com.github.javaparser.ast.expr.Expression;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.tybaco.editors.annotation.Input;
+import org.tybaco.editors.annotation.Output;
 import org.tybaco.editors.model.*;
-import org.tybaco.editors.util.SeqMap;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.tybaco.editors.model.LibInput.optional;
-import static org.tybaco.editors.model.LibInput.required;
-
 @Qualifier("basic")
 @Component
-@Descriptor(id = "SeqSink", name = "Sink of values", icon = "mdal-confirmation_number", description = "Simple sequential sink of values")
+@Descriptor(
+  id = "SeqSink",
+  name = "Sink of values",
+  icon = "mdal-confirmation_number",
+  description = "Simple sequential sink of values"
+)
+@Input(
+  id = "threadFactory",
+  name = "Thread factory",
+  icon = "ri-5star-shadow",
+  description = "A thread factory used to create the main thread of the sink",
+  defaultValue = "$defaultThreadFactory"
+)
+@Input(
+  id = "source",
+  name = "Source",
+  icon = "ri-dharma-wheel",
+  description = "A key-value source"
+)
+@Input(
+  id = "consumer",
+  name = "Consumer",
+  icon = "ri-react",
+  description = "A consumer to consume the each value from the source"
+)
+@Input(
+  id = "onError",
+  name = "Error handler",
+  icon = "ri-sdg",
+  description = "Error handler used to handle each error",
+  defaultValue = "$defaultErrorHandler"
+)
+@Output(
+  id = "self",
+  name = "This sink",
+  icon = "mdal-alternate_email",
+  description = "Resulting sink"
+)
 public final class SequentialSink implements LibBlock {
-
-  @Override
-  public SeqMap<String, LibInput> inputs() {
-    return new SeqMap<>(
-      "tf", optional("Thread factory", "ri-5star-shadow", "A thread factory used to create the main thread of the sink", "$defaultThreadFactory"),
-      "source", required("Source", "ri-dharma-wheel", "A key-value source"),
-      "consumer", required("Consumer", "ri-react", "A consumer to consume the each key-value pair of the source"),
-      "onError", optional("Error handler", "ri-sdg", "Error handler used to handle each error", "$defaultErrorHandler")
-    );
-  }
-
-  @Override
-  public SeqMap<String, LibOutput> outputs() {
-    return new SeqMap<>(
-      "self", new LibOutput("Self", "mdal-alternate_email", "A resulting sink")
-    );
-  }
 
   @Override
   public BlockResult build(String var, Map<String, List<Expression>> inputs) {

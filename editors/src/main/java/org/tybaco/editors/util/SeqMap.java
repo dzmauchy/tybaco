@@ -28,18 +28,20 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.*;
 
-import static java.util.Arrays.stream;
 import static java.util.Map.entry;
-import static java.util.Spliterator.*;
-import static java.util.stream.Collectors.joining;
 
 public final class SeqMap<K, V> implements Iterable<Entry<@NotNull K, @NotNull V>> {
 
-  private final Entry<@NotNull K, @NotNull V>[] entries;
+  private final LinkedHashMap<@NotNull K, @NotNull V> entries;
 
   @SafeVarargs
   public SeqMap(@NotNull Entry<@NotNull K, @NotNull V>... entries) {
-    this.entries = entries;
+    this.entries = LinkedHashMap.newLinkedHashMap(entries.length);
+    for (var entry : entries) this.entries.put(entry.getKey(), entry.getValue());
+  }
+
+  public SeqMap(@NotNull LinkedHashMap<@NotNull K, @NotNull V> map) {
+    this.entries = map;
   }
 
   public SeqMap(@NotNull K k1, @NotNull V v1) {
@@ -84,17 +86,16 @@ public final class SeqMap<K, V> implements Iterable<Entry<@NotNull K, @NotNull V
 
   @Nullable
   public V get(@NotNull K key) {
-    return get(key, null);
+    return entries.get(key);
   }
 
-  @Nullable
-  public V get(@NotNull K key, @Nullable V defaultValue) {
-    for (var e : entries) {
-      if (key.equals(e.getKey())) {
-        return e.getValue();
-      }
-    }
-    return defaultValue;
+  @NotNull
+  public V get(@NotNull K key, @NotNull V defaultValue) {
+    return entries.getOrDefault(key, defaultValue);
+  }
+
+  public int size() {
+    return entries.size();
   }
 
   @NotNull
@@ -111,47 +112,45 @@ public final class SeqMap<K, V> implements Iterable<Entry<@NotNull K, @NotNull V
   }
 
   public void forEach(BiConsumer<? super @NotNull K, ? super @NotNull V> consumer) {
-    for (var e : entries) {
-      consumer.accept(e.getKey(), e.getValue());
-    }
+    entries.forEach(consumer);
   }
 
   @Override
   public void forEach(@NotNull Consumer<? super Entry<@NotNull K, @NotNull V>> action) {
-    for (var e : entries) {
-      action.accept(e);
-    }
+    entries.forEach((k, v) -> action.accept(Map.entry(k, v)));
   }
 
   @NotNull
   @Override
   public Iterator<@NotNull Entry<@NotNull K, @NotNull V>> iterator() {
-    return new Iterator<>() {
-
-      private int i = -1;
-
-      @Override
-      public boolean hasNext() {
-        return i + 1 < entries.length;
-      }
-
-      @NotNull
-      @Override
-      public Entry<@NotNull K, @NotNull V> next() {
-        return entries[++i];
-      }
-    };
+    return Collections.unmodifiableMap(entries).entrySet().iterator();
   }
 
   @NotNull
   @Override
   public Spliterator<@NotNull Entry<@NotNull K, @NotNull V>> spliterator() {
-    return Spliterators.spliterator(entries, DISTINCT | IMMUTABLE | NONNULL);
+    return entries.entrySet().spliterator();
+  }
+
+  @NotNull
+  public SeqMap<@NotNull K, @NotNull V> concat(SeqMap<@NotNull K, @NotNull V> map) {
+    var m = LinkedHashMap.<K, V>newLinkedHashMap(map.entries.size() + entries.size());
+    m.putAll(entries);
+    m.putAll(map.entries);
+    return new SeqMap<>(m);
+  }
+
+  @NotNull
+  public SeqMap<@NotNull K, @NotNull V> concat(LinkedHashMap<@NotNull K, @NotNull V> map) {
+    var m = LinkedHashMap.<K, V>newLinkedHashMap(map.size() + entries.size());
+    m.putAll(entries);
+    m.putAll(map);
+    return new SeqMap<>(m);
   }
 
   @NotNull
   @Override
   public String toString() {
-    return stream(entries).map(Entry::toString).collect(joining(",", "{", "}"));
+    return entries.toString();
   }
 }

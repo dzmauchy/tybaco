@@ -23,29 +23,33 @@ package org.tybaco.editors.model;
 
 import org.tybaco.editors.Meta;
 
-public record LibInput(String name, String icon, String description, boolean vector, boolean optional, String type) implements Meta {
+public record LibInput(String name, String icon, String description, boolean vector, String defaultValue, String type) implements Meta {
+
+  public boolean isOptional() {
+    return !defaultValue.isEmpty();
+  }
 
   public static LibInput required(String name, String icon, String description) {
-    return new LibInput(name, icon, description, false, false, "");
+    return new LibInput(name, icon, description, false, "", "");
   }
 
   public static LibInput required(String name, String icon, String description, String type) {
-    return new LibInput(name, icon, description, false, false, type);
+    return new LibInput(name, icon, description, false, "", type);
   }
 
   public static LibInput optional(String name, String icon, String description, String defaultValue) {
-    return new LibInput(name, icon, description + "\n\nDefault value: " + defaultValue, false, true, "");
+    return new LibInput(name, icon, description, false, defaultValue, "");
   }
 
   public static LibInput optional(String name, String icon, String description, String type, String defaultValue) {
-    return new LibInput(name, icon, description + "\n\nDefault value: " + defaultValue, false, true, type);
+    return new LibInput(name, icon, description, false, defaultValue, type);
   }
 
-  public static LibInput vector(String name, String icon, String description) {
-    return new LibInput(name, icon, description, true, true, "");
+  public static LibInput vector(String name, String icon, String description, String defaultValue) {
+    return new LibInput(name, icon, description, true, defaultValue, "");
   }
 
-  public static LibInput vector(String name, String icon, String description, String type) {
-    return new LibInput(name, icon, description, true, true, type);
+  public static LibInput vector(String name, String icon, String description, String defaultValue, String type) {
+    return new LibInput(name, icon, description, true, defaultValue, type);
   }
 }
