@@ -56,7 +56,7 @@ public abstract class MetaTree<L extends MetaLib> extends TreeTableView<Meta> im
       },
       getSelectionModel().selectedItemProperty()
     );
-    this.classLoader = classpath.classPath.get().classLoader;
+    this.classLoader = classpath.getClassLoader();
     this.libs = libs;
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     setPadding(Insets.EMPTY);

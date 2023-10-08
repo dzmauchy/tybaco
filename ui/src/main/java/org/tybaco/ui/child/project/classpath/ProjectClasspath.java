@@ -21,12 +21,12 @@ package org.tybaco.ui.child.project.classpath;
  * #L%
  */
 
-import jakarta.annotation.PostConstruct;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.SimpleObjectProperty;
 import org.springframework.stereotype.Component;
+import org.tybaco.editors.util.InvalidationListeners;
 import org.tybaco.ui.lib.repo.ArtifactClassPath;
 import org.tybaco.ui.lib.repo.ArtifactResolver;
 import org.tybaco.ui.model.Dependency;
@@ -41,9 +41,9 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.tybaco.logging.Log.*;
 
 @Component
-public final class ProjectClasspath implements AutoCloseable {
+public final class ProjectClasspath extends InvalidationListeners implements AutoCloseable {
 
-  public final SimpleObjectProperty<ArtifactClassPath> classPath = new SimpleObjectProperty<>(this, "classPath");
+  private final SimpleObjectProperty<ArtifactClassPath> classPath = new SimpleObjectProperty<>(this, "classPath");
   private final Project project;
   private final ArtifactResolver artifactResolver;
   private final InvalidationListener libsInvalidationListener;
@@ -59,11 +59,8 @@ public final class ProjectClasspath implements AutoCloseable {
     this.libs = Set.copyOf(project.dependencies);
     this.threads = new ThreadPoolExecutor(1, 1, 1L, MINUTES, new LinkedTransferQueue<>(), Thread.ofVirtual()::unstarted);
     this.threads.allowCoreThreadTimeOut(true);
-  }
-
-  @PostConstruct
-  public void init() {
-    project.dependencies.addListener(libsInvalidationListener);
+    this.classPath.addListener(o -> fire());
+    this.project.dependencies.addListener(libsInvalidationListener);
   }
 
   private void onChangeLibs(Observable observable) {
@@ -87,6 +84,11 @@ public final class ProjectClasspath implements AutoCloseable {
     } catch (Throwable e) {
       warn(getClass(), "Unable to set classpath", e);
     }
+  }
+
+  public ClassLoader getClassLoader() {
+    var cp = classPath.get();
+    return cp == null ? Thread.currentThread().getContextClassLoader() : cp.classLoader;
   }
 
   @Override

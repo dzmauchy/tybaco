@@ -40,10 +40,10 @@ public final class Editors {
   public final SimpleObjectProperty<List<BlockLib>> blockLibs = new SimpleObjectProperty<>(this, "blockLibs");
 
   public Editors(ProjectClasspath classpath) {
-    classpath.classPath.addListener((o, ov, nv) -> {
+    classpath.addListener(o -> {
       constLibs.set(null);
       blockLibs.set(null);
-      startVirtualThread(() -> update(nv.classLoader));
+      startVirtualThread(() -> update(classpath.getClassLoader()));
     });
   }
 
