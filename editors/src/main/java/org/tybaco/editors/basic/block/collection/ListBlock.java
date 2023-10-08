@@ -46,7 +46,7 @@ public final class ListBlock implements LibBlock {
   @Override
   public SeqMap<String, LibOutput> outputs() {
     return new SeqMap<>(
-      "self", new LibOutput("List of elements", "mdi2l-list-status", "Resulting list of elements")
+      "self", new LibOutput("List of elements", "mdal-alternate_email", "Resulting list of elements")
     );
   }
 

@@ -22,6 +22,7 @@ package org.tybaco.ui.child.project.diagram;
  */
 
 import javafx.scene.control.ToggleButton;
+import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibOutput;
 import org.tybaco.ui.model.Link;
 
@@ -32,11 +33,16 @@ public final class DiagramBlockOutput extends ToggleButton {
   public final String spot;
 
   public DiagramBlockOutput(DiagramBlock block, LibOutput output, String spot) {
-    super(spot);
     setFocusTraversable(false);
     this.block = block;
     this.output = output;
     this.spot = spot;
+    setGraphic(Icons.icon(classLoader(), output.icon(), 20));
+    setTooltip(DiagramTooltips.tooltip(classLoader(), output));
+  }
+
+  private ClassLoader classLoader() {
+    return block.diagram.classpath.getClassLoader();
   }
 
   public void onLink(Link link, boolean added) {

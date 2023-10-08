@@ -38,7 +38,7 @@ abstract class AbstractDiagramBlock extends BorderPane {
 
   protected final Block block;
   protected final Label title = new Label();
-  protected final Button factory = new Button();
+  protected final Label factory = new Label();
   protected final VBox inputs = new VBox(2);
   protected final VBox outputs = new VBox(2);
   protected final BorderPane content = new BorderPane(factory, null, outputs, null, inputs);

@@ -49,7 +49,7 @@ public final class BiSink implements LibBlock {
   @Override
   public SeqMap<String, LibOutput> outputs() {
     return new SeqMap<>(
-      "self", new LibOutput("Self", "remixal-dropbox-line", "A key-value resulting sink")
+      "self", new LibOutput("Self", "mdal-alternate_email", "A key-value resulting sink")
     );
   }
 

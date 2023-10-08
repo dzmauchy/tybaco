@@ -50,36 +50,12 @@ public final class DiagramBlockInput extends BorderPane {
     this.spot = spot;
     setTop(inputButton = new Button(null, Icons.icon(classLoader(), input.icon(), 20)));
     inputButton.setFocusTraversable(false);
-    inputButton.setTooltip(tooltip());
+    inputButton.setTooltip(DiagramTooltips.tooltip(classLoader(), input));
     setCenter(vectorInputs = new VBox());
   }
 
   private ClassLoader classLoader() {
     return block.diagram.classpath.getClassLoader();
-  }
-
-  private Tooltip tooltip() {
-    var tooltip = new Tooltip();
-    tooltip.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-    tooltip.setMaxSize(USE_PREF_SIZE, 500);
-    var label = new Label();
-    label.setGraphic(Icons.icon(classLoader(), input.icon(), 64));
-    label.textProperty().bind(Texts.text(classLoader(), input.name()));
-    label.setFont(Font.font(null, FontWeight.BOLD, 18d));
-    label.setGraphicTextGap(8d);
-    var description = new Label();
-    description.setMinWidth(600d);
-    description.setPadding(new Insets(5d));
-    description.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-    description.setWrapText(true);
-    description.setStyle("-fx-background-color: linear-gradient(to bottom, black, transparent);");
-    description.setFont(Font.font(null, 14));
-    description.textProperty().bind(Texts.text(classLoader(), input.description()));
-    description.setAlignment(Pos.TOP_LEFT);
-    var box = new VBox(5, label, new Separator(HORIZONTAL), description);
-    VBox.setVgrow(description, Priority.ALWAYS);
-    tooltip.setGraphic(box);
-    return tooltip;
   }
 
   public void onLink(Link link, boolean added) {

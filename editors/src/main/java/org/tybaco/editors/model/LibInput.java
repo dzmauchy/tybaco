@@ -21,7 +21,9 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-public record LibInput(String name, String icon, String description, boolean vector, boolean optional) {
+import org.tybaco.editors.Meta;
+
+public record LibInput(String name, String icon, String description, boolean vector, boolean optional) implements Meta {
 
   public static LibInput required(String name, String icon, String description) {
     return new LibInput(name, icon, description, false, false);
