@@ -38,15 +38,18 @@ public final class BiSink implements LibBlock {
   @Override
   public SeqMap<String, LibInput> inputs() {
     return new SeqMap<>(
-      "tf", LibInput.optional("Thread factory", "icons/thread_factory.png", "Thread factory"),
-      "source", LibInput.optional("Source", "icons/bi_source.png", "Source")
+      "tf", LibInput.optional("Thread factory", "ri-5star-shadow", "A thread factory used to create the main thread of the sink"),
+      "source", LibInput.required("Source", "ri-dharma-wheel", "A key-value source"),
+      "executorByKey", LibInput.optional("Executor-by-key provider", "ri-colours", "A provider of executors taken by key"),
+      "consumer", LibInput.required("Consumer", "ri-react", "A consumer to consume the each key-value pair of the source"),
+      "onError", LibInput.optional("Error handler", "ri-sdg", "Error handler used to handle each error\nDefault value: $defaultErrorHandler")
     );
   }
 
   @Override
   public SeqMap<String, LibOutput> outputs() {
     return new SeqMap<>(
-      "self", new LibOutput("Self", "remixal-dropbox-line", "BiSink")
+      "self", new LibOutput("Self", "remixal-dropbox-line", "A key-value resulting sink")
     );
   }
 

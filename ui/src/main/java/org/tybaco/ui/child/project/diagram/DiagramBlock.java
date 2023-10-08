@@ -32,6 +32,7 @@ public final class DiagramBlock extends AbstractDiagramBlock {
   public DiagramBlock(ProjectDiagram diagram, Block block) {
     super(block);
     this.diagram = diagram;
+    onClasspathChange();
   }
 
   public void onClasspathChange() {
