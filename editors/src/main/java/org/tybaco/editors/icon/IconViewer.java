@@ -21,39 +21,44 @@ package org.tybaco.editors.icon;
  * #L%
  */
 
+import javafx.application.Application;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.scene.Scene;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldListCell;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.DataFormat;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.IkonProvider;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.tybaco.editors.text.Texts;
 
-import java.util.ArrayList;
-import java.util.ServiceLoader;
+import java.util.*;
 
-public class IconViewer extends ListView<Ikon> {
+import static javafx.application.Platform.runLater;
+
+public class IconViewer extends BorderPane {
 
   public IconViewer() {
-    var list = new ArrayList<Ikon>();
-    var loader = ServiceLoader.load(IkonProvider.class);
-    for (var provider : loader) {
-      var values = provider.getIkon().getEnumConstants();
-      if (values != null) {
-        for (var v : values) {
-          if (v instanceof Ikon ikon) {
-            list.add(ikon);
-          }
-        }
-      }
-    }
-    var icons = FXCollections.observableList(list);
-    setItems(FXCollections.observableList(icons));
-    setCellFactory(param -> new TextFieldListCell<>() {
+    var icons = FXCollections.observableList(loadIcons());
+    var listView = listView(icons);
+    setCenter(listView);
+    setTop(buttons(listView));
+  }
+
+  private ListView<Ikon> listView(ObservableList<Ikon> icons) {
+    var listView = new ListView<Ikon>();
+    listView.setItems(icons);
+    listView.setCellFactory(param -> new TextFieldListCell<>() {
       @Override
       public void updateItem(Ikon item, boolean empty) {
         super.updateItem(item, empty);
@@ -66,6 +71,77 @@ public class IconViewer extends ListView<Ikon> {
         }
       }
     });
+    return listView;
+  }
+
+  private HBox buttons(ListView<Ikon> view) {
+    var forward = new Button(null, FontIcon.of(FontAwesomeSolid.FORWARD, Color.WHITE));
+    forward.setFocusTraversable(false);
+    var backward = new Button(null, FontIcon.of(FontAwesomeSolid.BACKWARD, Color.WHITE));
+    backward.setFocusTraversable(false);
+    var copy = new Button(null, FontIcon.of(FontAwesomeSolid.COPY, Color.WHITE));
+    copy.setFocusTraversable(false);
+    var textField = new TextField();
+    forward.setOnAction(e -> {
+      e.consume();
+      var size = view.getItems().size();
+      for (int i = view.getSelectionModel().getSelectedIndex() + 1; i < size; i++) {
+        var icon = view.getItems().get(i);
+        if (icon.getDescription().contains(textField.getText())) {
+          view.getSelectionModel().select(i);
+          view.scrollTo(i);
+          view.requestFocus();
+          return;
+        }
+      }
+      view.getSelectionModel().clearSelection();
+    });
+    backward.setOnAction(e -> {
+      e.consume();
+      var from = view.getSelectionModel().getSelectedIndex() < 0 ? view.getItems().size() : view.getSelectionModel().getSelectedIndex();
+      for (int i = from - 1; i >= 0; i--) {
+        var icon = view.getItems().get(i);
+        if (icon.getDescription().contains(textField.getText())) {
+          view.getSelectionModel().select(i);
+          view.scrollTo(i);
+          view.requestFocus();
+          return;
+        }
+      }
+      view.getSelectionModel().clearSelection();
+    });
+    copy.setOnAction(e -> {
+      var item = view.getSelectionModel().getSelectedItem();
+      if (item != null) {
+        var clipboard = Clipboard.getSystemClipboard();
+        clipboard.setContent(Map.of(DataFormat.PLAIN_TEXT, item.getDescription()));
+      }
+    });
+    var box = new HBox(5,
+      textField,
+      new Separator(Orientation.VERTICAL),
+      forward, backward,
+      new Separator(Orientation.VERTICAL),
+      copy
+    );
+    box.setPadding(new Insets(5d));
+    return box;
+  }
+
+  private static List<Ikon> loadIcons() {
+    var list = new ArrayList<Ikon>();
+    var loader = ServiceLoader.load(IkonProvider.class);
+    for (var provider : loader) {
+      var values = provider.getIkon().getEnumConstants();
+      if (values != null) {
+        for (var v : values) {
+          if (v instanceof Ikon ikon) {
+            list.add(ikon);
+          }
+        }
+      }
+    }
+    return list;
   }
 
   public static void show() {
@@ -73,5 +149,25 @@ public class IconViewer extends ListView<Ikon> {
     stage.setScene(new Scene(new IconViewer(), 1024, 768));
     stage.titleProperty().bind(Texts.text("Icons"));
     stage.show();
+  }
+
+  public static void main(String... args) {
+    Application.launch(App.class, args);
+  }
+
+  public static final class App extends Application {
+
+    @Override
+    public void init() {
+      Application.setUserAgentStylesheet(STYLESHEET_MODENA);
+      runLater(() -> com.sun.javafx.css.StyleManager.getInstance().addUserAgentStylesheet("theme/ui.css"));
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+      primaryStage.setScene(new Scene(new IconViewer(), 1024, 768));
+      primaryStage.setTitle("Icons");
+      primaryStage.show();
+    }
   }
 }
