@@ -21,6 +21,7 @@ package org.tybaco.ui.child.project.classpath;
  * #L%
  */
 
+import jakarta.annotation.PreDestroy;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -36,44 +37,46 @@ import java.util.Set;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static java.lang.Thread.ofVirtual;
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.tybaco.logging.Log.*;
+import static java.util.concurrent.locks.LockSupport.parkNanos;
+import static org.tybaco.logging.Log.error;
+import static org.tybaco.logging.Log.warn;
 
 @Component
-public final class ProjectClasspath extends InvalidationListeners implements AutoCloseable {
+public final class ProjectClasspath extends InvalidationListeners {
 
   private final SimpleObjectProperty<ArtifactClassPath> classPath = new SimpleObjectProperty<>(this, "classPath");
   private final Project project;
   private final ArtifactResolver artifactResolver;
-  private final InvalidationListener libsInvalidationListener;
+  private final InvalidationListener libsInvalidationListener = this::onChangeLibs;
   private final ThreadPoolExecutor threads;
 
-  private Set<Dependency> libs;
   private volatile ArtifactClassPath currentClassPath;
+  private Set<Dependency> oldDependencies;
 
   public ProjectClasspath(Project project, ArtifactResolver artifactResolver) {
     this.project = project;
     this.artifactResolver = artifactResolver;
-    this.libsInvalidationListener = this::onChangeLibs;
-    this.libs = Set.copyOf(project.dependencies);
-    this.threads = new ThreadPoolExecutor(1, 1, 1L, MINUTES, new LinkedTransferQueue<>(), Thread.ofVirtual()::unstarted);
+    this.threads = new ThreadPoolExecutor(1, 1, 1L, MINUTES, new LinkedTransferQueue<>(), ofVirtual()::unstarted);
     this.threads.allowCoreThreadTimeOut(true);
     this.classPath.addListener(o -> fire());
     this.project.dependencies.addListener(libsInvalidationListener);
   }
 
-  private void onChangeLibs(Observable observable) {
-    var newLibs = Set.copyOf(project.dependencies);
-    if (newLibs.equals(libs)) return;
-    libs = newLibs;
-    try (var old = classPath.get()) {
-      if (old != null) info(getClass(), "Closing old classpath");
-      classPath.set(null);
-    } catch (Throwable e) {
-      warn(getClass(), "Unable to close the old classpath");
-    }
-    threads.execute(this::update);
+  private void onChangeLibs(Observable o) {
+    threads.execute(() -> {
+      parkNanos(MILLISECONDS.toNanos(100L));
+      Platform.runLater(() -> {
+        var newDeps = Set.copyOf(project.dependencies);
+        if (!newDeps.equals(oldDependencies)) {
+          oldDependencies = newDeps;
+          threads.execute(this::update);
+        }
+      });
+    });
   }
 
   private void update() {
@@ -91,8 +94,8 @@ public final class ProjectClasspath extends InvalidationListeners implements Aut
     return cp == null ? Thread.currentThread().getContextClassLoader() : cp.classLoader;
   }
 
-  @Override
-  public void close() {
+  @PreDestroy
+  private void close() {
     project.dependencies.removeListener(libsInvalidationListener);
     try (threads) {
       warn(getClass(), "Closing threads {0}", threads.getActiveCount());
