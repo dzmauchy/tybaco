@@ -23,39 +23,31 @@ package org.tybaco.ui.child.project.diagram;
 
 import javafx.beans.*;
 import org.tybaco.editors.icon.Icons;
-import org.tybaco.ui.child.project.classpath.BlockCache;
 import org.tybaco.ui.model.Block;
 
 public final class DiagramBlock extends AbstractDiagramBlock {
 
-  final ProjectDiagram diagram;
+  public final ProjectDiagram diagram;
   private final InvalidationListener listener = this::update;
 
-  public DiagramBlock(ProjectDiagram diagram, Block block, BlockCache cache) {
+  public DiagramBlock(ProjectDiagram diagram, Block block) {
     super(block);
     this.diagram = diagram;
-    update(cache);
-    initialize(cache);
+    update(diagram.blockCache);
+    initialize();
   }
 
-  private void initialize(BlockCache cache) {
-    cache.addListener(new WeakInvalidationListener(listener));
+  private void initialize() {
+    diagram.blockCache.addListener(new WeakInvalidationListener(listener));
   }
 
   private void update(Observable observable) {
-    var cache = (BlockCache) observable;
     inputs.getChildren().clear();
     outputs.getChildren().clear();
-    cache.blockById(block.factoryId).ifPresent(b -> {
+    diagram.blockCache.blockById(block.factoryId).ifPresent(b -> {
       factory.setGraphic(Icons.icon(b.icon(), 32));
-      b.inputs().forEach((name, i) -> {
-        var input = new DiagramBlockInput(this, i, name);
-        inputs.getChildren().add(input);
-      });
-      b.outputs().forEach((name, o) -> {
-        var output = new DiagramBlockOutput(this, o, name);
-        outputs.getChildren().add(output);
-      });
+      b.inputs().forEach((name, i) -> inputs.getChildren().add(new DiagramBlockInput(this, i, name)));
+      b.outputs().forEach((name, o) -> outputs.getChildren().add(new DiagramBlockOutput(this, o, name)));
     });
   }
 }

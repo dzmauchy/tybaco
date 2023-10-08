@@ -21,14 +21,11 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.collections.ListChangeListener;
-import javafx.collections.ListChangeListener.Change;
-import javafx.collections.WeakListChangeListener;
+import javafx.collections.*;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.change.AddListChange;
 import org.tybaco.ui.child.project.classpath.BlockCache;
-import org.tybaco.ui.model.Block;
-import org.tybaco.ui.model.Project;
+import org.tybaco.ui.model.*;
 
 @Component
 public class ProjectDiagram extends AbstractProjectDiagram {
@@ -36,6 +33,7 @@ public class ProjectDiagram extends AbstractProjectDiagram {
   public final Project project;
   public final BlockCache blockCache;
   private final ListChangeListener<Block> blocksListener = this::onBlocksChange;
+  private final SetChangeListener<Link> linkListener = this::onLinkChange;
 
   public ProjectDiagram(Project project, BlockCache blockCache) {
     this.project = project;
@@ -46,25 +44,25 @@ public class ProjectDiagram extends AbstractProjectDiagram {
 
   private void initialize() {
     project.blocks.addListener(new WeakListChangeListener<>(blocksListener));
+    project.links.addListener(new WeakSetChangeListener<>(linkListener));
   }
 
-  private void onBlocksChange(Change<? extends Block> change) {
+  private void onBlocksChange(ListChangeListener.Change<? extends Block> change) {
     while (change.next()) {
       if (change.wasRemoved()) {
         for (var removed : change.getRemoved()) {
-          for (var i = blocks.getChildren().iterator(); i.hasNext(); ) {
-            var e = i.next();
-            if (e instanceof DiagramBlock db && db.block == removed) {
-              i.remove();
-              break;
-            }
-          }
+          blocks.getChildren().removeIf(e -> e instanceof DiagramBlock b && b.block == removed);
         }
-      } else if (change.wasAdded()) {
+      }
+      if (change.wasAdded()) {
         for (var added : change.getAddedSubList()) {
-          blocks.getChildren().add(new DiagramBlock(this, added, blockCache));
+          blocks.getChildren().add(new DiagramBlock(this, added));
         }
       }
     }
+  }
+
+  private void onLinkChange(SetChangeListener.Change<? extends Link> change) {
+
   }
 }
