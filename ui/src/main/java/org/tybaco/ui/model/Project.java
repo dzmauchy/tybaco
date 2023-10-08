@@ -103,19 +103,19 @@ public final class Project {
   }
 
   public Stream<Link> linksFrom(Connector out) {
-    return links.stream().filter(l -> l.out().equals(out));
+    return links.stream().filter(l -> l.out.equals(out));
   }
 
   public Stream<Link> linksTo(Connector in) {
-    return links.stream().filter(l -> l.in().equals(in));
+    return links.stream().filter(l -> l.in.equals(in));
   }
 
   public Stream<Link> linksFrom(Block block) {
-    return links.stream().filter(l -> l.out().blockId == block.id);
+    return links.stream().filter(l -> l.out.blockId == block.id);
   }
 
   public Stream<Link> linksTo(Block block) {
-    return links.stream().filter(l -> l.in().blockId == block.id);
+    return links.stream().filter(l -> l.in.blockId == block.id);
   }
 
   public Block newBlock(String name, String factoryId, double x, double y) {

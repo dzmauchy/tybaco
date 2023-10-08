@@ -50,17 +50,17 @@ public final class DiagramBlockInput extends BorderPane {
   public void onLink(Link link, boolean added) {
     if (added) {
       inputButton.setUnderline(true);
-      if (link.index() >= 0) {
-        var b = new Button(Integer.toString(link.index()));
-        b.setUserData(link.index());
+      if (link.index >= 0) {
+        var b = new Button(Integer.toString(link.index));
+        b.setUserData(link.index);
         var i = binarySearch(vectorInputs.getChildren(), b, comparing(n -> (Integer) n.getUserData()));
         vectorInputs.getChildren().add(-(i + 1), b);
       }
     } else {
-      if (link.index() < 0) {
+      if (link.index < 0) {
         inputButton.setUnderline(false);
       } else {
-        var txtIndex = Integer.toString(link.index());
+        var txtIndex = Integer.toString(link.index);
         vectorInputs.getChildren().removeIf(n -> n instanceof Button b && txtIndex.equals(b.getText()));
         if (vectorInputs.getChildren().isEmpty()) {
           inputButton.setUnderline(false);

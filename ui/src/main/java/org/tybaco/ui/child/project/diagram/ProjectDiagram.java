@@ -68,7 +68,7 @@ public class ProjectDiagram extends AbstractProjectDiagram {
     var e = change.wasAdded() ? change.getElementAdded() : change.getElementRemoved();
     for (var block : blocks.getChildren())
       if (block instanceof DiagramBlock b) {
-        if (b.block.id == e.in().blockId || b.block.id == e.out().blockId) {
+        if (b.block.id == e.in.blockId || b.block.id == e.out.blockId) {
           b.onLink(e, change.wasAdded());
         }
       }

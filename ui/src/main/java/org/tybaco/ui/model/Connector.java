@@ -21,15 +21,12 @@ package org.tybaco.ui.model;
  * #L%
  */
 
-import javafx.beans.property.SimpleDoubleProperty;
 import org.w3c.dom.Element;
 
 public final class Connector {
 
   public final int blockId;
   public final String spot;
-  public final SimpleDoubleProperty x = new SimpleDoubleProperty(this, "x", 0d);
-  public final SimpleDoubleProperty y = new SimpleDoubleProperty(this, "y", 0d);
 
   public Connector(int blockId, String spot) {
     this.blockId = blockId;
@@ -57,6 +54,6 @@ public final class Connector {
 
   @Override
   public String toString() {
-    return blockId + "[" + spot + "]";
+    return blockId + "{" + spot + "}";
   }
 }

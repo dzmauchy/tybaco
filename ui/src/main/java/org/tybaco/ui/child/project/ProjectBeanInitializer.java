@@ -24,8 +24,11 @@ package org.tybaco.ui.child.project;
 import javafx.application.Platform;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.tybaco.ui.main.project.Projects;
 import org.tybaco.ui.model.Dependency;
 import org.tybaco.ui.model.Project;
 
@@ -36,9 +39,11 @@ import static org.tybaco.logging.Log.info;
 public final class ProjectBeanInitializer {
 
   private final Project project;
+  private final Projects projects;
 
-  public ProjectBeanInitializer(Project project) {
+  public ProjectBeanInitializer(Project project, Projects projects) {
     this.project = project;
+    this.projects = projects;
   }
 
   @Autowired
@@ -49,5 +54,10 @@ public final class ProjectBeanInitializer {
       project.dependencies.removeIf(d -> "org.montoni".equals(d.group()) && "tybaco-runtime".equals(d.artifact()));
       project.dependencies.add(new Dependency("org.montoni", "tybaco-runtime", version));
     });
+  }
+
+  @EventListener
+  public void onClose(ContextClosedEvent event) {
+    projects.projects.remove(project);
   }
 }

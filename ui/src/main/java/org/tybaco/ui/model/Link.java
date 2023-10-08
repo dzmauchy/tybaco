@@ -21,6 +21,7 @@ package org.tybaco.ui.model;
  * #L%
  */
 
+import javafx.beans.property.SimpleDoubleProperty;
 import org.w3c.dom.Element;
 
 import java.util.NoSuchElementException;
@@ -28,7 +29,21 @@ import java.util.NoSuchElementException;
 import static org.tybaco.xml.Xml.elementByTag;
 import static org.tybaco.xml.Xml.withChild;
 
-public record Link(Connector out, Connector in, int index) {
+public final class Link {
+
+  public final Connector out;
+  public final Connector in;
+  public final int index;
+  public final SimpleDoubleProperty outX = new SimpleDoubleProperty(this, "outX", 0d);
+  public final SimpleDoubleProperty outY = new SimpleDoubleProperty(this, "outY", 0d);
+  public final SimpleDoubleProperty inX = new SimpleDoubleProperty(this, "inX", 0d);
+  public final SimpleDoubleProperty inY = new SimpleDoubleProperty(this, "inY", 0d);
+
+  public Link(Connector out, Connector in, int index) {
+    this.out = out;
+    this.in = in;
+    this.index = index;
+  }
 
   public Link(Element element) {
     this(
@@ -50,5 +65,20 @@ public record Link(Connector out, Connector in, int index) {
 
   public boolean outputMatches(Block block, String spot) {
     return out.blockId == block.id && out.spot.equals(spot);
+  }
+
+  @Override
+  public int hashCode() {
+    return out.hashCode() ^ in.hashCode() ^ index;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof Link l && out.equals(l.out) && in.equals(l.in) && index == l.index;
+  }
+
+  @Override
+  public String toString() {
+    return out + " --> " + in + (index >= 0 ? "[" + index + "]" : "");
   }
 }
