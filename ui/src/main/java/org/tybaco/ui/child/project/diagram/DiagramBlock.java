@@ -21,7 +21,6 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.beans.*;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.ui.model.Block;
 import org.tybaco.ui.model.Link;
@@ -29,26 +28,19 @@ import org.tybaco.ui.model.Link;
 public final class DiagramBlock extends AbstractDiagramBlock {
 
   public final ProjectDiagram diagram;
-  private final InvalidationListener listener = this::update;
 
   public DiagramBlock(ProjectDiagram diagram, Block block) {
     super(block);
     this.diagram = diagram;
-    update(diagram.blockCache);
-    initialize();
   }
 
-  private void initialize() {
-    diagram.blockCache.addListener(new WeakInvalidationListener(listener));
-  }
-
-  private void update(Observable observable) {
+  public void onClasspathChange() {
     inputs.getChildren().clear();
     outputs.getChildren().clear();
     diagram.blockCache.blockById(block.factoryId).ifPresent(b -> {
       factory.setGraphic(Icons.icon(diagram.classpath.getClassLoader(), b.icon(), 32));
-      b.inputs().forEach((name, i) -> inputs.getChildren().add(new DiagramBlockInput(this, i, name)));
-      b.outputs().forEach((name, o) -> outputs.getChildren().add(new DiagramBlockOutput(this, o, name)));
+      b.inputs().forEach((spot, i) -> inputs.getChildren().add(new DiagramBlockInput(this, i, spot)));
+      b.outputs().forEach((spot, o) -> outputs.getChildren().add(new DiagramBlockOutput(this, o, spot)));
     });
   }
 

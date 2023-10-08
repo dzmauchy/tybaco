@@ -21,6 +21,7 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.beans.Observable;
 import javafx.collections.*;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.change.AddListChange;
@@ -50,6 +51,7 @@ public class ProjectDiagram extends AbstractProjectDiagram {
   private void initialize() {
     project.blocks.addListener(new WeakListChangeListener<>(blocksListener));
     project.links.addListener(new WeakSetChangeListener<>(linkListener));
+    blockCache.addListener(this::onClassPathChange);
   }
 
   private void onBlocksChange(ListChangeListener.Change<? extends Block> change) {
@@ -75,5 +77,9 @@ public class ProjectDiagram extends AbstractProjectDiagram {
           b.onLink(e, change.wasAdded());
         }
       }
+  }
+
+  private void onClassPathChange(Observable o) {
+    for (var block : blocks.getChildren()) if (block instanceof DiagramBlock b) b.onClasspathChange();
   }
 }
