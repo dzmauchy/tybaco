@@ -21,9 +21,20 @@ package org.tybaco.ui.model;
  * #L%
  */
 
+import javafx.beans.property.SimpleDoubleProperty;
 import org.w3c.dom.Element;
 
-public record Connector(int blockId, String spot) {
+public final class Connector {
+
+  public final int blockId;
+  public final String spot;
+  public final SimpleDoubleProperty x = new SimpleDoubleProperty(this, "x", 0d);
+  public final SimpleDoubleProperty y = new SimpleDoubleProperty(this, "y", 0d);
+
+  public Connector(int blockId, String spot) {
+    this.blockId = blockId;
+    this.spot = spot;
+  }
 
   public Connector(Element element) {
     this(Integer.parseInt(element.getAttribute("block")), element.getAttribute("spot"));
@@ -32,5 +43,20 @@ public record Connector(int blockId, String spot) {
   public void saveTo(Element element) {
     element.setAttribute("block", Integer.toString(blockId));
     element.setAttribute("spot", spot);
+  }
+
+  @Override
+  public int hashCode() {
+    return blockId ^ spot.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof Connector c && blockId == c.blockId && spot.equals(c.spot);
+  }
+
+  @Override
+  public String toString() {
+    return blockId + "[" + spot + "]";
   }
 }

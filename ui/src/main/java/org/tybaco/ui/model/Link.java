@@ -45,10 +45,10 @@ public record Link(Connector out, Connector in, int index) {
   }
 
   public boolean inputMatches(Block block, String spot) {
-    return in.blockId() == block.id && in.spot().equals(spot);
+    return in.blockId == block.id && in.spot.equals(spot);
   }
 
   public boolean outputMatches(Block block, String spot) {
-    return out.blockId() == block.id && out.spot().equals(spot);
+    return out.blockId == block.id && out.spot.equals(spot);
   }
 }

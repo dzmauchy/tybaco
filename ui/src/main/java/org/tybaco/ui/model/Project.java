@@ -111,11 +111,11 @@ public final class Project {
   }
 
   public Stream<Link> linksFrom(Block block) {
-    return links.stream().filter(l -> l.out().blockId() == block.id);
+    return links.stream().filter(l -> l.out().blockId == block.id);
   }
 
   public Stream<Link> linksTo(Block block) {
-    return links.stream().filter(l -> l.in().blockId() == block.id);
+    return links.stream().filter(l -> l.in().blockId == block.id);
   }
 
   public Block newBlock(String name, String factoryId, double x, double y) {
