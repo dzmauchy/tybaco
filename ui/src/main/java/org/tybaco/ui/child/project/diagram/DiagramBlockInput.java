@@ -24,8 +24,6 @@ package org.tybaco.ui.child.project.diagram;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import org.tybaco.editors.model.LibInput;
 import org.tybaco.ui.model.Link;
 
@@ -39,38 +37,33 @@ public final class DiagramBlockInput extends BorderPane {
   public final String spot;
   private final VBox vectorInputs;
   private final Button inputButton;
-  private final Font defaultFont = Font.font(Font.getDefault().getFamily(), Font.getDefault().getSize());
-  private final Font boldFont = Font.font(defaultFont.getFamily(), FontWeight.BOLD, defaultFont.getSize());
 
   public DiagramBlockInput(DiagramBlock block, LibInput input, String spot) {
     this.block = block;
     this.input = input;
     this.spot = spot;
     setTop(inputButton = new Button(spot));
-    inputButton.setFont(defaultFont);
     inputButton.setFocusTraversable(false);
     setCenter(vectorInputs = new VBox());
   }
 
   public void onLink(Link link, boolean added) {
     if (added) {
-      inputButton.setFont(boldFont);
+      inputButton.setUnderline(true);
       if (link.index() >= 0) {
         var b = new Button(Integer.toString(link.index()));
         b.setUserData(link.index());
         var i = binarySearch(vectorInputs.getChildren(), b, comparing(n -> (Integer) n.getUserData()));
-        if (i < 0) {
-          vectorInputs.getChildren().add(-(i + 1), b);
-        }
+        vectorInputs.getChildren().add(-(i + 1), b);
       }
     } else {
       if (link.index() < 0) {
-        inputButton.setFont(defaultFont);
+        inputButton.setUnderline(false);
       } else {
         var txtIndex = Integer.toString(link.index());
         vectorInputs.getChildren().removeIf(n -> n instanceof Button b && txtIndex.equals(b.getText()));
         if (vectorInputs.getChildren().isEmpty()) {
-          inputButton.setFont(defaultFont);
+          inputButton.setUnderline(false);
         }
       }
     }
