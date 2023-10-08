@@ -56,6 +56,7 @@ public class IconViewer extends BorderPane {
 
   private ListView<Ikon> listView(ObservableList<Ikon> icons) {
     var listView = new ListView<Ikon>();
+    listView.setFixedCellSize(34);
     listView.setItems(icons);
     var copyCombinations = List.of(
       new KeyCodeCombination(KeyCode.COPY),
@@ -67,7 +68,7 @@ public class IconViewer extends BorderPane {
       public void updateItem(Ikon item, boolean empty) {
         super.updateItem(item, empty);
         if (!empty) {
-          setText((getIndex() + 1) + ": " + item.getDescription());
+          setText("%06d %s".formatted(getIndex() + 1, item.getDescription()));
           setGraphic(FontIcon.of(item, 32, Color.WHITE));
         }
       }
