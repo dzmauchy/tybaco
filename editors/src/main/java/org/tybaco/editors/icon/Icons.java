@@ -43,15 +43,17 @@ public final class Icons {
   }
 
   public static Node icon(ClassLoader classLoader, String key, int size) {
-    if (key == null) {
+    if (key == null || key.isBlank()) {
       return null;
     }
-    final ConcurrentHashMap<IconKey, Image> map;
-    synchronized (IMAGES) {
-      map = IMAGES.computeIfAbsent(classLoader, c -> new ConcurrentHashMap<>(64, 0.5f));
-    }
     if (key.indexOf('.') > 0) {
+      final ConcurrentHashMap<IconKey, Image> map;
+      synchronized (IMAGES) {
+        map = IMAGES.computeIfAbsent(classLoader, c -> new ConcurrentHashMap<>(64, 0.5f));
+      }
       return new ImageView(map.computeIfAbsent(new IconKey(key, size), k -> load(classLoader, k)));
+    } else if (key.charAt(0) > 255) {
+      return new StringIcon(key, size, Color.WHITE);
     } else {
       var resolver = IkonResolver.getInstance();
       try {

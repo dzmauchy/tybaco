@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 import org.tybaco.editors.change.AddListChange;
 import org.tybaco.editors.change.SetChange;
 import org.tybaco.ui.child.project.classpath.BlockCache;
+import org.tybaco.ui.child.project.classpath.ProjectClasspath;
 import org.tybaco.ui.model.*;
 
 @Component
@@ -33,12 +34,14 @@ public class ProjectDiagram extends AbstractProjectDiagram {
 
   public final Project project;
   public final BlockCache blockCache;
+  public final ProjectClasspath classpath;
   private final ListChangeListener<Block> blocksListener = this::onBlocksChange;
   private final SetChangeListener<Link> linkListener = this::onLinkChange;
 
-  public ProjectDiagram(Project project, BlockCache blockCache) {
+  public ProjectDiagram(Project project, BlockCache blockCache, ProjectClasspath classpath) {
     this.project = project;
     this.blockCache = blockCache;
+    this.classpath = classpath;
     blocksListener.onChanged(new AddListChange<>(project.blocks, 0, project.blocks.size()));
     project.links.forEach(l -> linkListener.onChanged(new SetChange<>(project.links, null, l)));
     initialize();

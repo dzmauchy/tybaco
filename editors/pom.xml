@@ -83,6 +83,11 @@
 
     <dependency>
       <groupId>org.kordamp.ikonli</groupId>
+      <artifactId>ikonli-remixicon-pack</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kordamp.ikonli</groupId>
       <artifactId>ikonli-unicons-pack</artifactId>
     </dependency>
 

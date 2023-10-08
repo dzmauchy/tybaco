@@ -46,7 +46,8 @@ public final class DiagramBlock extends AbstractDiagramBlock {
     inputs.getChildren().clear();
     outputs.getChildren().clear();
     diagram.blockCache.blockById(block.factoryId).ifPresent(b -> {
-      factory.setGraphic(Icons.icon(b.icon(), 32));
+      var classLoader = diagram.classpath.classPath.get().classLoader;
+      factory.setGraphic(Icons.icon(classLoader, b.icon(), 32));
       b.inputs().forEach((name, i) -> inputs.getChildren().add(new DiagramBlockInput(this, i, name)));
       b.outputs().forEach((name, o) -> outputs.getChildren().add(new DiagramBlockOutput(this, o, name)));
     });
