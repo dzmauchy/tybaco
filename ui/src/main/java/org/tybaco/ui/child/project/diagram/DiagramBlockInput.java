@@ -24,6 +24,7 @@ package org.tybaco.ui.child.project.diagram;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibInput;
 import org.tybaco.ui.model.Link;
 
@@ -42,7 +43,7 @@ public final class DiagramBlockInput extends BorderPane {
     this.block = block;
     this.input = input;
     this.spot = spot;
-    setTop(inputButton = new Button(spot));
+    setTop(inputButton = new Button(null, Icons.icon(block.diagram.classpath.getClassLoader(), input.icon(), 24)));
     inputButton.setFocusTraversable(false);
     setCenter(vectorInputs = new VBox());
   }

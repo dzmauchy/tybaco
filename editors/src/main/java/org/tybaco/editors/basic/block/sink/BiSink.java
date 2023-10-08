@@ -38,8 +38,8 @@ public final class BiSink implements LibBlock {
   @Override
   public SeqMap<String, LibInput> inputs() {
     return new SeqMap<>(
-      "tf", LibInput.optional("Thread factory", "糸", "Thread factory"),
-      "source", LibInput.optional("Source", "起", "Source")
+      "tf", LibInput.optional("Thread factory", "icons/thread_factory.png", "Thread factory"),
+      "source", LibInput.optional("Source", "icons/bi_source.png", "Source")
     );
   }
 

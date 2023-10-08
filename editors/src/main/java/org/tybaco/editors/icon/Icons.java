@@ -36,7 +36,7 @@ import static org.tybaco.logging.Log.warn;
 
 public final class Icons {
 
-  private static final WeakHashMap<ClassLoader, ConcurrentHashMap<IconKey, Image>> IMAGES = new WeakHashMap<>();
+  private static final WeakHashMap<ClassLoader, ConcurrentHashMap<String, Image>> IMAGES = new WeakHashMap<>();
 
   public static Node icon(String key, int size) {
     return icon(Thread.currentThread().getContextClassLoader(), key, size);
@@ -47,13 +47,16 @@ public final class Icons {
       return null;
     }
     if (key.indexOf('.') > 0) {
-      final ConcurrentHashMap<IconKey, Image> map;
+      final ConcurrentHashMap<String, Image> map;
       synchronized (IMAGES) {
         map = IMAGES.computeIfAbsent(classLoader, c -> new ConcurrentHashMap<>(64, 0.5f));
       }
-      return new ImageView(map.computeIfAbsent(new IconKey(key, size), k -> load(classLoader, k)));
-    } else if (key.charAt(0) > 255) {
-      return new StringIcon(key, size, Color.WHITE);
+      var image = map.computeIfAbsent(key, k -> load(classLoader, k));
+      var imageView = new ImageView(image);
+      imageView.setFitWidth(size);
+      imageView.setFitHeight(size);
+      imageView.setSmooth(true);
+      return imageView;
     } else {
       var resolver = IkonResolver.getInstance();
       try {
@@ -71,13 +74,13 @@ public final class Icons {
     return FontIcon.of(icon, size, Color.WHITE);
   }
 
-  private static Image load(ClassLoader classLoader, IconKey key) {
-    try (var is = classLoader.getResourceAsStream(key.key())) {
+  private static Image load(ClassLoader classLoader, String key) {
+    try (var is = classLoader.getResourceAsStream(key)) {
       if (is == null) {
         warn(Icons.class, "Unable to resolve {0}", key);
         return null;
       }
-      return new Image(is, key.size(), key.size(), false, true);
+      return new Image(is);
     } catch (Throwable e) {
       warn(Icons.class, "Unable to resolve {0}", e, key);
       return null;
