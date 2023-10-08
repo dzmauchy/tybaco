@@ -30,19 +30,21 @@ import org.tybaco.editors.util.SeqMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.tybaco.editors.model.LibInput.optional;
+import static org.tybaco.editors.model.LibInput.required;
+
 @Qualifier("basic")
 @Component
-@Descriptor(id = "BiSink", name = "Sink of key-value entries", icon = "remixal-dropbox-line", description = "Sink of key-value entries")
-public final class BiSink implements LibBlock {
+@Descriptor(id = "SeqSink", name = "Sink of values", icon = "mdal-confirmation_number", description = "Simple sequential sink of values")
+public final class SequentialSink implements LibBlock {
 
   @Override
   public SeqMap<String, LibInput> inputs() {
     return new SeqMap<>(
-      "tf", LibInput.optional("Thread factory", "ri-5star-shadow", "A thread factory used to create the main thread of the sink", "$defaultThreadFactory"),
-      "source", LibInput.required("Source", "ri-dharma-wheel", "A key-value source"),
-      "executorByKey", LibInput.optional("Executor-by-key provider", "ri-colours", "A provider of executors taken by key", "$defaultExecutorByKey"),
-      "consumer", LibInput.required("Consumer", "ri-react", "A consumer to consume the each key-value pair of the source"),
-      "onError", LibInput.optional("Error handler", "ri-sdg", "Error handler used to handle each error", "$defaultErrorHandler")
+      "tf", optional("Thread factory", "ri-5star-shadow", "A thread factory used to create the main thread of the sink", "$defaultThreadFactory"),
+      "source", required("Source", "ri-dharma-wheel", "A key-value source"),
+      "consumer", required("Consumer", "ri-react", "A consumer to consume the each key-value pair of the source"),
+      "onError", optional("Error handler", "ri-sdg", "Error handler used to handle each error", "$defaultErrorHandler")
     );
   }
 
