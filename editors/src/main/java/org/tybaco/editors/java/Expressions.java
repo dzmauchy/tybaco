@@ -26,24 +26,17 @@ import com.github.javaparser.serialization.JavaParserJsonDeserializer;
 import com.github.javaparser.serialization.JavaParserJsonSerializer;
 
 import javax.json.Json;
-import javax.json.stream.JsonGeneratorFactory;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.Map;
-
-import static javax.json.Json.createGeneratorFactory;
-import static javax.json.stream.JsonGenerator.PRETTY_PRINTING;
 
 public final class Expressions {
-
-  private static final JsonGeneratorFactory GENERATOR_FACTORY = createGeneratorFactory(Map.of(PRETTY_PRINTING, true));
 
   private Expressions() {
   }
 
   public static String toText(Expression node) {
     var writer = new StringWriter();
-    try (var gen = GENERATOR_FACTORY.createGenerator(writer)) {
+    try (var gen = Json.createGenerator(writer)) {
       var serializer = new JavaParserJsonSerializer();
       serializer.serialize(node, gen);
     }

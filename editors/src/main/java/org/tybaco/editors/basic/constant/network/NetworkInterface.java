@@ -24,22 +24,28 @@ package org.tybaco.editors.basic.constant.network;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
-import javafx.scene.Node;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.model.Descriptor;
-import org.tybaco.editors.model.LibConst;
+import org.tybaco.editors.model.SimpleLibConst;
 
 import java.util.Optional;
 
 @Qualifier("basic")
 @Component
 @Descriptor(id = "net_itf", name = "Network interface", icon = "fas-network-wired", description = "Network interface")
-public final class NetworkInterface implements LibConst {
+public final class NetworkInterface extends SimpleLibConst<MethodCallExpr> {
 
   @Override
-  public Optional<? extends Expression> edit(Node node, Expression oldValue) {
-    return Optional.empty();
+  protected Optional<String> validate(Expression oldValue) {
+    if (!(oldValue instanceof MethodCallExpr e)
+      || !"getByName".equals(e.getNameAsString())
+      || e.getArguments().size() != 1
+      || !(e.getArguments().get(0) instanceof StringLiteralExpr le)) {
+      return Optional.empty();
+    } else {
+      return Optional.of(le.getValue());
+    }
   }
 
   @Override
@@ -48,11 +54,16 @@ public final class NetworkInterface implements LibConst {
   }
 
   @Override
-  public Expression defaultValue() {
+  protected MethodCallExpr expressionFromString(String v) {
     return new MethodCallExpr(
       new TypeExpr(new ClassOrInterfaceType(null, "java.net.NetworkInterface")),
       "getByName",
-      NodeList.nodeList(new StringLiteralExpr("loopback"))
+      NodeList.nodeList(new StringLiteralExpr(v))
     );
+  }
+
+  @Override
+  protected String defaultStringValue() {
+    return "loopback";
   }
 }

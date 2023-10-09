@@ -1,5 +1,5 @@
-@Descriptor(id = "numerics", name = "Numerics", icon = "mdi2n-numeric", description = "Numeric constants")
-package org.tybaco.editors.basic.constant.numeric;
+@Descriptor(id = "primitives", name = "Primitives", icon = "mdi2n-numeric", description = "Primitive constants")
+package org.tybaco.editors.basic.constant.primitive;
 
 /*-
  * #%L
