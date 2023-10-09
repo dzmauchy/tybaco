@@ -22,15 +22,14 @@ package org.tybaco.editors.model;
  */
 
 import com.github.javaparser.ast.expr.Expression;
-import javafx.stage.Window;
+import javafx.scene.Node;
 import org.tybaco.editors.Meta;
 import org.tybaco.editors.text.TextSupport;
-import org.tybaco.editors.value.Value;
 
 import java.util.Optional;
 
 public interface LibConst extends Meta, TextSupport {
-  Optional<Value> edit(Window window, Value old);
-  Expression build(Value value);
-  Value defaultValue();
+  Optional<? extends Expression> edit(Node node, Expression oldValue);
+  String type();
+  Expression defaultValue();
 }

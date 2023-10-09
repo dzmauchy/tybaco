@@ -25,6 +25,7 @@ import javafx.scene.control.ButtonType;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.dialog.ModalDialog;
+import org.tybaco.editors.java.Expressions;
 import org.tybaco.editors.model.LibConst;
 import org.tybaco.editors.text.Texts;
 import org.tybaco.ui.main.MainStage;
@@ -43,7 +44,7 @@ public final class LibraryConstantsWindow extends ModalDialog<Constant> {
     withDefaultButton(b -> b.disableProperty().bind(tree.nonLeafSelected));
     setResultConverter(() -> {
       var c = (LibConst) tree.getSelectionModel().getSelectedItem().getValue();
-      return project.newConstant(c.id(), c.id(), c.defaultValue());
+      return project.newConstant(c.id(), c.id(), Expressions.toText(c.defaultValue()));
     });
   }
 }

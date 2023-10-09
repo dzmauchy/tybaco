@@ -28,6 +28,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.control.Tables;
+import org.tybaco.editors.java.Expressions;
 import org.tybaco.editors.text.Texts;
 import org.tybaco.ui.child.project.classpath.ConstCache;
 import org.tybaco.ui.model.Constant;
@@ -73,9 +74,7 @@ public class ProjectConstantsTable extends TableView<Constant> {
     col.setCellValueFactory(c -> Bindings.createStringBinding(() -> {
       var constant = c.getValue();
       var v = constant.value.get();
-      return constCache.constById(constant.factoryId)
-        .map(l -> l.build(v).toString())
-        .orElseGet(v::toString);
+      return Expressions.fromText(v).toString();
     }, constCache.cache, c.getValue().value));
     return col;
   }

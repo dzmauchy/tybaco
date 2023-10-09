@@ -26,7 +26,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.tybaco.editors.value.Value;
 import org.tybaco.xml.Xml;
 import org.w3c.dom.Element;
 
@@ -37,10 +36,10 @@ public final class Constant {
   public final int id;
   public final SimpleStringProperty name;
   public final String factoryId;
-  public final SimpleObjectProperty<Value> value;
+  public final SimpleObjectProperty<String> value;
   private final Observable[] observables;
 
-  Constant(int id, String name, String factoryId, Value value) {
+  Constant(int id, String name, String factoryId, String value) {
     this.id = id;
     this.name = new SimpleStringProperty(this, "name", name);
     this.factoryId = factoryId;
@@ -53,7 +52,7 @@ public final class Constant {
       Integer.parseInt(element.getAttribute("id")),
       element.getAttribute("name"),
       element.getAttribute("factoryId"),
-      Xml.elementByTag(element, "value").map(Value::load).orElseThrow(() -> new NoSuchElementException("value"))
+      Xml.elementByTag(element, "value").map(Element::getTextContent).orElse("")
     );
   }
 
@@ -61,7 +60,7 @@ public final class Constant {
     element.setAttribute("id", Integer.toString(id));
     element.setAttribute("name", name.get());
     element.setAttribute("factoryId", factoryId);
-    Xml.withChild(element, "value", value.get()::save);
+    Xml.withChild(element, "value", e -> e.setTextContent(value.get()));
   }
 
   public static ObservableList<Constant> newList(Collection<Constant> constants) {

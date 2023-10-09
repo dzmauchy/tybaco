@@ -23,39 +23,46 @@ package org.tybaco.editors.basic.constant.numeric;
 
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.IntegerLiteralExpr;
+import javafx.scene.Node;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextField;
-import javafx.stage.Window;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.dialog.ConstantEditDialog;
-import org.tybaco.editors.model.*;
+import org.tybaco.editors.control.GridPanes;
+import org.tybaco.editors.dialog.ModalDialog;
+import org.tybaco.editors.model.Descriptor;
+import org.tybaco.editors.model.LibConst;
 import org.tybaco.editors.util.SeqMap;
-import org.tybaco.editors.value.StringValue;
-import org.tybaco.editors.value.Value;
 
 import java.util.Optional;
-
-import static org.tybaco.editors.control.GridPanes.twoColumnPane;
 
 @Qualifier("basic")
 @Component
 @Descriptor(id = "int", name = "Integer", icon = "mdi2n-numeric-0", description = "32 bit signed integer number")
-public final class IntConstant implements SimpleLibBlock {
+public final class IntConstant implements LibConst {
 
   @Override
-  public Optional<Value> edit(Window window, Value old) {
-    var field = new TextField(extractValue(old));
-    return new ConstantEditDialog(this, window, twoColumnPane(new SeqMap<>(text("Number"), field)))
-      .showAndWait(() -> new StringValue(field.getText()));
+  public Optional<IntegerLiteralExpr> edit(Node node, Expression oldValue) {
+    var ov = oldValue instanceof IntegerLiteralExpr e ? e.getValue() : "0";
+    final class D extends ModalDialog<String> {
+      private D() {
+        super(IntConstant.this.text("Integer"), node, ButtonType.OK, ButtonType.CLOSE);
+        headerTextProperty().bind(text(name()));
+        var field = new TextField(ov);
+        getDialogPane().setContent(GridPanes.twoColumnPane(new SeqMap<>(text("Integer"), field)));
+        setResultConverter(field::getText);
+      }
+    }
+    return new D().showAndWait().map(IntegerLiteralExpr::new);
   }
 
   @Override
-  public Expression build(Value value) {
-    return new IntegerLiteralExpr(extractValue(value));
+  public String type() {
+    return "int";
   }
 
   @Override
-  public Value defaultValue() {
-    return new StringValue("0");
+  public Expression defaultValue() {
+    return new IntegerLiteralExpr("0");
   }
 }

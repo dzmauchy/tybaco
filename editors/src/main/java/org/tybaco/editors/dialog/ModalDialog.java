@@ -43,7 +43,21 @@ public abstract class ModalDialog<R> extends Dialog<R> implements TextSupport {
     titleProperty().bind(title);
   }
 
+  public ModalDialog(StringBinding title, Node owner, ButtonType... buttonTypes) {
+    initOwner(owner.getScene().getWindow());
+    initModality(Modality.WINDOW_MODAL);
+    setResizable(true);
+    getDialogPane().setPrefSize(900, 700);
+    getDialogPane().getButtonTypes().addAll(buttonTypes);
+    titleProperty().bind(title);
+  }
+
   public ModalDialog(StringBinding title, Window owner, Node content, ButtonType... buttonTypes) {
+    this(title, owner, buttonTypes);
+    getDialogPane().setContent(content);
+  }
+
+  public ModalDialog(StringBinding title, Node owner, Node content, ButtonType... buttonTypes) {
     this(title, owner, buttonTypes);
     getDialogPane().setContent(content);
   }

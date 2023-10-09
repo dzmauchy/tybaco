@@ -24,44 +24,35 @@ package org.tybaco.editors.basic.constant.network;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
-import javafx.scene.control.TextField;
-import javafx.stage.Window;
+import javafx.scene.Node;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.dialog.ConstantEditDialog;
 import org.tybaco.editors.model.Descriptor;
-import org.tybaco.editors.model.SimpleLibBlock;
-import org.tybaco.editors.util.SeqMap;
-import org.tybaco.editors.value.StringValue;
-import org.tybaco.editors.value.Value;
+import org.tybaco.editors.model.LibConst;
 
 import java.util.Optional;
-
-import static org.tybaco.editors.control.GridPanes.twoColumnPane;
 
 @Qualifier("basic")
 @Component
 @Descriptor(id = "net_itf", name = "Network interface", icon = "fas-network-wired", description = "Network interface")
-public final class NetworkInterface implements SimpleLibBlock {
+public final class NetworkInterface implements LibConst {
 
   @Override
-  public Optional<Value> edit(Window window, Value old) {
-    var field = new TextField(extractValue(old));
-    return new ConstantEditDialog(this, window, twoColumnPane(new SeqMap<>(text("Network interface"), field)))
-      .showAndWait(() -> new StringValue(field.getText()));
+  public Optional<? extends Expression> edit(Node node, Expression oldValue) {
+    return Optional.empty();
   }
 
   @Override
-  public Expression build(Value value) {
+  public String type() {
+    return "java.net.NetworkInterface";
+  }
+
+  @Override
+  public Expression defaultValue() {
     return new MethodCallExpr(
       new TypeExpr(new ClassOrInterfaceType(null, "java.net.NetworkInterface")),
       "getByName",
-      NodeList.nodeList(new StringLiteralExpr(extractValue(value)))
+      NodeList.nodeList(new StringLiteralExpr("loopback"))
     );
-  }
-
-  @Override
-  public Value defaultValue() {
-    return new StringValue("loopback");
   }
 }
