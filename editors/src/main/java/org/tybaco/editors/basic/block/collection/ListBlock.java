@@ -47,7 +47,8 @@ import java.util.*;
   icon = "mdi2l-list-status",
   description = "Elements of the list",
   vector = true,
-  defaultValue = "null"
+  defaultValue = "null",
+  type = "java.lang.Object"
 )
 @Output(
   id = "self",

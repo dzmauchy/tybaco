@@ -45,6 +45,10 @@ public final class Link {
     this.index = index;
   }
 
+  public Link(Connector out, Connector in) {
+    this(out, in, -1);
+  }
+
   public Link(Element element) {
     this(
       new Connector(elementByTag(element, "out").orElseThrow(() -> new NoSuchElementException("out"))),

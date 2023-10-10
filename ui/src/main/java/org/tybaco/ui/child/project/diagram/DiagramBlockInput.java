@@ -21,26 +21,25 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.geometry.*;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
+import javafx.event.ActionEvent;
+import javafx.scene.control.Button;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibInput;
-import org.tybaco.editors.text.Texts;
+import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 
 import static java.util.Collections.binarySearch;
 import static java.util.Comparator.comparing;
-import static javafx.geometry.Orientation.HORIZONTAL;
+import static org.tybaco.editors.icon.Icons.icon;
 
 public final class DiagramBlockInput extends BorderPane {
 
   public final DiagramBlock block;
   public final LibInput input;
   public final String spot;
+  public final Connector inp;
   private final VBox vectorInputs;
   private final Button inputButton;
 
@@ -48,9 +47,11 @@ public final class DiagramBlockInput extends BorderPane {
     this.block = block;
     this.input = input;
     this.spot = spot;
-    setTop(inputButton = new Button(null, Icons.icon(classLoader(), input.icon(), 20)));
+    this.inp = new Connector(block.block.id, spot);
+    setTop(inputButton = new Button(null, icon(classLoader(), input.icon(), 20)));
     inputButton.setFocusTraversable(false);
     inputButton.setTooltip(DiagramTooltips.tooltip(classLoader(), input));
+    inputButton.setOnAction(this::onButton);
     setCenter(vectorInputs = new VBox());
   }
 
@@ -77,6 +78,37 @@ public final class DiagramBlockInput extends BorderPane {
           inputButton.setUnderline(false);
         }
       }
+    }
+  }
+
+  private void onButton(ActionEvent event) {
+    if (block.diagram.currentOutput == null) {
+
+    } else {
+      block.diagram.currentOutput.setSelected(false);
+      var out = new Connector(block.diagram.currentOutput.block.block.id, block.diagram.currentOutput.spot);
+      if (input.vector()) {
+        var i = vectorInputs.getChildren().stream().mapToInt(n -> (int) n.getUserData()).max().orElse(-1) + 1;
+        block.diagram.project.links.add(new Link(out, inp, i));
+      } else {
+        block.diagram.project.links.removeIf(l -> l.in.equals(inp));
+        block.diagram.project.links.add(new Link(out, inp));
+      }
+      block.diagram.currentOutput = null;
+    }
+  }
+
+  private void onVectorButton(ActionEvent event) {
+    if (block.diagram.currentOutput == null) {
+
+    } else {
+      block.diagram.currentOutput.setSelected(false);
+      var button = (Button) event.getSource();
+      var out = new Connector(block.diagram.currentOutput.block.block.id, block.diagram.currentOutput.spot);
+      var i = (int) button.getUserData();
+      block.diagram.project.links.removeIf(l -> l.in.equals(inp) && l.index == i);
+      block.diagram.project.links.add(new Link(out, inp, i));
+      block.diagram.currentOutput = null;
     }
   }
 }

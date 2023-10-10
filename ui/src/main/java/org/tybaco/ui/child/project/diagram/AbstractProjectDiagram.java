@@ -50,6 +50,8 @@ abstract class AbstractProjectDiagram extends ScrollPane {
   private double mx;
   private double my;
 
+  public DiagramBlockOutput currentOutput;
+
   AbstractProjectDiagram() {
     setContent(content);
     setFitToHeight(true);
