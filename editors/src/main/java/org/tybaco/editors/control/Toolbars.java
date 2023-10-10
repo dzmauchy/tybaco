@@ -26,6 +26,7 @@ import org.tybaco.editors.action.Action;
 
 import java.util.ArrayList;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 
 public interface Toolbars {
 
@@ -40,5 +41,13 @@ public interface Toolbars {
         items.add(new Separator());
       }
     });
+  }
+
+  @SafeVarargs
+  static ToolBar toolbar(Iterable<Action> actions, Consumer<? super ToolBar>... consumers) {
+    var toolbar = new ToolBar();
+    fillToolbar(toolbar, actions);
+    for (var c : consumers) c.accept(toolbar);
+    return toolbar;
   }
 }

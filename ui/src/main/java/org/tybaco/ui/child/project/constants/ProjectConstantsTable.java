@@ -10,25 +10,31 @@ package org.tybaco.ui.child.project.constants;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
 
+import jakarta.annotation.PostConstruct;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import org.kordamp.ikonli.antdesignicons.AntDesignIconsFilled;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.tybaco.editors.action.Action;
 import org.tybaco.editors.control.Tables;
-import org.tybaco.editors.java.Expressions;
 import org.tybaco.editors.text.Texts;
 import org.tybaco.ui.child.project.classpath.ConstCache;
 import org.tybaco.ui.model.Constant;
@@ -36,10 +42,13 @@ import org.tybaco.ui.model.Project;
 
 import java.util.List;
 
+import static org.tybaco.editors.java.Expressions.fromText;
+
 @Component
 public class ProjectConstantsTable extends TableView<Constant> {
 
   private final ConstCache constCache;
+  private final Action editAction;
 
   public ProjectConstantsTable(Project project, ConstCache constCache) {
     super(project.constants);
@@ -48,6 +57,13 @@ public class ProjectConstantsTable extends TableView<Constant> {
     setEditable(true);
     getColumns().addAll(List.of(nameColumn(), factoryColumn(), valueColumn()));
     Tables.initColumnWidths(this, 130, 130, 300);
+    editAction = obtainEditAction();
+  }
+
+  @PostConstruct
+  private void initialize() {
+    editAction.installKeyCombination(this, new KeyCodeCombination(KeyCode.ENTER));
+    editAction.installDoubleClick(this);
   }
 
   private TableColumn<Constant, String> nameColumn() {
@@ -74,8 +90,29 @@ public class ProjectConstantsTable extends TableView<Constant> {
     col.setCellValueFactory(c -> Bindings.createStringBinding(() -> {
       var constant = c.getValue();
       var v = constant.value.get();
-      return Expressions.fromText(v).toString();
-    }, constCache.cache, c.getValue().value));
+      return fromText(v).toString();
+    }, c.getValue().value));
     return col;
+  }
+
+  private Action obtainEditAction() {
+    return new Action("Edit", AntDesignIconsFilled.EDIT, "Edit the selected constant")
+      .handler(e -> {
+        var item = getSelectionModel().getSelectedItem();
+        constCache.constById(item.factoryId).ifPresent(lc -> lc.edit(this, fromText(item.value.get())));
+      })
+      .disabled(getSelectionModel().selectedItemProperty().isNull());
+  }
+
+  @Qualifier("constantListAction")
+  @Bean
+  public Action addConstantAction(Action newConstantAction) {
+    return newConstantAction;
+  }
+
+  @Qualifier("constantListAction")
+  @Bean
+  public Action editConstantAction() {
+    return editAction;
   }
 }

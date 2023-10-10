@@ -22,14 +22,21 @@ package org.tybaco.ui.child.project;
  */
 
 import javafx.scene.layout.BorderPane;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.tybaco.editors.action.Action;
+
+import java.util.List;
+
+import static javafx.geometry.Orientation.VERTICAL;
+import static org.tybaco.editors.control.Toolbars.toolbar;
 
 @Configuration(proxyBeanMethods = false)
 @ComponentScan(lazyInit = true)
 public class ProjectPane extends BorderPane {
 
-  public ProjectPane(ProjectToolbar toolbar, ProjectSplitPane splitPane) {
-    super(splitPane, null, null, null, toolbar);
+  public ProjectPane(@Qualifier("projectAction") List<Action> actions, ProjectSplitPane splitPane) {
+    super(splitPane, null, null, null, toolbar(actions, t -> t.setOrientation(VERTICAL)));
   }
 }

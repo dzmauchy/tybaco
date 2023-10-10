@@ -21,10 +21,18 @@ package org.tybaco.util;
  * #L%
  */
 
+import java.util.function.Consumer;
+
 public interface MiscOps {
 
   @SuppressWarnings("unchecked")
   static <T> T cast(Object v) {
     return (T) v;
+  }
+
+  @SafeVarargs
+  static <T> T build(T obj, Consumer<? super T>... consumers) {
+    for (var c : consumers) c.accept(obj);
+    return obj;
   }
 }

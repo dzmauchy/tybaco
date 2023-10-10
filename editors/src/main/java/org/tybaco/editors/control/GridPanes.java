@@ -24,19 +24,29 @@ package org.tybaco.editors.control;
 import javafx.beans.binding.StringBinding;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import org.tybaco.editors.util.SeqMap;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static javafx.beans.binding.Bindings.createStringBinding;
+import static javafx.scene.layout.Priority.ALWAYS;
+import static javafx.scene.layout.Priority.NEVER;
+import static org.tybaco.util.MiscOps.build;
+
 public interface GridPanes {
 
   static GridPane twoColumnPane(SeqMap<StringBinding, Node> nodes) {
     var pane = new GridPane(5, 5);
+    pane.getColumnConstraints().addAll(
+      build(new ColumnConstraints(), c -> c.setHgrow(NEVER)),
+      build(new ColumnConstraints(), c -> c.setHgrow(ALWAYS))
+    );
     var counter = new AtomicInteger();
     nodes.forEach((k, v) -> {
       var label = new Label();
-      label.textProperty().bind(k);
+      label.textProperty().bind(createStringBinding(() -> k.get() + ":", k));
       pane.addRow(counter.getAndIncrement(), label, v);
     });
     return pane;

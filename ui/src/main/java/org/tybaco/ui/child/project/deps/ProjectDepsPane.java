@@ -25,14 +25,19 @@ import javafx.scene.layout.BorderPane;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.tybaco.editors.action.Action;
+
+import java.util.List;
+
+import static org.tybaco.editors.control.Toolbars.toolbar;
 
 @Order(2)
 @Qualifier("forProjectAccordion")
 @Component
 public class ProjectDepsPane extends BorderPane {
 
-  public ProjectDepsPane(ProjectDepsTable table, ProjectDepsToolbar toolbar) {
-    super(table, toolbar, null, null, null);
+  public ProjectDepsPane(ProjectDepsTable table, @Qualifier("depsAction") List<Action> actions) {
+    super(table, toolbar(actions), null, null, null);
     setId("Dependencies");
   }
 }

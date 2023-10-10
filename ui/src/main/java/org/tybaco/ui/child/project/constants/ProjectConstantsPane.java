@@ -25,14 +25,19 @@ import javafx.scene.layout.BorderPane;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.tybaco.editors.action.Action;
+
+import java.util.List;
+
+import static org.tybaco.editors.control.Toolbars.toolbar;
 
 @Order(1)
 @Qualifier("forProjectAccordion")
 @Component
 public class ProjectConstantsPane extends BorderPane {
 
-  public ProjectConstantsPane(ProjectConstantsTable constantsTable) {
-    super(constantsTable);
+  public ProjectConstantsPane(ProjectConstantsTable constantsTable, @Qualifier("constantListAction") List<Action> constantListActions) {
+    super(constantsTable, toolbar(constantListActions), null, null, null);
     setId("Constants");
   }
 }

@@ -35,6 +35,7 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCombination;
 import org.kordamp.ikonli.Ikon;
+import org.tybaco.editors.control.Toolbars;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.text.Texts;
 
@@ -538,6 +539,26 @@ public final class Action {
     }
   }
 
+  public void installKeyCombination(Node node, KeyCombination keyCombination) {
+    node.setOnKeyPressed(e -> {
+      var h = handler.get();
+      if (keyCombination.match(e) && h != null) {
+        e.consume();
+        h.handle(new ActionEvent(this, node));
+      }
+    });
+  }
+
+  public void installDoubleClick(Node node) {
+    node.setOnMouseClicked(e -> {
+      var h = handler.get();
+      if (!disabled.get() && h != null && e.getClickCount() == 2) {
+        e.consume();
+        h.handle(new ActionEvent(this, node));
+      }
+    });
+  }
+
   public ObservableList<Action> newList(Collection<Action> actions) {
     return FXCollections.observableList(new ArrayList<>(actions), a -> new Observable[]{
       this.handler,
@@ -548,6 +569,11 @@ public final class Action {
       this.selected,
       this.group
     });
+  }
+
+  @SafeVarargs
+  public final ToolBar toToolBar(Consumer<? super ToolBar>... consumers) {
+    return Toolbars.toolbar(actions, consumers);
   }
 
   private static final class ActionUserData {
