@@ -35,6 +35,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.action.Action;
 import org.tybaco.editors.control.Tables;
+import org.tybaco.editors.java.Expressions;
 import org.tybaco.editors.text.Texts;
 import org.tybaco.ui.child.project.classpath.ConstCache;
 import org.tybaco.ui.model.Constant;
@@ -48,7 +49,7 @@ import static org.tybaco.editors.java.Expressions.fromText;
 public class ProjectConstantsTable extends TableView<Constant> {
 
   private final ConstCache constCache;
-  private final Action editAction;
+  private final Action editAction = new Action("Edit", AntDesignIconsFilled.EDIT, "Edit the selected constant");
 
   public ProjectConstantsTable(Project project, ConstCache constCache) {
     super(project.constants);
@@ -57,13 +58,22 @@ public class ProjectConstantsTable extends TableView<Constant> {
     setEditable(true);
     getColumns().addAll(List.of(nameColumn(), factoryColumn(), valueColumn()));
     Tables.initColumnWidths(this, 130, 130, 300);
-    editAction = obtainEditAction();
   }
 
   @PostConstruct
   private void initialize() {
-    editAction.installKeyCombination(this, new KeyCodeCombination(KeyCode.ENTER));
-    editAction.installDoubleClick(this);
+    editAction
+      .installKeyCombination(this, new KeyCodeCombination(KeyCode.ENTER))
+      .installDoubleClick(this)
+      .handler(e -> {
+        var item = getSelectionModel().getSelectedItem();
+        if (item == null) return;
+        constCache
+          .constById(item.factoryId)
+          .flatMap(lc -> lc.edit(this, fromText(item.value.get())))
+          .ifPresent(expr -> item.value.set(Expressions.toText(expr)));
+      })
+      .disabled(getSelectionModel().selectedItemProperty().isNull());
   }
 
   private TableColumn<Constant, String> nameColumn() {
@@ -93,15 +103,6 @@ public class ProjectConstantsTable extends TableView<Constant> {
       return fromText(v).toString();
     }, c.getValue().value));
     return col;
-  }
-
-  private Action obtainEditAction() {
-    return new Action("Edit", AntDesignIconsFilled.EDIT, "Edit the selected constant")
-      .handler(e -> {
-        var item = getSelectionModel().getSelectedItem();
-        constCache.constById(item.factoryId).ifPresent(lc -> lc.edit(this, fromText(item.value.get())));
-      })
-      .disabled(getSelectionModel().selectedItemProperty().isNull());
   }
 
   @Qualifier("constantListAction")

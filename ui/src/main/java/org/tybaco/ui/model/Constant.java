@@ -26,10 +26,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.tybaco.xml.Xml;
 import org.w3c.dom.Element;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public final class Constant {
 
@@ -52,7 +52,7 @@ public final class Constant {
       Integer.parseInt(element.getAttribute("id")),
       element.getAttribute("name"),
       element.getAttribute("factoryId"),
-      Xml.elementByTag(element, "value").map(Element::getTextContent).orElse("")
+      element.getTextContent()
     );
   }
 
@@ -60,7 +60,7 @@ public final class Constant {
     element.setAttribute("id", Integer.toString(id));
     element.setAttribute("name", name.get());
     element.setAttribute("factoryId", factoryId);
-    Xml.withChild(element, "value", e -> e.setTextContent(value.get()));
+    element.setTextContent(value.get());
   }
 
   public static ObservableList<Constant> newList(Collection<Constant> constants) {

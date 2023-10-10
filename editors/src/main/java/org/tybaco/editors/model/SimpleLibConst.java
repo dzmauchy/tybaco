@@ -37,7 +37,7 @@ public abstract class SimpleLibConst<E extends Expression> implements LibConst {
   protected abstract Optional<String> validate(Expression expression);
 
   @Override
-  public final Optional<? extends Expression> edit(Node node, Expression oldValue) {
+  public final Optional<E> edit(Node node, Expression oldValue) {
     return validate(oldValue)
       .or(() -> Optional.of(defaultStringValue()))
       .flatMap(v -> {

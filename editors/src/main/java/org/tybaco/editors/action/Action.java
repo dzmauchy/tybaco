@@ -539,7 +539,7 @@ public final class Action {
     }
   }
 
-  public void installKeyCombination(Node node, KeyCombination keyCombination) {
+  public Action installKeyCombination(Node node, KeyCombination keyCombination) {
     node.setOnKeyPressed(e -> {
       var h = handler.get();
       if (keyCombination.match(e) && h != null) {
@@ -547,9 +547,10 @@ public final class Action {
         h.handle(new ActionEvent(this, node));
       }
     });
+    return this;
   }
 
-  public void installDoubleClick(Node node) {
+  public Action installDoubleClick(Node node) {
     node.setOnMouseClicked(e -> {
       var h = handler.get();
       if (!disabled.get() && h != null && e.getClickCount() == 2) {
@@ -557,6 +558,7 @@ public final class Action {
         h.handle(new ActionEvent(this, node));
       }
     });
+    return this;
   }
 
   public ObservableList<Action> newList(Collection<Action> actions) {
