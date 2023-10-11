@@ -73,13 +73,6 @@ public class Diagram extends AbstractDiagram {
 
   private void onLinkChange(SetChangeListener.Change<? extends Link> change) {
     var e = change.wasAdded() ? change.getElementAdded() : change.getElementRemoved();
-    for (var block : blocks.getChildren()) {
-      if (block instanceof DiagramBlock b) {
-        if (b.block.id == e.in.blockId || b.block.id == e.out.blockId) {
-          b.onLink(e, change.wasAdded());
-        }
-      }
-    }
     if (change.wasAdded()) {
       var line = new Line();
       line.startXProperty().bind(e.outX);

@@ -63,14 +63,6 @@ public final class Link {
     element.setAttribute("index", Integer.toString(index));
   }
 
-  public boolean inputMatches(Block block, String spot) {
-    return in.blockId == block.id && in.spot.equals(spot);
-  }
-
-  public boolean outputMatches(Block block, String spot) {
-    return out.blockId == block.id && out.spot.equals(spot);
-  }
-
   @Override
   public int hashCode() {
     return out.hashCode() ^ in.hashCode() ^ index;

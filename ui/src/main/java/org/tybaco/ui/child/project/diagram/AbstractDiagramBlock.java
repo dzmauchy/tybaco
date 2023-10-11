@@ -51,8 +51,8 @@ abstract class AbstractDiagramBlock extends BorderPane {
     title.textProperty().bind(block.name);
     setLayoutX(block.x.get());
     setLayoutY(block.y.get());
-    block.x.bindBidirectional(layoutXProperty());
-    block.y.bindBidirectional(layoutYProperty());
+    block.x.bind(layoutXProperty());
+    block.y.bind(layoutYProperty());
     setTop(title);
     setCenter(content);
     inputs.setId("inputs");
