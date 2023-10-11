@@ -23,6 +23,7 @@ package org.tybaco.ui.child.project.diagram;
 
 import jakarta.annotation.PostConstruct;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
@@ -36,7 +37,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static javafx.scene.input.ZoomEvent.ZOOM;
 
-abstract class AbstractProjectDiagram extends ScrollPane {
+abstract class AbstractDiagram extends ScrollPane {
 
   private static final double ZOOM_PRECISION = 0.01;
   private static final double ROTATE_PRECISION = 0.1;
@@ -46,13 +47,14 @@ abstract class AbstractProjectDiagram extends ScrollPane {
   protected final StackPane layers = new StackPane(connectors, blocks);
   protected final StackPane content = new StackPane(layers);
   protected final Affine transform = new Affine();
+  protected final ToggleGroup outputToggleGroup = new ToggleGroup();
 
   private double mx;
   private double my;
 
   public DiagramBlockOutput currentOutput;
 
-  AbstractProjectDiagram() {
+  AbstractDiagram() {
     setContent(content);
     setFitToHeight(true);
     setFitToWidth(true);

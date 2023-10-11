@@ -23,6 +23,8 @@ package org.tybaco.ui.child.project.diagram;
 
 import javafx.beans.Observable;
 import javafx.collections.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.change.AddListChange;
 import org.tybaco.editors.change.SetChange;
@@ -31,7 +33,7 @@ import org.tybaco.ui.child.project.classpath.ProjectClasspath;
 import org.tybaco.ui.model.*;
 
 @Component
-public class ProjectDiagram extends AbstractProjectDiagram {
+public class Diagram extends AbstractDiagram {
 
   public final Project project;
   public final BlockCache blockCache;
@@ -39,7 +41,7 @@ public class ProjectDiagram extends AbstractProjectDiagram {
   private final ListChangeListener<Block> blocksListener = this::onBlocksChange;
   private final SetChangeListener<Link> linkListener = this::onLinkChange;
 
-  public ProjectDiagram(Project project, BlockCache blockCache, ProjectClasspath classpath) {
+  public Diagram(Project project, BlockCache blockCache, ProjectClasspath classpath) {
     this.project = project;
     this.blockCache = blockCache;
     this.classpath = classpath;
@@ -71,12 +73,26 @@ public class ProjectDiagram extends AbstractProjectDiagram {
 
   private void onLinkChange(SetChangeListener.Change<? extends Link> change) {
     var e = change.wasAdded() ? change.getElementAdded() : change.getElementRemoved();
-    for (var block : blocks.getChildren())
+    for (var block : blocks.getChildren()) {
       if (block instanceof DiagramBlock b) {
         if (b.block.id == e.in.blockId || b.block.id == e.out.blockId) {
           b.onLink(e, change.wasAdded());
         }
       }
+    }
+    if (change.wasAdded()) {
+      var line = new Line();
+      line.startXProperty().bind(e.outX);
+      line.startYProperty().bind(e.outY);
+      line.endXProperty().bind(e.inX);
+      line.endYProperty().bind(e.inY);
+      line.setStrokeWidth(2.0);
+      line.setStroke(Color.WHITE);
+      line.setUserData(e);
+      connectors.getChildren().add(line);
+    } else {
+      connectors.getChildren().removeIf(n -> e.equals(n.getUserData()));
+    }
   }
 
   private void onClassPathChange(Observable o) {

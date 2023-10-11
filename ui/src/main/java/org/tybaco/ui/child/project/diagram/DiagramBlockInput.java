@@ -21,17 +21,19 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.beans.InvalidationListener;
 import javafx.event.ActionEvent;
+import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibInput;
 import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 
 import static java.util.Collections.binarySearch;
-import static java.util.Comparator.comparing;
+import static java.util.Comparator.comparingInt;
 import static org.tybaco.editors.icon.Icons.icon;
 
 public final class DiagramBlockInput extends BorderPane {
@@ -52,7 +54,17 @@ public final class DiagramBlockInput extends BorderPane {
     inputButton.setFocusTraversable(false);
     inputButton.setTooltip(DiagramTooltips.tooltip(classLoader(), input));
     inputButton.setOnAction(this::onButton);
+    inputButton.layoutBoundsProperty().addListener(o -> onLayoutBoundsChange(inputButtonBounds(), inputButton));
     setCenter(vectorInputs = new VBox());
+    var layoutListener = (InvalidationListener) (o -> {
+      onLayoutBoundsChange(inputButtonBounds(), inputButton);
+      for (var node : vectorInputs.getChildren()) onLayoutBoundsChange(vectorButtonBounds(node), node);
+    });
+    layoutBoundsProperty().addListener(layoutListener);
+    block.layoutBoundsProperty().addListener(layoutListener);
+    parentProperty().addListener((o, ov, nv) -> {
+      if (nv == null) block.layoutBoundsProperty().removeListener(layoutListener);
+    });
   }
 
   private ClassLoader classLoader() {
@@ -64,16 +76,20 @@ public final class DiagramBlockInput extends BorderPane {
       inputButton.setUnderline(true);
       if (link.index >= 0) {
         var b = new Button(Integer.toString(link.index));
-        b.setUserData(link.index);
-        var i = binarySearch(vectorInputs.getChildren(), b, comparing(n -> (Integer) n.getUserData()));
-        vectorInputs.getChildren().add(-(i + 1), b);
+        b.setUserData(link);
+        b.layoutBoundsProperty().addListener((o, ov, nv) -> onLayoutBoundsChange(vectorButtonBounds(b), b));
+        b.setOnAction(this::onVectorButton);
+        var i = binarySearch(vectorInputs.getChildren(), b, comparingInt(n -> ((Link) n.getUserData()).index));
+        if (i < 0) {
+          vectorInputs.getChildren().add(-(i + 1), b);
+        }
       }
     } else {
       if (link.index < 0) {
         inputButton.setUnderline(false);
+        inputButton.setUserData(null);
       } else {
-        var txtIndex = Integer.toString(link.index);
-        vectorInputs.getChildren().removeIf(n -> n instanceof Button b && txtIndex.equals(b.getText()));
+        vectorInputs.getChildren().removeIf(n -> link.equals(n.getUserData()));
         if (vectorInputs.getChildren().isEmpty()) {
           inputButton.setUnderline(false);
         }
@@ -82,13 +98,14 @@ public final class DiagramBlockInput extends BorderPane {
   }
 
   private void onButton(ActionEvent event) {
-    if (block.diagram.currentOutput == null) {
+    var co = block.diagram.currentOutput;
+    if (co == null) {
 
     } else {
-      block.diagram.currentOutput.setSelected(false);
-      var out = new Connector(block.diagram.currentOutput.block.block.id, block.diagram.currentOutput.spot);
+      co.setSelected(false);
+      var out = new Connector(co.block.block.id, co.spot);
       if (input.vector()) {
-        var i = vectorInputs.getChildren().stream().mapToInt(n -> (int) n.getUserData()).max().orElse(-1) + 1;
+        var i = vectorInputs.getChildren().stream().mapToInt(n -> ((Link) n.getUserData()).index).max().orElse(-1) + 1;
         block.diagram.project.links.add(new Link(out, inp, i));
       } else {
         block.diagram.project.links.removeIf(l -> l.in.equals(inp));
@@ -99,16 +116,37 @@ public final class DiagramBlockInput extends BorderPane {
   }
 
   private void onVectorButton(ActionEvent event) {
-    if (block.diagram.currentOutput == null) {
+    var co = block.diagram.currentOutput;
+    if (co == null) {
 
     } else {
-      block.diagram.currentOutput.setSelected(false);
+      co.setSelected(false);
       var button = (Button) event.getSource();
-      var out = new Connector(block.diagram.currentOutput.block.block.id, block.diagram.currentOutput.spot);
-      var i = (int) button.getUserData();
-      block.diagram.project.links.removeIf(l -> l.in.equals(inp) && l.index == i);
-      block.diagram.project.links.add(new Link(out, inp, i));
+      var out = new Connector(co.block.block.id, co.spot);
+      var link = (Link) button.getUserData();
+      block.diagram.project.links.removeIf(l -> l.equals(link));
+      block.diagram.project.links.add(new Link(out, inp, link.index));
       block.diagram.currentOutput = null;
     }
+  }
+
+  private void onLayoutBoundsChange(Bounds bounds, Node button) {
+    var link = (Link) button.getUserData();
+    if (link == null) return;
+    link.inX.set(bounds.getMinX());
+    link.inY.set(bounds.getCenterY());
+  }
+
+  private Bounds inputButtonBounds() {
+    var boundsInInput = inputButton.getBoundsInParent();
+    var boundInBlock = localToParent(boundsInInput);
+    return block.localToParent(boundInBlock);
+  }
+
+  private Bounds vectorButtonBounds(Node b) {
+    var boundsInBox = b.getBoundsInParent();
+    var boundsInInput = vectorInputs.localToParent(boundsInBox);
+    var boundsInBlock = localToParent(boundsInInput);
+    return block.localToParent(boundsInBlock);
   }
 }

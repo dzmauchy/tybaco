@@ -24,14 +24,14 @@ package org.tybaco.ui.child.project;
 import javafx.collections.ListChangeListener.Change;
 import javafx.scene.control.SplitPane;
 import org.springframework.stereotype.Component;
-import org.tybaco.ui.child.project.diagram.ProjectDiagram;
+import org.tybaco.ui.child.project.diagram.Diagram;
 
 @Component
 public class ProjectSplitPane extends SplitPane {
 
   private double lastDividerPosition = 0.7;
 
-  public ProjectSplitPane(ProjectDiagram diagram, ProjectAccordion accordion) {
+  public ProjectSplitPane(Diagram diagram, ProjectAccordion accordion) {
     super(diagram, accordion);
     setDividerPositions(lastDividerPosition);
     getDividers().addListener((Change<? extends Divider> c) -> {

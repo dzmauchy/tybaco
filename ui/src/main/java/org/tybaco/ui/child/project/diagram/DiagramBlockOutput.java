@@ -21,24 +21,38 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.beans.InvalidationListener;
+import javafx.geometry.Bounds;
 import javafx.scene.control.ToggleButton;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibOutput;
 import org.tybaco.ui.model.Link;
+
+import java.util.IdentityHashMap;
 
 public final class DiagramBlockOutput extends ToggleButton {
 
   public final DiagramBlock block;
   public final LibOutput output;
   public final String spot;
+  public final IdentityHashMap<Link, Boolean> links = new IdentityHashMap<>();
 
   public DiagramBlockOutput(DiagramBlock block, LibOutput output, String spot) {
     setFocusTraversable(false);
     this.block = block;
     this.output = output;
     this.spot = spot;
+    setToggleGroup(block.diagram.outputToggleGroup);
     setGraphic(Icons.icon(classLoader(), output.icon(), 20));
     setTooltip(DiagramTooltips.tooltip(classLoader(), output));
+    selectedProperty().addListener((o, ov, nv) -> {
+      if (nv) block.diagram.currentOutput = this;
+    });
+    var layoutListener = (InvalidationListener) (o -> {
+      var bounds = bounds();
+      links.forEach((l, v) -> setupLink(l, bounds));
+    });
+    layoutBoundsProperty().addListener(layoutListener);
   }
 
   private ClassLoader classLoader() {
@@ -46,6 +60,21 @@ public final class DiagramBlockOutput extends ToggleButton {
   }
 
   public void onLink(Link link, boolean added) {
+    if (added) {
+      links.put(link, Boolean.TRUE);
+      setupLink(link, bounds());
+    } else {
+      links.remove(link);
+    }
+  }
 
+  private Bounds bounds() {
+    var boundsInBlock = getBoundsInParent();
+    return block.localToParent(boundsInBlock);
+  }
+
+  private void setupLink(Link link, Bounds bounds) {
+    link.outX.set(bounds.getMaxX());
+    link.outY.set(bounds.getCenterY());
   }
 }

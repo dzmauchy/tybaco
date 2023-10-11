@@ -27,9 +27,9 @@ import org.tybaco.ui.model.Link;
 
 public final class DiagramBlock extends AbstractDiagramBlock {
 
-  public final ProjectDiagram diagram;
+  public final Diagram diagram;
 
-  public DiagramBlock(ProjectDiagram diagram, Block block) {
+  public DiagramBlock(Diagram diagram, Block block) {
     super(block);
     this.diagram = diagram;
     onClasspathChange();
