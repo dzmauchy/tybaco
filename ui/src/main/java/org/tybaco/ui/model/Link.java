@@ -22,6 +22,7 @@ package org.tybaco.ui.model;
  */
 
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.geometry.Point2D;
 import org.w3c.dom.Element;
 
 import java.util.NoSuchElementException;
@@ -61,6 +62,16 @@ public final class Link {
     withChild(element, "out", out::saveTo);
     withChild(element, "in", in::saveTo);
     element.setAttribute("index", Integer.toString(index));
+  }
+
+  public void setOutPoint(Point2D point) {
+    outX.set(point.getX());
+    outY.set(point.getY());
+  }
+
+  public void setInPoint(Point2D point) {
+    inX.set(point.getX());
+    inY.set(point.getY());
   }
 
   @Override
