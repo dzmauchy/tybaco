@@ -53,6 +53,7 @@ public final class DiagramBlockInput extends BorderPane {
     inputButton.setTooltip(DiagramTooltips.tooltip(classLoader(), input));
     inputButton.setOnAction(this::onButton);
     setCenter(vectorInputs = new VBox());
+    vectorInputs.setFillWidth(true);
   }
 
   private ClassLoader classLoader() {
@@ -64,6 +65,8 @@ public final class DiagramBlockInput extends BorderPane {
       inputButton.setUnderline(true);
       if (link.index >= 0) {
         var b = new Button(Integer.toString(link.index));
+        b.setFocusTraversable(false);
+        b.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         b.setUserData(link);
         b.setOnAction(this::onVectorButton);
         var i = binarySearch(vectorInputs.getChildren(), b, comparingInt(n -> ((Link) n.getUserData()).index));

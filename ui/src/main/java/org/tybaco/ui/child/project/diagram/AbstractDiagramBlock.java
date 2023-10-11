@@ -40,7 +40,6 @@ abstract class AbstractDiagramBlock extends BorderPane {
   protected final Label factory = new Label();
   protected final VBox inputs = new VBox(2);
   protected final VBox outputs = new VBox(2);
-  protected final BorderPane content = new BorderPane(factory, null, outputs, null, inputs);
 
   protected double bx;
   protected double by;
@@ -54,7 +53,9 @@ abstract class AbstractDiagramBlock extends BorderPane {
     block.x.bind(layoutXProperty());
     block.y.bind(layoutYProperty());
     setTop(title);
-    setCenter(content);
+    setCenter(factory);
+    setLeft(inputs);
+    setRight(outputs);
     inputs.setId("inputs");
     inputs.setAlignment(Pos.CENTER);
     outputs.setAlignment(Pos.CENTER);
