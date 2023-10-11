@@ -21,7 +21,7 @@ package org.tybaco.ui.model;
  * #L%
  */
 
-import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Point2D;
 import org.w3c.dom.Element;
 
@@ -35,10 +35,8 @@ public final class Link {
   public final Connector out;
   public final Connector in;
   public final int index;
-  public final SimpleDoubleProperty outX = new SimpleDoubleProperty(this, "outX", 0d);
-  public final SimpleDoubleProperty outY = new SimpleDoubleProperty(this, "outY", 0d);
-  public final SimpleDoubleProperty inX = new SimpleDoubleProperty(this, "inX", 0d);
-  public final SimpleDoubleProperty inY = new SimpleDoubleProperty(this, "inY", 0d);
+  public final SimpleObjectProperty<Point2D> outSpot = new SimpleObjectProperty<>(this, "outSpot", Point2D.ZERO);
+  public final SimpleObjectProperty<Point2D> inpSpot = new SimpleObjectProperty<>(this, "inpSpot", Point2D.ZERO);
 
   public Link(Connector out, Connector in, int index) {
     this.out = out;
@@ -62,16 +60,6 @@ public final class Link {
     withChild(element, "out", out::saveTo);
     withChild(element, "in", in::saveTo);
     element.setAttribute("index", Integer.toString(index));
-  }
-
-  public void setOutPoint(Point2D point) {
-    outX.set(point.getX());
-    outY.set(point.getY());
-  }
-
-  public void setInPoint(Point2D point) {
-    inX.set(point.getX());
-    inY.set(point.getY());
   }
 
   @Override

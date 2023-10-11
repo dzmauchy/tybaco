@@ -21,28 +21,18 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.beans.*;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.SetChangeListener;
-import javafx.collections.WeakSetChangeListener;
-import javafx.geometry.Point2D;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.ToggleButton;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibOutput;
 import org.tybaco.ui.model.Link;
 
-import java.util.function.Consumer;
+import static org.tybaco.ui.child.project.diagram.DiagramSpotPoints.installSpotPointMonitoring;
 
 public final class DiagramBlockOutput extends ToggleButton {
 
   public final DiagramBlock block;
   public final LibOutput output;
   public final String spot;
-  private final InvalidationListener spotPointListener = this::onSpotPointUpdate;
-  private final SetChangeListener<Link> linksListener = this::onLinksChange;
 
   public DiagramBlockOutput(DiagramBlock block, LibOutput output, String spot) {
     setFocusTraversable(false);
@@ -55,46 +45,15 @@ public final class DiagramBlockOutput extends ToggleButton {
     selectedProperty().addListener((o, ov, nv) -> {
       if (nv) block.diagram.currentOutput = this;
     });
-    sceneProperty().addListener(new ChangeListener<>() {
-      @Override
-      public void changed(ObservableValue<? extends Scene> observable, Scene oldValue, Scene newValue) {
-        sceneProperty().removeListener(this);
-        var wsl = new WeakInvalidationListener(spotPointListener);
-        block.diagram.project.links.addListener(new WeakSetChangeListener<>(linksListener));
-        onSpotPointUpdate(null);
-      }
-    });
   }
 
   private ClassLoader classLoader() {
     return block.diagram.classpath.getClassLoader();
   }
 
-  private void onSpotPointUpdate(Observable observable) {
-    var p = spotPoint();
-    block.diagram.project.links.forEach(l -> {
-      if (l.out.blockId == block.block.id) l.setOutPoint(p);
-    });
-  }
-
-  private Point2D spotPoint() {
-    var base = block.diagram.blocks;
-    var bounds = getBoundsInLocal();
-    var x = bounds.getMaxX();
-    var y = bounds.getCenterY();
-    for (Node c = this; c != base; c = c.getParent()) {
-      var t = c.getLocalToParentTransform();
-      var p = t.transform(x, y);
-      x = p.getX();
-      y = p.getY();
-    }
-    return new Point2D(x, y);
-  }
-
-  private void onLinksChange(SetChangeListener.Change<? extends Link> change) {
-    if (change.wasAdded()) {
-      var l = change.getElementAdded();
-      if (l.out.blockId == block.block.id) l.setOutPoint(spotPoint());
+  void onLink(Link link, boolean added) {
+    if (added) {
+      installSpotPointMonitoring(block.diagram.blocks, this, DiagramSpotPoints::outputSpot, link.outSpot::bind);
     }
   }
 }

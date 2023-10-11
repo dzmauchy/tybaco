@@ -23,6 +23,7 @@ package org.tybaco.ui.child.project.diagram;
 
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.ui.model.Block;
+import org.tybaco.ui.model.Link;
 
 public final class DiagramBlock extends AbstractDiagramBlock {
 
@@ -42,5 +43,22 @@ public final class DiagramBlock extends AbstractDiagramBlock {
       b.forEachInput((spot, i) -> inputs.getChildren().add(new DiagramBlockInput(this, i, spot)));
       b.forEachOutput((spot, o) -> outputs.getChildren().add(new DiagramBlockOutput(this, o, spot)));
     });
+  }
+
+  public void onLink(Link link, boolean added) {
+    for (var n : inputs.getChildren()) {
+      if (n instanceof DiagramBlockInput i) {
+        if (i.block.block.id == link.in.blockId && i.spot.equals(link.in.spot)) {
+          i.onLink(link, added);
+        }
+      }
+    }
+    for (var n : outputs.getChildren()) {
+      if (n instanceof DiagramBlockOutput o) {
+        if (o.block.block.id == link.out.blockId && o.spot.equals(link.out.spot)) {
+          o.onLink(link, added);
+        }
+      }
+    }
   }
 }

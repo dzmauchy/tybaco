@@ -73,18 +73,38 @@ public class Diagram extends AbstractDiagram {
 
   private void onLinkChange(SetChangeListener.Change<? extends Link> change) {
     var e = change.wasAdded() ? change.getElementAdded() : change.getElementRemoved();
+    for (var n : blocks.getChildren()) {
+      if (n instanceof DiagramBlock b) {
+        if (b.block.id == e.in.blockId || b.block.id == e.out.blockId) {
+          b.onLink(e, change.wasAdded());
+        }
+      }
+    }
     if (change.wasAdded()) {
       var line = new Line();
-      line.startXProperty().bind(e.outX);
-      line.startYProperty().bind(e.outY);
-      line.endXProperty().bind(e.inX);
-      line.endYProperty().bind(e.inY);
+      var spotData = new DiagramSpotData(e, o -> {
+        line.setStartX(e.outSpot.get().getX());
+        line.setStartY(e.outSpot.get().getY());
+        line.setEndX(e.inpSpot.get().getX());
+        line.setEndY(e.inpSpot.get().getY());
+      });
       line.setStrokeWidth(2.0);
       line.setStroke(Color.WHITE);
-      line.setUserData(e);
+      line.setUserData(spotData);
+      e.outSpot.addListener(spotData.invalidationListener());
+      e.inpSpot.addListener(spotData.invalidationListener());
+      spotData.invalidationListener().invalidated(null);
       connectors.getChildren().add(line);
     } else {
-      connectors.getChildren().removeIf(n -> e.equals(n.getUserData()));
+      connectors.getChildren().removeIf(n -> {
+        if (n.getUserData() instanceof DiagramSpotData d && d.link() == e) {
+          e.inpSpot.removeListener(d.invalidationListener());
+          e.outSpot.removeListener(d.invalidationListener());
+          return true;
+        } else {
+          return false;
+        }
+      });
     }
   }
 
