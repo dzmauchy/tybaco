@@ -21,19 +21,13 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.beans.binding.ObjectBinding;
-import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
-import javafx.geometry.Bounds;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import org.tybaco.editors.model.LibInput;
 import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
-
-import java.util.IdentityHashMap;
 
 import static java.util.Collections.binarySearch;
 import static java.util.Comparator.comparingInt;
