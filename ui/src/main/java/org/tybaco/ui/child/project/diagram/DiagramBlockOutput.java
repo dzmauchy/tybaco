@@ -21,8 +21,8 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.beans.InvalidationListener;
-import javafx.geometry.Bounds;
+import javafx.beans.*;
+import javafx.scene.Node;
 import javafx.scene.control.ToggleButton;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibOutput;
@@ -36,6 +36,7 @@ public final class DiagramBlockOutput extends ToggleButton {
   public final LibOutput output;
   public final String spot;
   public final IdentityHashMap<Link, Boolean> links = new IdentityHashMap<>();
+  private final InvalidationListener boundsListener = this::onBoundsUpdate;
 
   public DiagramBlockOutput(DiagramBlock block, LibOutput output, String spot) {
     setFocusTraversable(false);
@@ -48,11 +49,14 @@ public final class DiagramBlockOutput extends ToggleButton {
     selectedProperty().addListener((o, ov, nv) -> {
       if (nv) block.diagram.currentOutput = this;
     });
-    var layoutListener = (InvalidationListener) (o -> {
-      var bounds = bounds();
-      links.forEach((l, v) -> setupLink(l, bounds));
-    });
-    layoutBoundsProperty().addListener(layoutListener);
+    initialize();
+  }
+
+  private void initialize() {
+    boundsInParentProperty().addListener(boundsListener);
+    block.outputs.boundsInParentProperty().addListener(new WeakInvalidationListener(boundsListener));
+    block.boundsInParentProperty().addListener(new WeakInvalidationListener(boundsListener));
+    onBoundsUpdate(boundsInParentProperty());
   }
 
   private ClassLoader classLoader() {
@@ -62,19 +66,29 @@ public final class DiagramBlockOutput extends ToggleButton {
   public void onLink(Link link, boolean added) {
     if (added) {
       links.put(link, Boolean.TRUE);
-      setupLink(link, bounds());
+      onBoundsUpdate(boundsInParentProperty());
     } else {
       links.remove(link);
     }
   }
 
-  private Bounds bounds() {
-    var boundsInBlock = getBoundsInParent();
-    return block.localToParent(boundsInBlock);
-  }
-
-  private void setupLink(Link link, Bounds bounds) {
-    link.outX.set(bounds.getMaxX());
-    link.outY.set(bounds.getCenterY());
+  private void onBoundsUpdate(Observable observable) {
+    var base = block.diagram.blocks;
+    var bounds = getBoundsInLocal();
+    var x = bounds.getMinX();
+    var y = bounds.getCenterY();
+    for (Node c = this; c != base; c = c.getParent()) {
+      if (c == null) {
+        return;
+      }
+      var t = c.getLocalToParentTransform();
+      var p = t.transform(x, y);
+      x = p.getX();
+      y = p.getY();
+    }
+    for (var l : links.keySet()) {
+      l.outX.set(x);
+      l.outY.set(y);
+    }
   }
 }

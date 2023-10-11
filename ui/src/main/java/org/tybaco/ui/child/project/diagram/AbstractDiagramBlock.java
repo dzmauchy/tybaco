@@ -23,7 +23,6 @@ package org.tybaco.ui.child.project.diagram;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
@@ -56,8 +55,10 @@ abstract class AbstractDiagramBlock extends BorderPane {
     block.y.bindBidirectional(layoutYProperty());
     setTop(title);
     setCenter(content);
+    inputs.setId("inputs");
     inputs.setAlignment(Pos.CENTER);
     outputs.setAlignment(Pos.CENTER);
+    outputs.setId("outputs");
     inputs.setFillWidth(true);
     outputs.setFillWidth(true);
     setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(5d), new BorderWidths(2d))));
