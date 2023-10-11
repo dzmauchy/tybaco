@@ -110,5 +110,6 @@ public class Diagram extends AbstractDiagram {
 
   private void onClassPathChange(Observable o) {
     for (var block : blocks.getChildren()) if (block instanceof DiagramBlock b) b.onClasspathChange();
+    project.links.forEach(l -> linkListener.onChanged(new SetChange<>(project.links, null, l)));
   }
 }

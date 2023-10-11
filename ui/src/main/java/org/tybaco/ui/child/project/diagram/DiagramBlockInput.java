@@ -38,6 +38,7 @@ import java.util.IdentityHashMap;
 import static java.util.Collections.binarySearch;
 import static java.util.Comparator.comparingInt;
 import static org.tybaco.editors.icon.Icons.icon;
+import static org.tybaco.ui.child.project.diagram.DiagramSpotPoints.installSpotPointMonitoring;
 
 public final class DiagramBlockInput extends BorderPane {
 
@@ -47,7 +48,6 @@ public final class DiagramBlockInput extends BorderPane {
   public final Connector inp;
   private final VBox vectorInputs;
   private final Button inputButton;
-  private final IdentityHashMap<Node, ObjectBinding<Bounds>> bounds = new IdentityHashMap<>();
 
   public DiagramBlockInput(DiagramBlock block, LibInput input, String spot) {
     this.block = block;
@@ -58,15 +58,7 @@ public final class DiagramBlockInput extends BorderPane {
     inputButton.setFocusTraversable(false);
     inputButton.setTooltip(DiagramTooltips.tooltip(classLoader(), input));
     inputButton.setOnAction(this::onButton);
-    inputButton.setId("main");
     setCenter(vectorInputs = new VBox());
-    vectorInputs.getChildren().addListener((ListChangeListener<? super Node>) c -> {
-      while (c.next()) {
-        if (c.wasRemoved()) {
-          c.getRemoved().forEach(bounds::remove);
-        }
-      }
-    });
   }
 
   private ClassLoader classLoader() {
@@ -83,7 +75,10 @@ public final class DiagramBlockInput extends BorderPane {
         var i = binarySearch(vectorInputs.getChildren(), b, comparingInt(n -> ((Link) n.getUserData()).index));
         if (i < 0) {
           vectorInputs.getChildren().add(-(i + 1), b);
+          installSpotPointMonitoring(block.diagram.blocks, b, DiagramSpotPoints::inputSpot, link.inpSpot::bind);
         }
+      } else {
+        installSpotPointMonitoring(block.diagram.blocks, inputButton, DiagramSpotPoints::inputSpot, link.inpSpot::bind);
       }
     } else {
       if (link.index < 0) {
