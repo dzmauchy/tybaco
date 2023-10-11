@@ -25,6 +25,7 @@ import javafx.beans.Observable;
 import javafx.collections.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Path;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.change.AddListChange;
 import org.tybaco.editors.change.SetChange;
@@ -81,30 +82,9 @@ public class Diagram extends AbstractDiagram {
       }
     }
     if (change.wasAdded()) {
-      var line = new Line();
-      var spotData = new DiagramSpotData(e, o -> {
-        line.setStartX(e.outSpot.get().getX());
-        line.setStartY(e.outSpot.get().getY());
-        line.setEndX(e.inpSpot.get().getX());
-        line.setEndY(e.inpSpot.get().getY());
-      });
-      line.setStrokeWidth(2.0);
-      line.setStroke(Color.WHITE);
-      line.setUserData(spotData);
-      e.outSpot.addListener(spotData.invalidationListener());
-      e.inpSpot.addListener(spotData.invalidationListener());
-      spotData.invalidationListener().invalidated(null);
-      connectors.getChildren().add(line);
+      connectors.getChildren().add(new DiagramLine(change.getElementAdded()));
     } else {
-      connectors.getChildren().removeIf(n -> {
-        if (n.getUserData() instanceof DiagramSpotData d && d.link() == e) {
-          e.inpSpot.removeListener(d.invalidationListener());
-          e.outSpot.removeListener(d.invalidationListener());
-          return true;
-        } else {
-          return false;
-        }
-      });
+      connectors.getChildren().removeIf(n -> n instanceof DiagramLine l && l.link == e);
     }
   }
 
