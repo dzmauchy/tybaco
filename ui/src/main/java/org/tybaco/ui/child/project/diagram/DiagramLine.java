@@ -24,11 +24,15 @@ package org.tybaco.ui.child.project.diagram;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import org.tybaco.ui.model.Link;
 
 import java.util.LinkedList;
+import java.util.stream.Stream;
+
+import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
 public class DiagramLine extends Group {
 
@@ -56,34 +60,29 @@ public class DiagramLine extends Group {
   private void onUpdate(Observable o) {
     var p1 = link.outSpot.get();
     var p2 = link.inpSpot.get();
+    var out = link.output.get();
     if (p1 == null || p2 == null) return;
-    var elements = new LinkedList<PathElement>();
-    elements.add(new MoveTo(p1.getX(), p1.getY()));
-    if (p1.getX() < p2.getX()) {
+    var nodes = new LinkedList<Node>();
+    if (p1.getX() < p2.getX() - 100d) {
       var d = (p2.getX() - p1.getX()) / 5d;
-      elements.add(new CubicCurveTo(
+      var curve = new CubicCurve(
+        p1.getX(), p1.getY(),
         p1.getX() + d, p1.getY(),
         p2.getX() - d, p2.getY(),
         p2.getX(), p2.getY()
-      ));
-    } else {
-      var dx = Math.abs(p2.getX() - p1.getX());
-      var dy = Math.abs(p2.getY() - p1.getY());
-      if (p2.getY() > p1.getY()) {
-        elements.add(new CubicCurveTo(
-          p1.getX() + dx / 2d, p1.getY() + dy / 6d,
-          p1.getX() + dx * 2d, p2.getY() + dy / 3d,
-          p1.getX() - dx / 3d, p2.getY() + dy
-        ));
-        elements.add(new CubicCurveTo(
-          p2.getX() - dx, p2.getY() + dy * 1.333d,
-          p2.getX() - dx / 2d, p2.getY() + dy / 8d,
-          p2.getX(), p2.getY()
-        ));
-      } else {
-        elements.add(new LineTo(p2.getX(), p2.getY()));
+      );
+      var blocksBase = out.block.diagram.blocks;
+      var connectorsBase = out.block.diagram.connectors;
+      var canBeDrawn = blocksBase.getChildren().stream()
+        .map(n -> boundsIn(blocksBase, n))
+        .parallel()
+        .noneMatch(curve::intersects);
+      if (!canBeDrawn) {
+        curve.setStroke(Color.WHITE);
+        curve.setStrokeWidth(2d);
+        nodes.addLast(curve);
       }
     }
-    path.getElements().setAll(elements);
+    getChildren().setAll(nodes);
   }
 }

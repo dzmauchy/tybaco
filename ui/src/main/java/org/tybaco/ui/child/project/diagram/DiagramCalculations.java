@@ -31,7 +31,7 @@ import javafx.scene.Node;
 import java.util.LinkedList;
 import java.util.function.Function;
 
-public interface DiagramSpotPoints {
+public interface DiagramCalculations {
 
   static ObjectBinding<Point2D> spotPointBinding(Node base, Node current, Function<Bounds, Point2D> func) {
     var observables = new LinkedList<Observable>();
@@ -43,6 +43,9 @@ public interface DiagramSpotPoints {
       var bounds = current.getBoundsInLocal();
       var point = func.apply(bounds);
       for (var c = current; c != base; c = c.getParent()) {
+        if (c == null) {
+          return point;
+        }
         point = c.getLocalToParentTransform().transform(point);
       }
       return point;
@@ -55,5 +58,13 @@ public interface DiagramSpotPoints {
 
   static Point2D inputSpot(Bounds bounds) {
     return new Point2D(bounds.getMinX(), bounds.getCenterY());
+  }
+
+  static Bounds boundsIn(Node base, Node current) {
+    var b = current.getBoundsInLocal();
+    for (var c = current; c != base; c = c.getParent()) {
+      b = c.getLocalToParentTransform().transform(b);
+    }
+    return b;
   }
 }

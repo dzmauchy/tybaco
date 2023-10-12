@@ -31,7 +31,7 @@ import javafx.scene.text.TextAlignment;
 import static javafx.beans.binding.Bindings.createDoubleBinding;
 import static javafx.scene.layout.BorderStrokeStyle.SOLID;
 import static javafx.scene.paint.Color.WHITE;
-import static org.tybaco.ui.child.project.diagram.DiagramSpotPoints.spotPointBinding;
+import static org.tybaco.ui.child.project.diagram.DiagramCalculations.spotPointBinding;
 
 public final class DiagramBlockOutputCompanion extends Group {
 

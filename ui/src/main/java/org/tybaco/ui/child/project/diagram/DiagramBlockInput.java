@@ -29,7 +29,7 @@ import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 
 import static java.util.Collections.binarySearch;
-import static org.tybaco.ui.child.project.diagram.DiagramSpotPoints.spotPointBinding;
+import static org.tybaco.ui.child.project.diagram.DiagramCalculations.spotPointBinding;
 
 public final class DiagramBlockInput extends Button {
 
@@ -66,10 +66,12 @@ public final class DiagramBlockInput extends Button {
   public void onLink(Link link, boolean added) {
     if (added) {
       setUnderline(true);
-      link.inpSpot.bind(spotPointBinding(block.diagram.connectors, companion, DiagramSpotPoints::inputSpot));
+      link.input.set(this);
+      link.inpSpot.bind(spotPointBinding(block.diagram.connectors, companion, DiagramCalculations::inputSpot));
       this.link = link;
     } else {
       setUnderline(false);
+      if (link.input.get() == this) link.input.set(null);
       this.link = null;
     }
   }
