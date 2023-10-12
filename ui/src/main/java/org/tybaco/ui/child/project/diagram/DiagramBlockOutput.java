@@ -56,8 +56,11 @@ public final class DiagramBlockOutput extends ToggleButton {
   void onLink(Link link, boolean added) {
     if (added) {
       installSpotPointMonitoring(block.diagram.blocks, this, DiagramSpotPoints::outputSpot, link.outSpot::bind);
+      link.output.set(this);
     } else {
-
+      if (link.output.get() == this) {
+        link.output.set(null);
+      }
     }
   }
 }

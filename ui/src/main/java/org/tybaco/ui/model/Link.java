@@ -23,6 +23,7 @@ package org.tybaco.ui.model;
 
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Point2D;
+import org.tybaco.ui.child.project.diagram.DiagramBlockInput;
 import org.tybaco.ui.child.project.diagram.DiagramBlockOutput;
 import org.w3c.dom.Element;
 
@@ -39,6 +40,7 @@ public final class Link {
   public final SimpleObjectProperty<Point2D> outSpot = new SimpleObjectProperty<>(this, "outSpot", Point2D.ZERO);
   public final SimpleObjectProperty<Point2D> inpSpot = new SimpleObjectProperty<>(this, "inpSpot", Point2D.ZERO);
   public final SimpleObjectProperty<DiagramBlockOutput> output = new SimpleObjectProperty<>(this, "output");
+  public final SimpleObjectProperty<DiagramBlockInput> input = new SimpleObjectProperty<>(this, "input");
 
   public Link(Connector out, Connector in, int index) {
     this.out = out;

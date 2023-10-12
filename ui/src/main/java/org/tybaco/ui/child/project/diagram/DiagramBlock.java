@@ -50,28 +50,24 @@ public final class DiagramBlock extends AbstractDiagramBlock {
 
   public void onLink(Link link, boolean added) {
     for (var n : inputs.getChildren()) {
-      if (n instanceof DiagramBlockInput i) {
-        if (i.block.block.id == link.in.blockId && i.spot.equals(link.in.spot)) {
-          if (i.index == link.index) {
-            i.onLink(link, added);
-          } else {
-            Platform.runLater(() -> {
-              var ni = new DiagramBlockInput(i.block, i.input, i.spot, link.index);
-              var k = binarySearch(inputs.getChildren(), link, DiagramBlockInput::internalCompare);
-              if (k < 0) {
-                inputs.getChildren().add(-(k + 1), ni);
-                ni.onLink(link, added);
-              }
-            });
-          }
+      if (n instanceof DiagramBlockInput i && i.block.block.id == link.in.blockId && i.spot.equals(link.in.spot)) {
+        if (i.index == link.index) {
+          i.onLink(link, added);
+        } else {
+          Platform.runLater(() -> {
+            var ni = new DiagramBlockInput(i.block, i.input, i.spot, link.index);
+            var k = binarySearch(inputs.getChildren(), link, DiagramBlockInput::internalCompare);
+            if (k < 0) {
+              inputs.getChildren().add(-(k + 1), ni);
+              ni.onLink(link, added);
+            }
+          });
         }
       }
     }
     for (var n : outputs.getChildren()) {
-      if (n instanceof DiagramBlockOutput o) {
-        if (o.block.block.id == link.out.blockId && o.spot.equals(link.out.spot)) {
-          o.onLink(link, added);
-        }
+      if (n instanceof DiagramBlockOutput o && o.block.block.id == link.out.blockId && o.spot.equals(link.out.spot)) {
+        o.onLink(link, added);
       }
     }
   }
