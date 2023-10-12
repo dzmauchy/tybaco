@@ -23,9 +23,6 @@ package org.tybaco.ui.child.project.diagram;
 
 import javafx.beans.Observable;
 import javafx.collections.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Path;
 import org.springframework.stereotype.Component;
 import org.tybaco.editors.change.AddListChange;
 import org.tybaco.editors.change.SetChange;
