@@ -33,6 +33,7 @@ public final class DiagramBlockOutput extends ToggleButton {
   public final DiagramBlock block;
   public final LibOutput output;
   public final String spot;
+  public final DiagramBlockOutputCompanion companion;
 
   public DiagramBlockOutput(DiagramBlock block, LibOutput output, String spot) {
     setFocusTraversable(false);
@@ -45,6 +46,7 @@ public final class DiagramBlockOutput extends ToggleButton {
     selectedProperty().addListener((o, ov, nv) -> {
       if (nv) block.diagram.currentOutput = this;
     });
+    companion = new DiagramBlockOutputCompanion(this);
   }
 
   private ClassLoader classLoader() {
@@ -54,6 +56,8 @@ public final class DiagramBlockOutput extends ToggleButton {
   void onLink(Link link, boolean added) {
     if (added) {
       installSpotPointMonitoring(block.diagram.blocks, this, DiagramSpotPoints::outputSpot, link.outSpot::bind);
+    } else {
+
     }
   }
 }
