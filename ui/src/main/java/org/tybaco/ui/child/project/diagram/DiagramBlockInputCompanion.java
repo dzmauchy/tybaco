@@ -26,7 +26,9 @@ import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Line;
-import javafx.scene.text.TextAlignment;
+import org.kordamp.ikonli.dashicons.Dashicons;
+import org.tybaco.editors.icon.Icons;
+import org.tybaco.ui.model.Link;
 
 import static javafx.beans.binding.Bindings.createDoubleBinding;
 import static javafx.scene.layout.BorderStrokeStyle.SOLID;
@@ -35,14 +37,13 @@ import static org.tybaco.ui.child.project.diagram.DiagramCalculations.spotPointB
 
 public final class DiagramBlockInputCompanion extends Group {
 
-  public final DiagramBlockInput input;
+  final DiagramBlockInput input;
   private final Label label = new Label();
   private final Line line = new Line();
 
   DiagramBlockInputCompanion(DiagramBlockInput input) {
     this.input = input;
     label.setAlignment(Pos.CENTER);
-    label.setTextAlignment(TextAlignment.CENTER);
     label.setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(4d), new BorderWidths(1d))));
     label.setTextFill(WHITE);
     label.setPadding(new Insets(0, 3d, 0, 3d));
@@ -64,5 +65,17 @@ public final class DiagramBlockInputCompanion extends Group {
         input.block.diagram.connectors.getChildren().remove(this);
       }
     });
+    reset();
+  }
+
+  void reset() {
+    label.graphicProperty().unbind();
+    label.setGraphic(Icons.icon(Dashicons.NO, 16));
+    label.setText(null);
+  }
+
+  void update(Link link) {
+    label.setText(link.out.blockId + "." + link.out.spot);
+    label.graphicProperty().bind(link.connectIcon());
   }
 }

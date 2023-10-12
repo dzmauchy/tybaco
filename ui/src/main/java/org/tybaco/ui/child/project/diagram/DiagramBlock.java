@@ -30,7 +30,7 @@ import static java.util.Collections.binarySearch;
 
 public final class DiagramBlock extends AbstractDiagramBlock {
 
-  public final Diagram diagram;
+  final Diagram diagram;
 
   public DiagramBlock(Diagram diagram, Block block) {
     super(block);

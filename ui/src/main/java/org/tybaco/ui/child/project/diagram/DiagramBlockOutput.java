@@ -30,10 +30,10 @@ import static org.tybaco.ui.child.project.diagram.DiagramCalculations.spotPointB
 
 public final class DiagramBlockOutput extends ToggleButton {
 
-  public final DiagramBlock block;
-  public final LibOutput output;
-  public final String spot;
-  public final DiagramBlockOutputCompanion companion;
+  final DiagramBlock block;
+  final LibOutput output;
+  final String spot;
+  final DiagramBlockOutputCompanion companion;
 
   public DiagramBlockOutput(DiagramBlock block, LibOutput output, String spot) {
     setFocusTraversable(false);
@@ -56,8 +56,10 @@ public final class DiagramBlockOutput extends ToggleButton {
   void onLink(Link link, boolean added) {
     if (added) {
       link.output.set(this);
+      companion.update(link);
       link.outSpot.bind(spotPointBinding(block.diagram.connectors, companion, DiagramCalculations::outputSpot));
     } else {
+      companion.reset();
       if (link.output.get() == this) link.output.set(null);
     }
   }

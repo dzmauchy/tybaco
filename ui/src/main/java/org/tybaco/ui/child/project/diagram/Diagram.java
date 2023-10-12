@@ -34,8 +34,8 @@ import org.tybaco.ui.model.*;
 public class Diagram extends AbstractDiagram {
 
   public final Project project;
-  public final BlockCache blockCache;
-  public final ProjectClasspath classpath;
+  final BlockCache blockCache;
+  final ProjectClasspath classpath;
   private final ListChangeListener<Block> blocksListener = this::onBlocksChange;
   private final SetChangeListener<Link> linkListener = this::onLinkChange;
 

@@ -34,7 +34,7 @@ import org.tybaco.editors.text.Texts;
 
 import static javafx.geometry.Orientation.HORIZONTAL;
 
-public interface DiagramTooltips {
+interface DiagramTooltips {
 
   static Tooltip tooltip(ClassLoader classLoader, Meta meta) {
     var tooltip = new Tooltip();

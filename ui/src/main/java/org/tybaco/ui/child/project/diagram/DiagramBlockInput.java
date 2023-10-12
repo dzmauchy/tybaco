@@ -21,6 +21,7 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import org.tybaco.editors.icon.Icons;
@@ -33,13 +34,12 @@ import static org.tybaco.ui.child.project.diagram.DiagramCalculations.spotPointB
 
 public final class DiagramBlockInput extends Button {
 
-  public final DiagramBlock block;
-  public final LibInput input;
-  public final String spot;
-  public final int index;
-  public final Connector inp;
-  public final DiagramBlockInputCompanion companion;
-  public Link link;
+  final DiagramBlock block;
+  final LibInput input;
+  final String spot;
+  final int index;
+  final Connector inp;
+  final DiagramBlockInputCompanion companion;
 
   public DiagramBlockInput(DiagramBlock block, LibInput input, String spot, int index) {
     this.block = block;
@@ -67,12 +67,12 @@ public final class DiagramBlockInput extends Button {
     if (added) {
       setUnderline(true);
       link.input.set(this);
+      companion.update(link);
       link.inpSpot.bind(spotPointBinding(block.diagram.connectors, companion, DiagramCalculations::inputSpot));
-      this.link = link;
     } else {
       setUnderline(false);
+      companion.reset();
       if (link.input.get() == this) link.input.set(null);
-      this.link = null;
     }
   }
 
@@ -95,7 +95,7 @@ public final class DiagramBlockInput extends Button {
         block.inputs.getChildren().add(-(i + 1), b);
         block.diagram.project.links.add(new Link(out, inp, nextIndex));
       } else {
-        if (link != null) block.diagram.project.links.remove(link);
+        block.diagram.project.links.removeIf(l -> l.in.equals(inp));
         block.diagram.project.links.add(new Link(out, inp, index));
       }
       block.diagram.currentOutput = null;

@@ -24,7 +24,6 @@ package org.tybaco.ui.child.project.diagram;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import org.tybaco.ui.model.Link;
@@ -32,7 +31,6 @@ import org.tybaco.ui.model.Link;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
@@ -77,9 +75,11 @@ public class DiagramLine extends Group {
         elems.add(new MoveTo(p1.getX(), p1.getY()));
         elems.add(new CubicCurveTo(p1.getX() + d, p1.getY(), p2.getX() - d, p2.getY(), p2.getX(), p2.getY()));
         path.getElements().setAll(elems);
+        link.separated.set(false);
         return;
       }
     }
+    link.separated.set(true);
     path.getElements().clear();
   }
 }

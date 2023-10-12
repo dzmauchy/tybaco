@@ -31,7 +31,7 @@ import javafx.scene.Node;
 import java.util.LinkedList;
 import java.util.function.Function;
 
-public interface DiagramCalculations {
+interface DiagramCalculations {
 
   static ObjectBinding<Point2D> spotPointBinding(Node base, Node current, Function<Bounds, Point2D> func) {
     var observables = new LinkedList<Observable>();
