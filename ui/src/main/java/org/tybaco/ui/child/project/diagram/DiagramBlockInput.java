@@ -38,6 +38,7 @@ public final class DiagramBlockInput extends Button {
   public final String spot;
   public final int index;
   public final Connector inp;
+  public final DiagramBlockInputCompanion companion;
   public Link link;
 
   public DiagramBlockInput(DiagramBlock block, LibInput input, String spot, int index) {
@@ -46,6 +47,7 @@ public final class DiagramBlockInput extends Button {
     this.spot = spot;
     this.index = index;
     this.inp = new Connector(block.block.id, spot);
+    this.companion = new DiagramBlockInputCompanion(this);
     if (index < 0 || !input.vector()) {
       setGraphic(Icons.icon(classLoader(), input.icon(), 20));
     } else {

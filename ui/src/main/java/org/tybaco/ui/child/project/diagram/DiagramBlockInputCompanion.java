@@ -33,15 +33,14 @@ import static javafx.scene.layout.BorderStrokeStyle.SOLID;
 import static javafx.scene.paint.Color.WHITE;
 import static org.tybaco.ui.child.project.diagram.DiagramSpotPoints.spotPointBinding;
 
-public final class DiagramBlockOutputCompanion extends Group {
+public final class DiagramBlockInputCompanion extends Group {
 
-  public final DiagramBlockOutput output;
+  public final DiagramBlockInput input;
   private final Label label = new Label();
   private final Line line = new Line();
 
-  DiagramBlockOutputCompanion(DiagramBlockOutput output) {
-    this.output = output;
-    label.setText(output.block.block.id + "." + output.spot);
+  DiagramBlockInputCompanion(DiagramBlockInput input) {
+    this.input = input;
     label.setAlignment(Pos.CENTER);
     label.setTextAlignment(TextAlignment.CENTER);
     label.setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(4d), new BorderWidths(1d))));
@@ -50,19 +49,19 @@ public final class DiagramBlockOutputCompanion extends Group {
     line.setStroke(WHITE);
     line.setStrokeWidth(2d);
     getChildren().addAll(line, label);
-    output.sceneProperty().addListener((o, os, ns) -> {
+    input.sceneProperty().addListener((o, os, ns) -> {
       if (ns != null) {
-        var lp = spotPointBinding(output.block.diagram.blocks, output, b -> new Point2D(b.getMaxX(), b.getMinY()));
-        label.layoutXProperty().bind(createDoubleBinding(() -> lp.get().getX() + 10d, lp));
+        var lp = spotPointBinding(input.block.diagram.blocks, input, b -> new Point2D(b.getMinX(), b.getMinY()));
+        label.layoutXProperty().bind(createDoubleBinding(() -> lp.get().getX() - 10d - label.getWidth(), lp, label.widthProperty()));
         label.layoutYProperty().bind(createDoubleBinding(() -> lp.get().getY(), lp));
-        label.prefHeightProperty().bind(output.heightProperty());
-        line.startXProperty().bind(createDoubleBinding(() -> lp.get().getX(), lp));
+        label.prefHeightProperty().bind(input.heightProperty());
+        line.startXProperty().bind(createDoubleBinding(() -> lp.get().getX() - 10d, lp));
         line.startYProperty().bind(createDoubleBinding(() -> lp.get().getY() + label.getHeight() / 2d, lp, label.heightProperty()));
-        line.endXProperty().bind(createDoubleBinding(() -> line.getStartX() + 10d, line.startXProperty()));
+        line.endXProperty().bind(createDoubleBinding(() -> lp.get().getX(), lp));
         line.endYProperty().bind(createDoubleBinding(line::getStartY, line.startYProperty()));
-        output.block.diagram.connectors.getChildren().add(this);
+        input.block.diagram.connectors.getChildren().add(this);
       } else {
-        output.block.diagram.connectors.getChildren().remove(this);
+        input.block.diagram.connectors.getChildren().remove(this);
       }
     });
   }
