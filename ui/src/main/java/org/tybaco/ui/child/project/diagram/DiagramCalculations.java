@@ -22,34 +22,23 @@ package org.tybaco.ui.child.project.diagram;
  */
 
 import javafx.beans.Observable;
-import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.geometry.Bounds;
-import javafx.geometry.Point2D;
 import javafx.scene.Node;
 
 import java.util.LinkedList;
-import java.util.function.Function;
+
+import static javafx.beans.binding.Bindings.createObjectBinding;
 
 interface DiagramCalculations {
 
-  static ObjectBinding<Point2D> spotPointBinding(Node base, Node current, Function<Bounds, Point2D> func) {
+  static ObjectBinding<Bounds> boundsBinding(Node base, Node current) {
     var observables = new LinkedList<Observable>();
     observables.add(current.boundsInLocalProperty());
     for (var c = current; c != base; c = c.getParent()) {
       observables.add(c.localToParentTransformProperty());
     }
-    return Bindings.createObjectBinding(() -> {
-      var bounds = current.getBoundsInLocal();
-      var point = func.apply(bounds);
-      for (var c = current; c != base; c = c.getParent()) {
-        if (c == null) {
-          return point;
-        }
-        point = c.getLocalToParentTransform().transform(point);
-      }
-      return point;
-    }, observables.toArray(Observable[]::new));
+    return createObjectBinding(() -> boundsIn(base, current), observables.toArray(Observable[]::new));
   }
 
   static Bounds boundsIn(Node base, Node current) {

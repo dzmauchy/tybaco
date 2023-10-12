@@ -24,6 +24,7 @@ package org.tybaco.ui.child.project.diagram;
 import javafx.scene.control.ToggleButton;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibOutput;
+import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 
 public final class DiagramBlockOutput extends ToggleButton {
@@ -59,5 +60,10 @@ public final class DiagramBlockOutput extends ToggleButton {
       companion.reset();
       if (link.output.get() == this) link.output.set(null);
     }
+  }
+
+  @Override
+  public String toString() {
+    return new Connector(block.block.id, spot).toString();
   }
 }

@@ -54,6 +54,6 @@ public final class Connector {
 
   @Override
   public String toString() {
-    return blockId + "{" + spot + "}";
+    return blockId + ("self".equals(spot) ? "" : "." + spot);
   }
 }

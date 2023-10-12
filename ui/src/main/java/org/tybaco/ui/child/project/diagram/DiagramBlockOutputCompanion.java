@@ -21,7 +21,8 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.geometry.*;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
@@ -33,7 +34,7 @@ import static javafx.beans.binding.Bindings.createBooleanBinding;
 import static javafx.beans.binding.Bindings.createDoubleBinding;
 import static javafx.scene.layout.BorderStrokeStyle.SOLID;
 import static javafx.scene.paint.Color.WHITE;
-import static org.tybaco.ui.child.project.diagram.DiagramCalculations.spotPointBinding;
+import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsBinding;
 
 public final class DiagramBlockOutputCompanion extends Group {
 
@@ -43,25 +44,25 @@ public final class DiagramBlockOutputCompanion extends Group {
 
   DiagramBlockOutputCompanion(DiagramBlockOutput output) {
     this.output = output;
-    label.setText(output.block.block.id + "." + output.spot);
+    label.setText(output.toString());
     label.setAlignment(Pos.CENTER);
     label.setContentDisplay(ContentDisplay.RIGHT);
     label.setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(0, 40, 40, 0, true), new BorderWidths(1d))));
     label.setTextFill(WHITE);
-    label.setPadding(new Insets(0, 3d, 0, 3d));
+    label.setPadding(new Insets(1d, 5d, 1d, 3d));
     line.setStroke(WHITE);
     line.setStrokeWidth(2d);
     getChildren().addAll(line, label);
     output.sceneProperty().addListener((o, os, ns) -> {
       if (ns != null) {
-        var lp = spotPointBinding(output.block.diagram.blocks, output, b -> new Point2D(b.getMaxX(), b.getMinY()));
-        label.layoutXProperty().bind(createDoubleBinding(() -> lp.get().getX() + 10d, lp));
-        label.layoutYProperty().bind(createDoubleBinding(() -> lp.get().getY(), lp));
+        var bb = boundsBinding(output.block.diagram.blocks, output);
+        label.layoutXProperty().bind(createDoubleBinding(() -> bb.get().getMaxX() + 10d, bb));
+        label.layoutYProperty().bind(createDoubleBinding(() -> bb.get().getMinY(), bb));
         label.prefHeightProperty().bind(output.heightProperty());
-        line.startXProperty().bind(createDoubleBinding(() -> lp.get().getX(), lp));
-        line.startYProperty().bind(createDoubleBinding(() -> lp.get().getY() + label.getHeight() / 2d, lp, label.heightProperty()));
-        line.endXProperty().bind(createDoubleBinding(() -> line.getStartX() + 10d, line.startXProperty()));
-        line.endYProperty().bind(createDoubleBinding(line::getStartY, line.startYProperty()));
+        line.startXProperty().bind(createDoubleBinding(() -> bb.get().getMaxX(), bb));
+        line.startYProperty().bind(createDoubleBinding(() -> bb.get().getCenterY(), bb));
+        line.endXProperty().bind(createDoubleBinding(() -> bb.get().getMaxX() + 10d, bb));
+        line.endYProperty().bind(line.startYProperty());
         output.block.diagram.connectors.getChildren().add(this);
       } else {
         output.block.diagram.connectors.getChildren().remove(this);
