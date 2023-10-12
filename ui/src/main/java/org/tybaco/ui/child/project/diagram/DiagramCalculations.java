@@ -52,17 +52,10 @@ interface DiagramCalculations {
     }, observables.toArray(Observable[]::new));
   }
 
-  static Point2D outputSpot(Bounds bounds) {
-    return new Point2D(bounds.getMaxX(), bounds.getCenterY());
-  }
-
-  static Point2D inputSpot(Bounds bounds) {
-    return new Point2D(bounds.getMinX(), bounds.getCenterY());
-  }
-
   static Bounds boundsIn(Node base, Node current) {
     var b = current.getBoundsInLocal();
     for (var c = current; c != base; c = c.getParent()) {
+      if (c == null) return b;
       b = c.getLocalToParentTransform().transform(b);
     }
     return b;

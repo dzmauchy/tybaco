@@ -21,7 +21,6 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import org.tybaco.editors.icon.Icons;
@@ -30,7 +29,6 @@ import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 
 import static java.util.Collections.binarySearch;
-import static org.tybaco.ui.child.project.diagram.DiagramCalculations.spotPointBinding;
 
 public final class DiagramBlockInput extends Button {
 
@@ -68,7 +66,6 @@ public final class DiagramBlockInput extends Button {
       setUnderline(true);
       link.input.set(this);
       companion.update(link);
-      link.inpSpot.bind(spotPointBinding(block.diagram.connectors, companion, DiagramCalculations::inputSpot));
     } else {
       setUnderline(false);
       companion.reset();

@@ -21,19 +21,15 @@ package org.tybaco.ui.model;
  * #L%
  */
 
-import javafx.beans.binding.ObjectBinding;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.geometry.Point2D;
-import javafx.scene.Node;
-import org.tybaco.editors.icon.Icons;
 import org.tybaco.ui.child.project.diagram.DiagramBlockInput;
 import org.tybaco.ui.child.project.diagram.DiagramBlockOutput;
 import org.w3c.dom.Element;
 
 import java.util.NoSuchElementException;
 
-import static javafx.beans.binding.Bindings.createObjectBinding;
 import static org.tybaco.xml.Xml.elementByTag;
 import static org.tybaco.xml.Xml.withChild;
 
@@ -42,11 +38,10 @@ public final class Link {
   public final Connector out;
   public final Connector in;
   public final int index;
-  public final SimpleObjectProperty<Point2D> outSpot = new SimpleObjectProperty<>(this, "outSpot", Point2D.ZERO);
-  public final SimpleObjectProperty<Point2D> inpSpot = new SimpleObjectProperty<>(this, "inpSpot", Point2D.ZERO);
   public final SimpleObjectProperty<DiagramBlockOutput> output = new SimpleObjectProperty<>(this, "output");
   public final SimpleObjectProperty<DiagramBlockInput> input = new SimpleObjectProperty<>(this, "input");
   public final SimpleBooleanProperty separated = new SimpleBooleanProperty(this, "separated");
+  public final BooleanBinding lineEnabled = output.isNotNull().and(input.isNotNull());
 
   public Link(Connector out, Connector in, int index) {
     this.out = out;
@@ -66,10 +61,6 @@ public final class Link {
     withChild(element, "out", out::saveTo);
     withChild(element, "in", in::saveTo);
     element.setAttribute("index", Integer.toString(index));
-  }
-
-  public ObjectBinding<Node> connectIcon() {
-    return createObjectBinding(() -> separated.get() ? Icons.icon("eva-more-horizontal", 16) : null, separated);
   }
 
   @Override

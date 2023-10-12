@@ -26,10 +26,9 @@ import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Line;
-import org.kordamp.ikonli.dashicons.Dashicons;
-import org.tybaco.editors.icon.Icons;
 import org.tybaco.ui.model.Link;
 
+import static javafx.beans.binding.Bindings.createBooleanBinding;
 import static javafx.beans.binding.Bindings.createDoubleBinding;
 import static javafx.scene.layout.BorderStrokeStyle.SOLID;
 import static javafx.scene.paint.Color.WHITE;
@@ -44,7 +43,7 @@ public final class DiagramBlockInputCompanion extends Group {
   DiagramBlockInputCompanion(DiagramBlockInput input) {
     this.input = input;
     label.setAlignment(Pos.CENTER);
-    label.setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(4d), new BorderWidths(1d))));
+    label.setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(40, 0, 0, 40, true), new BorderWidths(1d))));
     label.setTextFill(WHITE);
     label.setPadding(new Insets(0, 3d, 0, 3d));
     line.setStroke(WHITE);
@@ -69,13 +68,13 @@ public final class DiagramBlockInputCompanion extends Group {
   }
 
   void reset() {
-    label.graphicProperty().unbind();
-    label.setGraphic(Icons.icon(Dashicons.NO, 16));
     label.setText(null);
+    visibleProperty().unbind();
+    setVisible(false);
   }
 
   void update(Link link) {
     label.setText(link.out.blockId + "." + link.out.spot);
-    label.graphicProperty().bind(link.connectIcon());
+    visibleProperty().bind(createBooleanBinding(() -> link.separated.get() || link.output.get() == null, link.separated, link.output));
   }
 }
