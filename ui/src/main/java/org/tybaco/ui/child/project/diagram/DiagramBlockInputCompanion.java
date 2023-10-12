@@ -46,7 +46,7 @@ public final class DiagramBlockInputCompanion extends Group {
     label.setAlignment(Pos.CENTER);
     label.setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(40, 0, 0, 40, true), new BorderWidths(1d))));
     label.setTextFill(WHITE);
-    label.setPadding(new Insets(1d, 3d, 1d, 5d));
+    label.setPadding(new Insets(1d, 5d, 1d, 7d));
     line.setStroke(WHITE);
     line.setStrokeWidth(2d);
     getChildren().addAll(line, label);

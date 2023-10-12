@@ -49,7 +49,7 @@ public final class DiagramBlockOutputCompanion extends Group {
     label.setContentDisplay(ContentDisplay.RIGHT);
     label.setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(0, 40, 40, 0, true), new BorderWidths(1d))));
     label.setTextFill(WHITE);
-    label.setPadding(new Insets(1d, 5d, 1d, 3d));
+    label.setPadding(new Insets(1d, 7d, 1d, 5d));
     line.setStroke(WHITE);
     line.setStrokeWidth(2d);
     getChildren().addAll(line, label);
