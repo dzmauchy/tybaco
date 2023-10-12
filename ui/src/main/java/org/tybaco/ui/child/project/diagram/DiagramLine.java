@@ -23,23 +23,25 @@ package org.tybaco.ui.child.project.diagram;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.scene.layout.Pane;
+import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import org.tybaco.ui.model.Link;
 
 import java.util.LinkedList;
 
-public class DiagramLine extends Path {
+public class DiagramLine extends Group {
 
   final InvalidationListener invalidationListener = this::onUpdate;
   final Link link;
+  final Path path = new Path();
 
   public DiagramLine(Link link) {
     this.link = link;
-    setStrokeWidth(2d);
-    setStroke(Color.WHITE);
-    setStrokeLineJoin(StrokeLineJoin.ROUND);
+    getChildren().add(path);
+    path.setStrokeWidth(2d);
+    path.setStroke(Color.WHITE);
+    path.setStrokeLineJoin(StrokeLineJoin.ROUND);
     parentProperty().addListener((k, ov, nv) -> {
       if (nv == null) {
         link.inpSpot.removeListener(invalidationListener);
@@ -81,14 +83,6 @@ public class DiagramLine extends Path {
         elements.add(new LineTo(p2.getX(), p2.getY()));
       }
     }
-    getElements().setAll(elements);
-  }
-
-  private Pane getConnectors() {
-    return (Pane) getParent();
-  }
-
-  private Diagram getDiagram() {
-    return (Diagram) getConnectors().getParent();
+    path.getElements().setAll(elements);
   }
 }
