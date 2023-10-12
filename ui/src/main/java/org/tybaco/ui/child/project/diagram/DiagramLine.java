@@ -54,9 +54,10 @@ public class DiagramLine extends Group {
   }
 
   private void onUpdate(Observable o) {
-    var elements = new LinkedList<PathElement>();
     var p1 = link.outSpot.get();
     var p2 = link.inpSpot.get();
+    if (p1 == null || p2 == null) return;
+    var elements = new LinkedList<PathElement>();
     elements.add(new MoveTo(p1.getX(), p1.getY()));
     if (p1.getX() < p2.getX()) {
       var d = (p2.getX() - p1.getX()) / 5d;

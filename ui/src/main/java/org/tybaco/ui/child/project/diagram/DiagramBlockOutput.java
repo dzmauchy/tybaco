@@ -26,7 +26,7 @@ import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibOutput;
 import org.tybaco.ui.model.Link;
 
-import static org.tybaco.ui.child.project.diagram.DiagramSpotPoints.installSpotPointMonitoring;
+import static org.tybaco.ui.child.project.diagram.DiagramSpotPoints.spotPointBinding;
 
 public final class DiagramBlockOutput extends ToggleButton {
 
@@ -55,7 +55,7 @@ public final class DiagramBlockOutput extends ToggleButton {
 
   void onLink(Link link, boolean added) {
     if (added) {
-      installSpotPointMonitoring(block.diagram.blocks, this, DiagramSpotPoints::outputSpot, link.outSpot::bind);
+      link.outSpot.bind(spotPointBinding(block.diagram.connectors, companion, DiagramSpotPoints::outputSpot));
       link.output.set(this);
     } else {
       if (link.output.get() == this) {

@@ -24,15 +24,11 @@ package org.tybaco.ui.child.project.diagram;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 
 import java.util.LinkedList;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface DiagramSpotPoints {
@@ -51,21 +47,6 @@ public interface DiagramSpotPoints {
       }
       return point;
     }, observables.toArray(Observable[]::new));
-  }
-
-  static void installSpotPointMonitoring(Node base, Node current, Function<Bounds, Point2D> func, Consumer<ObjectBinding<Point2D>> consumer) {
-    var scene = current.getScene();
-    if (scene != null) {
-      consumer.accept(spotPointBinding(base, current, func));
-    } else {
-      current.sceneProperty().addListener(new ChangeListener<>() {
-        @Override
-        public void changed(ObservableValue<? extends Scene> observable, Scene oldValue, Scene newValue) {
-          current.sceneProperty().removeListener(this);
-          consumer.accept(spotPointBinding(base, current, func));
-        }
-      });
-    }
   }
 
   static Point2D outputSpot(Bounds bounds) {
