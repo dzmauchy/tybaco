@@ -26,6 +26,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import org.tybaco.ui.model.Block;
@@ -38,14 +39,15 @@ abstract class AbstractDiagramBlock extends BorderPane {
   protected final Block block;
   protected final Label title = new Label();
   protected final Label factory = new Label();
-  protected final VBox inputs = new VBox(2);
-  protected final VBox outputs = new VBox(2);
+  protected final VBox inputs = new VBox(3);
+  protected final VBox outputs = new VBox(3);
 
   protected double bx;
   protected double by;
 
   AbstractDiagramBlock(Block block) {
     this.block = block;
+    setBackground(new Background(new BackgroundFill(Color.gray(0.2), new CornerRadii(5), Insets.EMPTY)));
     factory.setFocusTraversable(false);
     title.textProperty().bind(block.name);
     setLayoutX(block.x.get());

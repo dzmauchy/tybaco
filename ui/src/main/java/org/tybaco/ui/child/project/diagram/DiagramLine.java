@@ -57,12 +57,12 @@ public class DiagramLine extends Group {
         var output = link.output.get();
         var wl = new WeakInvalidationListener(invalidationListener);
         var base = input.block.diagram.blocks;
-        var map = new IdentityHashMap<Observable, Boolean>();
-        map.put(input.boundsInLocalProperty(), TRUE);
-        for (Node c = input; c != base; c = c.getParent()) map.put(c.localToParentTransformProperty(), TRUE);
-        map.put(output.boundsInLocalProperty(), TRUE);
-        for (Node c = output; c != base; c = c.getParent()) map.put(c.localToParentTransformProperty(), TRUE);
-        map.forEach((k, v) -> k.addListener(wl));
+        var map = new IdentityHashMap<Observable, WeakInvalidationListener>();
+        map.put(input.boundsInLocalProperty(), wl);
+        for (Node c = input; c != base; c = c.getParent()) map.put(c.localToParentTransformProperty(), wl);
+        map.put(output.boundsInLocalProperty(), wl);
+        for (Node c = output; c != base; c = c.getParent()) map.put(c.localToParentTransformProperty(), wl);
+        map.forEach(Observable::addListener);
         setVisible(true);
       } else {
         setVisible(false);

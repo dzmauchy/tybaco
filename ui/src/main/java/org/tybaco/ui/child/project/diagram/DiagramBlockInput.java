@@ -80,7 +80,7 @@ public final class DiagramBlockInput extends Button {
     } else {
       co.setSelected(false);
       var out = new Connector(co.block.block.id, co.spot);
-      if (index < 0) {
+      if (input.vector() && index < 0) {
         var nextIndex = block.inputs.getChildren().stream()
           .map(n -> (DiagramBlockInput) n)
           .filter(i -> spot.equals(i.spot))
