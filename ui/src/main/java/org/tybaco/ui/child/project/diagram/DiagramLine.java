@@ -29,8 +29,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import org.tybaco.ui.model.Link;
 
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.stream.Stream;
 
 import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
@@ -62,27 +64,22 @@ public class DiagramLine extends Group {
     var p2 = link.inpSpot.get();
     var out = link.output.get();
     if (p1 == null || p2 == null) return;
-    var nodes = new LinkedList<Node>();
-    if (p1.getX() < p2.getX() - 100d) {
-      var d = (p2.getX() - p1.getX()) / 5d;
-      var curve = new CubicCurve(
-        p1.getX(), p1.getY(),
-        p1.getX() + d, p1.getY(),
-        p2.getX() - d, p2.getY(),
-        p2.getX(), p2.getY()
-      );
+    if (p1.getX() < p2.getX() - 50d) {
       var blocksBase = out.block.diagram.blocks;
-      var connectorsBase = out.block.diagram.connectors;
       var canBeDrawn = blocksBase.getChildren().stream()
-        .map(n -> boundsIn(blocksBase, n))
         .parallel()
-        .noneMatch(curve::intersects);
-      if (!canBeDrawn) {
-        curve.setStroke(Color.WHITE);
-        curve.setStrokeWidth(2d);
-        nodes.addLast(curve);
+        .map(n -> boundsIn(blocksBase, n))
+        .map(b -> new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight()))
+        .noneMatch(new Line2D.Double(p1.getX(), p1.getY(), p2.getX(), p2.getY())::intersects);
+      if (canBeDrawn) {
+        var d = (p2.getX() - p1.getX()) / 5d;
+        var elems = new ArrayList<PathElement>(2);
+        elems.add(new MoveTo(p1.getX(), p1.getY()));
+        elems.add(new CubicCurveTo(p1.getX() + d, p1.getY(), p2.getX() - d, p2.getY(), p2.getX(), p2.getY()));
+        path.getElements().setAll(elems);
+        return;
       }
     }
-    getChildren().setAll(nodes);
+    path.getElements().clear();
   }
 }
