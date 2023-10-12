@@ -22,17 +22,19 @@ package org.tybaco.ui.child.project.diagram;
  */
 
 import javafx.beans.*;
-import javafx.geometry.Point2D;
+import javafx.beans.Observable;
+import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import org.tybaco.ui.model.Link;
 
+import java.awt.Shape;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static java.lang.Boolean.TRUE;
 import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
@@ -80,12 +82,9 @@ public class DiagramLine extends Group {
     var xe = inBounds.getMinX();
     var ye = inBounds.getCenterY();
     if (xs < xe - 50d) {
-      var canBeDrawn = blocksBase.getChildren().stream()
-        .map(n -> boundsIn(blocksBase, n))
-        .map(b -> new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight()))
-        .noneMatch(new Line2D.Double(xs + 3d, ys, xe - 3d, ye)::intersects);
-      if (canBeDrawn) {
-        var d = (xe - xs) / 5d;
+      var d = (xe - xs) / 5d;
+      var shape = new Line2D.Double(xs + 3d, ys, xe - 3d, ye);
+      if (canBeDrawn(input, output, shape)) {
         var elems = new ArrayList<PathElement>(2);
         elems.add(new MoveTo(xs, ys));
         elems.add(new CubicCurveTo(xs + d, ys, xe - d, ye, xe, ye));
@@ -96,5 +95,38 @@ public class DiagramLine extends Group {
     }
     link.separated.set(true);
     path.getElements().clear();
+  }
+
+  private boolean canBeDrawn(DiagramBlockInput input, DiagramBlockOutput output, Shape  ... shapes) {
+    return Stream.concat(blocks(input, output), connectors(input, output))
+      .parallel()
+      .map(b -> new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight()))
+      .noneMatch(b -> Arrays.stream(shapes).anyMatch(s -> s.intersects(b)));
+  }
+
+  private Stream<Bounds> blocks(DiagramBlockInput input, DiagramBlockOutput output) {
+    var blocksBase = input.block.diagram.blocks;
+    return blocksBase.getChildren().stream()
+      .parallel()
+      .filter(Node::isVisible)
+      .map(n -> boundsIn(blocksBase, n));
+  }
+
+  private Stream<Bounds> connectors(DiagramBlockInput input, DiagramBlockOutput output) {
+    var connectorsBase = input.block.diagram.connectors;
+    return connectorsBase.getChildren().stream()
+      .parallel()
+      .filter(n -> !(n instanceof DiagramLine))
+      .filter(Node::isVisible)
+      .filter(n -> checkCompanion(n, input, output))
+      .map(n -> boundsIn(connectorsBase, n));
+  }
+
+  private boolean checkCompanion(Node node, DiagramBlockInput input, DiagramBlockOutput output) {
+    return switch (node) {
+      case DiagramBlockInputCompanion c -> c.input != input;
+      case DiagramBlockOutputCompanion c -> c.output != output;
+      default -> true;
+    };
   }
 }
