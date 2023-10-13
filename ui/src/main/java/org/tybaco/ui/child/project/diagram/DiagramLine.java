@@ -125,13 +125,15 @@ public class DiagramLine extends Group {
     var ys = (float) ob.getCenterY();
     var xe = (float) ib.getMinX();
     var ye = (float) ib.getCenterY();
-    if (ib.getMinY() > ob.getMaxY()) {
-      var gapY = (float) (ib.getMinY() - ob.getMaxY());
+    var ub = ib.getMinY() < ob.getMinY() ? ib : ob;
+    var lb = ib.getMinY() < ob.getMinY() ? ob : ib;
+    if (lb.getMinY() > ub.getMaxY()) {
+      var gapY = (float) (lb.getMinY() - ub.getMaxY());
       if (gapY > 50f) {
-        var maxX = (float) (max(ib.getMaxX(), ob.getMaxX()) + ob.getWidth() * 13d);
-        var ry = (float) (ob.getMinY() + gapY / 3f);
-        var minX = (float) (min(ib.getMinX(), ob.getMinX()) - ib.getWidth() * 13d);
-        var ly = (float) (ib.getMinY() - gapY / 3f);
+        var maxX = (float) (max(lb.getMaxX(), ub.getMaxX()) + ub.getWidth() * 13d);
+        var ry = (float) (ub.getMinY() + gapY / 3f);
+        var minX = (float) (min(lb.getMinX(), ub.getMinX()) - lb.getWidth() * 13d);
+        var ly = (float) (lb.getMinY() - gapY / 3f);
         var shape = new CubicCurve2D(xs + SAFE_DIST, ys, maxX, ry, minX, ly, xe - SAFE_DIST, ye);
         return tryApply(i, o, divide(shape));
       }
