@@ -107,10 +107,10 @@ public class DiagramLine extends Group {
     if (inBounds.getMinY() > outBounds.getMaxY()) {
       var gapY = (float) (inBounds.getMinY() - outBounds.getMaxY());
       if (gapY > 50f) {
-        var maxX = (float) (max(inBounds.getMaxX(), outBounds.getMaxX()) + outBounds.getWidth() * Math.PI);
-        var ry = (float) (outBounds.getMinY() + gapY / 4f);
-        var minX = (float) (min(inBounds.getMinX(), outBounds.getMinX()) - inBounds.getWidth() * Math.PI);
-        var ly = (float) (inBounds.getMinY() - gapY / 4f);
+        var maxX = (float) (max(inBounds.getMaxX(), outBounds.getMaxX()) + outBounds.getWidth() * 30d);
+        var ry = (float) (outBounds.getMinY() + gapY / 3f);
+        var minX = (float) (min(inBounds.getMinX(), outBounds.getMinX()) - inBounds.getWidth() * 30d);
+        var ly = (float) (inBounds.getMinY() - gapY / 3f);
         var shape = new CubicCurve2D(xs + SAFE_DIST, ys, maxX, ry, minX, ly, xe - SAFE_DIST, ye);
         if (canBeDrawn(input, output, shape)) {
           apply(shape);
