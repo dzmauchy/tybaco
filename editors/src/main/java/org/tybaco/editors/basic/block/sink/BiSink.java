@@ -36,46 +36,46 @@ import java.util.Map;
 @Descriptor(
   id = "BiSink",
   name = "Sink of key-value entries",
-  icon = "remixal-dropbox-line",
+  icon = "環",
   description = "Sink of key-value entries"
 )
 @Input(
   id = "threadFactory",
   name = "Thread factory",
-  icon = "ri-5star-shadow",
+  icon = "演",
   description = "A thread factory used to create the main thread of the sink",
   defaultValue = "$defaultThreadFactory"
 )
 @Input(
   id = "source",
   name = "Source",
-  icon = "ri-dharma-wheel",
+  icon = "河",
   description = "A key-value source"
 )
 @Input(
   id = "executorByKey",
   name = "Provider of key-specific executor",
-  icon = "ri-colours",
+  icon = "走",
   description = "A provider of executors for keys",
   defaultValue = "$defaultExecutorByKey"
 )
 @Input(
   id = "consumer",
   name = "Consumer",
-  icon = "ri-react",
+  icon = "各",
   description = "A consumer to consume the each key-value pair of the source"
 )
 @Input(
   id = "onError",
   name = "Error handler",
-  icon = "ri-sdg",
+  icon = "尉",
   description = "Error handler used to handle each error",
   defaultValue = "$defaultErrorHandler"
 )
 @Output(
   id = "self",
   name = "This sink",
-  icon = "mdal-alternate_email",
+  icon = "本",
   description = "Resulting sink"
 )
 public final class BiSink implements LibBlock {
