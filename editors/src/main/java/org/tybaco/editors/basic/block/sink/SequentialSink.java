@@ -55,7 +55,7 @@ import java.util.Map;
 @Input(
   id = "consumer",
   name = "Consumer",
-  icon = "費",
+  icon = "各",
   description = "A consumer to consume the each value from the source"
 )
 @Input(
