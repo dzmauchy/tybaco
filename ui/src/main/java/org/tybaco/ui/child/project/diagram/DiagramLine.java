@@ -43,7 +43,7 @@ import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 public class DiagramLine extends Group {
 
   private static final float SAFE_DIST = 3f;
-  private static final boolean DEBUG = true;
+  private static final boolean DEBUG = false;
 
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
   private final InvalidationListener connectorsInvalidationListener = this::onUpdateConnectors;
@@ -88,7 +88,7 @@ public class DiagramLine extends Group {
   private void onUpdate(Observable o) {
     var input = link.input.get();
     var output = link.output.get();
-    if (input == null || output == null) return;
+    if (input == null || output == null || getScene() == null) return;
     if (DEBUG) input.block.diagram.debugNodes.getChildren().removeIf(c -> c instanceof Rectangle);
     onUpdate(input, output);
   }
@@ -116,7 +116,7 @@ public class DiagramLine extends Group {
         var minX = (float) (min(inBounds.getMinX(), outBounds.getMinX()) - inBounds.getWidth() * 13d);
         var ly = (float) (inBounds.getMinY() - gapY / 3f);
         var shape = new CubicCurve2D(xs + SAFE_DIST, ys, maxX, ry, minX, ly, xe - SAFE_DIST, ye);
-        if (tryApply(input, output, shape)) return;
+        if (tryApply(input, output, divide(shape))) return;
       }
     }
     link.separated.set(true);
@@ -192,5 +192,13 @@ public class DiagramLine extends Group {
     var r = new Rectangle(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
     r.setFill(new Color(0.9, 0.3, 0.2, 0.2));
     input.block.diagram.debugNodes.getChildren().add(r);
+  }
+
+  private CubicCurve2D[] divide(CubicCurve2D c) {
+    var cs = new CubicCurve2D[] {new CubicCurve2D(), new CubicCurve2D(), new CubicCurve2D(), new CubicCurve2D()};
+    c.subdivide(cs[0], cs[2]);
+    cs[0].subdivide(cs[0], cs[1]);
+    cs[2].subdivide(cs[2], cs[3]);
+    return cs;
   }
 }
