@@ -99,30 +99,44 @@ public class DiagramLine extends Group {
   private void onUpdate(DiagramBlockInput input, DiagramBlockOutput output) {
     var outBounds = output.spotBounds();
     var inBounds = input.spotBounds();
-    var xs = (float) outBounds.getMaxX();
-    var ys = (float) outBounds.getCenterY();
-    var xe = (float) inBounds.getMinX();
-    var ye = (float) inBounds.getCenterY();
+    if (trySimpleLine(input, output, inBounds, outBounds)) return;
+    if (tryLineOI(input, output, inBounds, outBounds)) return;
+    link.separated.set(true);
+    path.getElements().clear();
+  }
+
+  private boolean trySimpleLine(DiagramBlockInput i, DiagramBlockOutput o, Bounds ib, Bounds ob) {
+    var xs = (float) ob.getMaxX();
+    var ys = (float) ob.getCenterY();
+    var xe = (float) ib.getMinX();
+    var ye = (float) ib.getCenterY();
     if (xs < xe) {
       if (xe - xs >= 50f) {
         var dx = (xe - xs) / 5f;
         var shape = new CubicCurve2D(xs + SAFE_DIST, ys, xs + dx, ys, xe - dx, ye, xe - SAFE_DIST, ye);
-        if (tryApply(input, output, shape)) return;
+        return tryApply(i, o, shape);
       }
     }
-    if (inBounds.getMinY() > outBounds.getMaxY()) {
-      var gapY = (float) (inBounds.getMinY() - outBounds.getMaxY());
+    return false;
+  }
+
+  private boolean tryLineOI(DiagramBlockInput i, DiagramBlockOutput o, Bounds ib, Bounds ob) {
+    var xs = (float) ob.getMaxX();
+    var ys = (float) ob.getCenterY();
+    var xe = (float) ib.getMinX();
+    var ye = (float) ib.getCenterY();
+    if (ib.getMinY() > ob.getMaxY()) {
+      var gapY = (float) (ib.getMinY() - ob.getMaxY());
       if (gapY > 50f) {
-        var maxX = (float) (max(inBounds.getMaxX(), outBounds.getMaxX()) + outBounds.getWidth() * 13d);
-        var ry = (float) (outBounds.getMinY() + gapY / 3f);
-        var minX = (float) (min(inBounds.getMinX(), outBounds.getMinX()) - inBounds.getWidth() * 13d);
-        var ly = (float) (inBounds.getMinY() - gapY / 3f);
+        var maxX = (float) (max(ib.getMaxX(), ob.getMaxX()) + ob.getWidth() * 13d);
+        var ry = (float) (ob.getMinY() + gapY / 3f);
+        var minX = (float) (min(ib.getMinX(), ob.getMinX()) - ib.getWidth() * 13d);
+        var ly = (float) (ib.getMinY() - gapY / 3f);
         var shape = new CubicCurve2D(xs + SAFE_DIST, ys, maxX, ry, minX, ly, xe - SAFE_DIST, ye);
-        if (tryApply(input, output, divide(shape))) return;
+        return tryApply(i, o, divide(shape));
       }
     }
-    link.separated.set(true);
-    path.getElements().clear();
+    return false;
   }
 
   private void apply(Shape... shapes) {
