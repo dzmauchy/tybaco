@@ -88,7 +88,10 @@ public class DiagramLine extends Group {
   private void onUpdate(Observable o) {
     var input = link.input.get();
     var output = link.output.get();
-    if (input == null || output == null || getScene() == null) return;
+    if (input == null || output == null || getScene() == null) {
+      path.getElements().clear();
+      return;
+    }
     if (DEBUG) input.block.diagram.debugNodes.getChildren().removeIf(c -> c instanceof Rectangle);
     onUpdate(input, output);
   }

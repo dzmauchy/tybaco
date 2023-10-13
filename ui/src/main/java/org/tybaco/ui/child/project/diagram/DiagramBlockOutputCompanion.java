@@ -28,7 +28,6 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Line;
-import org.tybaco.ui.model.Link;
 
 import static javafx.beans.binding.Bindings.createBooleanBinding;
 import static javafx.beans.binding.Bindings.createDoubleBinding;
@@ -68,15 +67,6 @@ public final class DiagramBlockOutputCompanion extends Group {
         output.block.diagram.connectors.getChildren().remove(this);
       }
     });
-    reset();
-  }
-
-  void reset() {
-    visibleProperty().unbind();
-    setVisible(false);
-  }
-
-  void update(Link link) {
-    visibleProperty().bind(createBooleanBinding(link.separated::get, link.separated));
+    visibleProperty().bind(createBooleanBinding(() -> output.links.keySet().stream().anyMatch(l -> l.separated.get()), output.links));
   }
 }

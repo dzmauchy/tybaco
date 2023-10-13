@@ -21,14 +21,24 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.beans.Observable;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleMapProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.scene.control.ToggleButton;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibOutput;
 import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 
+import static javafx.collections.FXCollections.observableHashMap;
+
 public final class DiagramBlockOutput extends ToggleButton {
 
+  private final ChangeListener<Boolean> separatedChangeListener = this::onSeparatedChange;
+  private final WeakChangeListener<Boolean> weakSeparatedChangeListener = new WeakChangeListener<>(separatedChangeListener);
+  final SimpleMapProperty<Link, Boolean> links = new SimpleMapProperty<>(this, "links", observableHashMap());
   final DiagramBlock block;
   final LibOutput output;
   final String spot;
@@ -54,11 +64,18 @@ public final class DiagramBlockOutput extends ToggleButton {
 
   void onLink(Link link, boolean added) {
     if (added) {
+      links.put(link, link.separated.get());
+      link.separated.addListener(weakSeparatedChangeListener);
       link.output.set(this);
-      companion.update(link);
     } else {
-      companion.reset();
+      links.remove(link);
       if (link.output.get() == this) link.output.set(null);
+    }
+  }
+
+  private void onSeparatedChange(Observable observable, Boolean oldValue, Boolean newValue) {
+    if (observable instanceof BooleanProperty p && p.getBean() instanceof Link l) {
+      links.put(l, newValue);
     }
   }
 
