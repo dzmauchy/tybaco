@@ -41,7 +41,6 @@ public final class Link {
   public final SimpleObjectProperty<DiagramBlockOutput> output = new SimpleObjectProperty<>(this, "output");
   public final SimpleObjectProperty<DiagramBlockInput> input = new SimpleObjectProperty<>(this, "input");
   public final SimpleBooleanProperty separated = new SimpleBooleanProperty(this, "separated");
-  public final BooleanBinding lineEnabled = output.isNotNull().and(input.isNotNull());
 
   public Link(Connector out, Connector in, int index) {
     this.out = out;

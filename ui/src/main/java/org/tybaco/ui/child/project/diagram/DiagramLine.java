@@ -21,8 +21,8 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.beans.*;
 import javafx.beans.Observable;
+import javafx.beans.*;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -36,12 +36,12 @@ import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static java.lang.Boolean.TRUE;
 import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
 public class DiagramLine extends Group {
 
-  final InvalidationListener invalidationListener = this::onUpdate;
+  private final InvalidationListener boundsInvalidationListener = this::onUpdate;
+  private final InvalidationListener connectorsInvalidationListener = this::onUpdateConnectors;
   final Link link;
   final Path path = new Path();
 
@@ -51,23 +51,33 @@ public class DiagramLine extends Group {
     path.setStrokeWidth(2d);
     path.setStroke(Color.WHITE);
     path.setStrokeLineJoin(StrokeLineJoin.ROUND);
-    link.lineEnabled.addListener((o, ov, nv) -> {
-      if (nv) {
-        var input = link.input.get();
-        var output = link.output.get();
-        var wl = new WeakInvalidationListener(invalidationListener);
-        var base = input.block.diagram.blocks;
-        var map = new IdentityHashMap<Observable, WeakInvalidationListener>();
-        map.put(input.boundsInLocalProperty(), wl);
-        for (Node c = input; c != base; c = c.getParent()) map.put(c.localToParentTransformProperty(), wl);
-        map.put(output.boundsInLocalProperty(), wl);
-        for (Node c = output; c != base; c = c.getParent()) map.put(c.localToParentTransformProperty(), wl);
-        map.forEach(Observable::addListener);
-        setVisible(true);
-      } else {
-        setVisible(false);
-      }
-    });
+    initialize();
+  }
+
+  private void initialize() {
+    var cwl = new WeakInvalidationListener(connectorsInvalidationListener);
+    link.input.addListener(cwl);
+    link.output.addListener(cwl);
+    cwl.invalidated(null);
+  }
+
+  private void onUpdateConnectors(Observable o) {
+    var input = link.input.get();
+    var output = link.output.get();
+    if (input == null || output == null) {
+      setVisible(false);
+      return;
+    }
+    var wl = new WeakInvalidationListener(boundsInvalidationListener);
+    var base = input.block.diagram.blocks;
+    var map = new IdentityHashMap<Observable, WeakInvalidationListener>();
+    map.put(input.boundsInLocalProperty(), wl);
+    for (Node c = input; c != base; c = c.getParent()) map.put(c.localToParentTransformProperty(), wl);
+    map.put(output.boundsInLocalProperty(), wl);
+    for (Node c = output; c != base; c = c.getParent()) map.put(c.localToParentTransformProperty(), wl);
+    map.forEach(Observable::addListener);
+    setVisible(true);
+    onUpdate(null);
   }
 
   private void onUpdate(Observable o) {
