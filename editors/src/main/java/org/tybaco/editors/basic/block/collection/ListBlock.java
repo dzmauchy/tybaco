@@ -38,13 +38,13 @@ import java.util.*;
 @Descriptor(
   id = "list",
   name = "List",
-  icon = "eva-list",
+  icon = "表",
   description = "Creates a generic immutable list"
 )
 @Input(
   id = "args",
   name = "Elements",
-  icon = "mdi2l-list-status",
+  icon = "素",
   description = "Elements of the list",
   vector = true,
   defaultValue = "null",
@@ -53,7 +53,7 @@ import java.util.*;
 @Output(
   id = "self",
   name = "This list",
-  icon = "mdal-alternate_email",
+  icon = "出",
   description = "Resulting list of elements"
 )
 public final class ListBlock implements LibBlock {

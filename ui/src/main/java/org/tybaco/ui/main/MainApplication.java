@@ -26,7 +26,9 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import org.tybaco.logging.Log;
 import org.tybaco.ui.Main;
 import org.tybaco.ui.lib.logging.UILogHandler;
 import org.tybaco.ui.lib.stage.StageLinuxBugListener;
@@ -45,7 +47,8 @@ public class MainApplication extends Application {
   }
 
   @Override
-  public void init() {
+  public void init() throws Exception {
+    initFont();
     updateSplash();
     Application.setUserAgentStylesheet(STYLESHEET_MODENA);
     updateSplash();
@@ -100,5 +103,18 @@ public class MainApplication extends Application {
   private static void initLaf() {
     com.sun.javafx.css.StyleManager.getInstance().addUserAgentStylesheet("theme/ui.css");
     updateSplash();
+  }
+
+  private static void initFont() throws Exception {
+    var classLoader = Thread.currentThread().getContextClassLoader();
+    try (var is = classLoader.getResourceAsStream("META-INF/fonts/NotoSans-Regular.ttf")) {
+      if (is != null) {
+        var field = Font.class.getDeclaredField("DEFAULT");
+        if (field.trySetAccessible()) {
+          field.set(null, Font.loadFont(is, 13d));
+          Log.info(MainApplication.class, "Custom font loaded");
+        }
+      }
+    }
   }
 }

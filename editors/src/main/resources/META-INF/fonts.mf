@@ -1,0 +1,2 @@
+System=/META-INF/fonts/NotoSans-Regular.ttf
+System\ Regular=/META-INF/fonts/NotoSans-Regular.ttf

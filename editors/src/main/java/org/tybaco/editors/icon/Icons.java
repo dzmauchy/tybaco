@@ -22,13 +22,18 @@ package org.tybaco.editors.icon;
  */
 
 import javafx.scene.Node;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.javafx.IkonResolver;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -37,6 +42,16 @@ import static org.tybaco.logging.Log.warn;
 public final class Icons {
 
   private static final WeakHashMap<ClassLoader, ConcurrentHashMap<String, Image>> IMAGES = new WeakHashMap<>();
+  private static final Font ICON_FONT;
+
+  static {
+    var classLoader = Thread.currentThread().getContextClassLoader();
+    try (var is = classLoader.getResourceAsStream("META-INF/fonts/KaiseiHarunoUmi-Regular.ttf")) {
+      ICON_FONT = Font.loadFont(is, 12d);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 
   public static Node icon(String key, int size) {
     return icon(Thread.currentThread().getContextClassLoader(), key, size);
@@ -46,7 +61,13 @@ public final class Icons {
     if (key == null || key.isBlank()) {
       return null;
     }
-    if (key.indexOf('.') > 0) {
+    if (key.charAt(0) > 255 && key.length() <= 3) {
+      var text = new Label(key);
+      text.setFont(ICON_FONT);
+      text.setStyle("-fx-font-size: " + size + "px");
+      text.setTextFill(Color.WHITE);
+      return text;
+    } else if (key.indexOf('.') > 0) {
       final ConcurrentHashMap<String, Image> map;
       synchronized (IMAGES) {
         map = IMAGES.computeIfAbsent(classLoader, c -> new ConcurrentHashMap<>(64, 0.5f));

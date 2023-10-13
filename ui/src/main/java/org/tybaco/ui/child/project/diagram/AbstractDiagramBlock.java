@@ -48,7 +48,8 @@ abstract class AbstractDiagramBlock extends BorderPane {
   AbstractDiagramBlock(Block block) {
     this.block = block;
     setBackground(new Background(new BackgroundFill(Color.gray(0.2), new CornerRadii(5), Insets.EMPTY)));
-    factory.setFocusTraversable(false);
+    setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(5d), new BorderWidths(2d))));
+    factory.setPadding(new Insets(4d));
     title.textProperty().bind(block.name);
     setLayoutX(block.x.get());
     setLayoutY(block.y.get());
@@ -58,18 +59,15 @@ abstract class AbstractDiagramBlock extends BorderPane {
     setCenter(factory);
     setLeft(inputs);
     setRight(outputs);
-    inputs.setId("inputs");
     inputs.setAlignment(Pos.CENTER);
     outputs.setAlignment(Pos.CENTER);
-    outputs.setId("outputs");
     inputs.setFillWidth(true);
     outputs.setFillWidth(true);
-    setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(5d), new BorderWidths(2d))));
     title.setBorder(new Border(new BorderStroke(WHITE, SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 2, 0))));
     title.setPadding(new Insets(5d));
     title.setAlignment(Pos.CENTER);
     title.setStyle("-fx-background-color: linear-gradient(to top, black, transparent);");
-    title.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
+    title.setFont(Font.font(null, FontWeight.BOLD, 12));
     title.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     addEventHandler(MouseEvent.MOUSE_MOVED, this::onMouseMoved);
     addEventHandler(MouseEvent.MOUSE_DRAGGED, this::onMouseDragged);
