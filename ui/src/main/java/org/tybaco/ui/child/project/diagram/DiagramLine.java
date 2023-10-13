@@ -41,7 +41,7 @@ import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
 public class DiagramLine extends Group {
 
-  private static final float SAFE_DIST = 2f;
+  private static final float SAFE_DIST = 3f;
 
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
   private final InvalidationListener connectorsInvalidationListener = this::onUpdateConnectors;
