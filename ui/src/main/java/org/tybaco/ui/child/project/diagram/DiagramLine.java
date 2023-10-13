@@ -21,6 +21,8 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import com.sun.javafx.geom.*;
+import com.sun.javafx.geom.Shape;
 import javafx.beans.Observable;
 import javafx.beans.*;
 import javafx.geometry.Bounds;
@@ -30,15 +32,16 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import org.tybaco.ui.model.Link;
 
-import java.awt.Shape;
-import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
 public class DiagramLine extends Group {
+
+  private static final float SAFE_DIST = 2f;
 
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
   private final InvalidationListener connectorsInvalidationListener = this::onUpdateConnectors;
@@ -87,34 +90,70 @@ public class DiagramLine extends Group {
     var blocksBase = input.block.diagram.blocks;
     var outBounds = boundsIn(blocksBase, output);
     var inBounds = boundsIn(blocksBase, input);
-    var xs = outBounds.getMaxX();
-    var ys = outBounds.getCenterY();
-    var xe = inBounds.getMinX();
-    var ye = inBounds.getCenterY();
-    if (xs < xe - 50d) {
-      var d = (xe - xs) / 5d;
-      var shape = new Line2D.Double(xs + 3d, ys, xe - 3d, ye);
-      if (canBeDrawn(input, output, shape)) {
-        var elems = new ArrayList<PathElement>(2);
-        elems.add(new MoveTo(xs, ys));
-        elems.add(new CubicCurveTo(xs + d, ys, xe - d, ye, xe, ye));
-        path.getElements().setAll(elems);
-        link.separated.set(false);
-        return;
+    var xs = (float) outBounds.getMaxX();
+    var ys = (float) outBounds.getCenterY();
+    var xe = (float) inBounds.getMinX();
+    var ye = (float) inBounds.getCenterY();
+    if (xs < xe) {
+      if (xe - xs >= 50f) {
+        var dx = (xe - xs) / 5f;
+        var shape = new CubicCurve2D(xs + SAFE_DIST, ys, xs + dx, ys, xe - dx, ye, xe - SAFE_DIST, ye);
+        if (canBeDrawn(input, output, shape)) {
+          apply(shape);
+          return;
+        }
+      }
+    }
+    if (inBounds.getMinY() > outBounds.getMaxY()) {
+      var gapY = (float) (inBounds.getMinY() - outBounds.getMaxY());
+      if (gapY > 50f) {
+        var maxX = (float) (max(inBounds.getMaxX(), outBounds.getMaxX()) + outBounds.getWidth() * Math.PI);
+        var ry = (float) (outBounds.getMinY() + gapY / 4f);
+        var minX = (float) (min(inBounds.getMinX(), outBounds.getMinX()) - inBounds.getWidth() * Math.PI);
+        var ly = (float) (inBounds.getMinY() - gapY / 4f);
+        var shape = new CubicCurve2D(xs + SAFE_DIST, ys, maxX, ry, minX, ly, xe - SAFE_DIST, ye);
+        if (canBeDrawn(input, output, shape)) {
+          apply(shape);
+          return;
+        }
       }
     }
     link.separated.set(true);
     path.getElements().clear();
   }
 
-  private boolean canBeDrawn(DiagramBlockInput input, DiagramBlockOutput output, Shape  ... shapes) {
-    return Stream.concat(blocks(input, output), connectors(input, output))
-      .parallel()
-      .map(b -> new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight()))
-      .noneMatch(b -> Arrays.stream(shapes).anyMatch(s -> s.intersects(b)));
+  private void apply(Shape... shapes) {
+    var elems = new LinkedList<PathElement>();
+    for (var shape : shapes) {
+      switch (shape) {
+        case Line2D l -> {
+          elems.add(new MoveTo(l.x1, l.y1));
+          elems.add(new LineTo(l.x2, l.y2));
+        }
+        case CubicCurve2D c -> {
+          elems.add(new MoveTo(c.x1, c.y1));
+          elems.add(new CubicCurveTo(c.ctrlx1, c.ctrly1, c.ctrlx2, c.ctrly2, c.x2, c.y2));
+        }
+        case QuadCurve2D c -> {
+          elems.add(new MoveTo(c.x1, c.y1));
+          elems.add(new QuadCurveTo(c.ctrlx, c.ctrly, c.x2, c.y2));
+        }
+        default -> {}
+      }
+    }
+    path.getElements().setAll(elems);
+    link.separated.set(false);
   }
 
-  private Stream<Bounds> blocks(DiagramBlockInput input, DiagramBlockOutput output) {
+  private boolean canBeDrawn(DiagramBlockInput input, DiagramBlockOutput output, Shape... shapes) {
+    return Stream.concat(blocks(input), connectors(input, output))
+      .parallel()
+      .noneMatch(b -> Arrays.stream(shapes).anyMatch(s ->
+        s.intersects((float) b.getMinX(), (float) b.getMinY(), (float) b.getWidth(), (float) b.getHeight())
+      ));
+  }
+
+  private Stream<Bounds> blocks(DiagramBlockInput input) {
     var blocksBase = input.block.diagram.blocks;
     return blocksBase.getChildren().stream()
       .parallel()
