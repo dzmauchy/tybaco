@@ -97,9 +97,8 @@ public class DiagramLine extends Group {
   }
 
   private void onUpdate(DiagramBlockInput input, DiagramBlockOutput output) {
-    var blocksBase = input.block.diagram.blocks;
-    var outBounds = boundsIn(blocksBase, output);
-    var inBounds = boundsIn(blocksBase, input);
+    var outBounds = output.spotBounds();
+    var inBounds = input.spotBounds();
     var xs = (float) outBounds.getMaxX();
     var ys = (float) outBounds.getCenterY();
     var xe = (float) inBounds.getMinX();

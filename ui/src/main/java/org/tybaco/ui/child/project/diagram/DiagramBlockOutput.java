@@ -26,6 +26,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
+import javafx.geometry.Bounds;
 import javafx.scene.control.ToggleButton;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibOutput;
@@ -33,6 +34,7 @@ import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 
 import static javafx.collections.FXCollections.observableHashMap;
+import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
 public final class DiagramBlockOutput extends ToggleButton {
 
@@ -77,6 +79,10 @@ public final class DiagramBlockOutput extends ToggleButton {
     if (observable instanceof BooleanProperty p && p.getBean() instanceof Link l) {
       links.put(l, newValue);
     }
+  }
+
+  Bounds spotBounds() {
+    return companion.isVisible() ? boundsIn(block.diagram.connectors, companion) : boundsIn(block.diagram.blocks, this);
   }
 
   @Override

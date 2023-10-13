@@ -22,6 +22,7 @@ package org.tybaco.ui.child.project.diagram;
  */
 
 import javafx.event.ActionEvent;
+import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibInput;
@@ -29,6 +30,7 @@ import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 
 import static java.util.Collections.binarySearch;
+import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
 public final class DiagramBlockInput extends Button {
 
@@ -111,6 +113,10 @@ public final class DiagramBlockInput extends Button {
     } else {
       return 0;
     }
+  }
+
+  Bounds spotBounds() {
+    return boundsIn(block.diagram.blocks, this);
   }
 
   @Override
