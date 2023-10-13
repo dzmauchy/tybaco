@@ -21,12 +21,14 @@ package org.tybaco.editors.icon;
  * #L%
  */
 
+import javafx.geometry.Insets;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
+import javafx.scene.text.*;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.javafx.IkonResolver;
@@ -60,11 +62,13 @@ public final class Icons {
     if (key == null || key.isBlank()) {
       return null;
     }
-    if (key.charAt(0) > 255 && key.length() <= 3) {
-      var text = new Label(key);
+    if (key.charAt(0) > 255 && key.length() == 1) {
+      var text = new Text(key);
       text.setFont(ICON_FONT);
       text.setStyle("-fx-font-size: " + size + "px");
-      text.setTextFill(Color.WHITE);
+      text.setFill(Color.WHITE);
+      text.setBoundsType(TextBoundsType.VISUAL);
+      text.setFocusTraversable(false);
       return text;
     } else if (key.indexOf('.') > 0) {
       final ConcurrentHashMap<String, Image> map;
