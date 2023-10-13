@@ -21,18 +21,19 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import com.sun.javafx.geom.*;
 import com.sun.javafx.geom.Shape;
-import javafx.beans.Observable;
+import com.sun.javafx.geom.*;
 import javafx.beans.*;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.*;
 import org.tybaco.ui.model.Link;
 
-import java.util.*;
+import java.util.IdentityHashMap;
+import java.util.LinkedList;
 import java.util.stream.Stream;
 
 import static java.lang.Math.max;
@@ -42,6 +43,7 @@ import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 public class DiagramLine extends Group {
 
   private static final float SAFE_DIST = 3f;
+  private static final boolean DEBUG = true;
 
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
   private final InvalidationListener connectorsInvalidationListener = this::onUpdateConnectors;
@@ -87,6 +89,11 @@ public class DiagramLine extends Group {
     var input = link.input.get();
     var output = link.output.get();
     if (input == null || output == null) return;
+    if (DEBUG) input.block.diagram.debugNodes.getChildren().removeIf(c -> c instanceof Rectangle);
+    onUpdate(input, output);
+  }
+
+  private void onUpdate(DiagramBlockInput input, DiagramBlockOutput output) {
     var blocksBase = input.block.diagram.blocks;
     var outBounds = boundsIn(blocksBase, output);
     var inBounds = boundsIn(blocksBase, input);
@@ -98,10 +105,7 @@ public class DiagramLine extends Group {
       if (xe - xs >= 50f) {
         var dx = (xe - xs) / 5f;
         var shape = new CubicCurve2D(xs + SAFE_DIST, ys, xs + dx, ys, xe - dx, ye, xe - SAFE_DIST, ye);
-        if (canBeDrawn(input, output, shape)) {
-          apply(shape);
-          return;
-        }
+        if (tryApply(input, output, shape)) return;
       }
     }
     if (inBounds.getMinY() > outBounds.getMaxY()) {
@@ -112,10 +116,7 @@ public class DiagramLine extends Group {
         var minX = (float) (min(inBounds.getMinX(), outBounds.getMinX()) - inBounds.getWidth() * 13d);
         var ly = (float) (inBounds.getMinY() - gapY / 3f);
         var shape = new CubicCurve2D(xs + SAFE_DIST, ys, maxX, ry, minX, ly, xe - SAFE_DIST, ye);
-        if (canBeDrawn(input, output, shape)) {
-          apply(shape);
-          return;
-        }
+        if (tryApply(input, output, shape)) return;
       }
     }
     link.separated.set(true);
@@ -145,26 +146,34 @@ public class DiagramLine extends Group {
     link.separated.set(false);
   }
 
-  private boolean canBeDrawn(DiagramBlockInput input, DiagramBlockOutput output, Shape... shapes) {
-    return Stream.concat(blocks(input), connectors(input, output))
-      .parallel()
-      .noneMatch(b -> Arrays.stream(shapes).anyMatch(s ->
-        s.intersects((float) b.getMinX(), (float) b.getMinY(), (float) b.getWidth(), (float) b.getHeight())
-      ));
+  private boolean tryApply(DiagramBlockInput input, DiagramBlockOutput output, Shape... shapes) {
+    var needsApply = Stream.concat(blocks(input), connectors(input, output)).noneMatch(b -> {
+      for (var s : shapes) {
+        if (s.intersects((float) b.getMinX(), (float) b.getMinY(), (float) b.getWidth(), (float) b.getHeight())) {
+          if (DEBUG) debug(input, b);
+          return true;
+        }
+      }
+      return false;
+    });
+    if (needsApply) {
+      apply(shapes);
+    }
+    return needsApply;
   }
 
   private Stream<Bounds> blocks(DiagramBlockInput input) {
     var blocksBase = input.block.diagram.blocks;
-    return blocksBase.getChildren().stream()
-      .parallel()
+    var stream = blocksBase.getChildren().stream();
+    return (DEBUG ? stream : stream.parallel())
       .filter(Node::isVisible)
       .map(n -> boundsIn(blocksBase, n));
   }
 
   private Stream<Bounds> connectors(DiagramBlockInput input, DiagramBlockOutput output) {
     var connectorsBase = input.block.diagram.connectors;
-    return connectorsBase.getChildren().stream()
-      .parallel()
+    var stream = connectorsBase.getChildren().stream();
+    return (DEBUG ? stream : stream.parallel())
       .filter(n -> !(n instanceof DiagramLine))
       .filter(Node::isVisible)
       .filter(n -> checkCompanion(n, input, output))
@@ -177,5 +186,11 @@ public class DiagramLine extends Group {
       case DiagramBlockOutputCompanion c -> c.output != output;
       default -> true;
     };
+  }
+
+  private void debug(DiagramBlockInput input, Bounds b) {
+    var r = new Rectangle(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
+    r.setFill(new Color(0.9, 0.3, 0.2, 0.2));
+    input.block.diagram.debugNodes.getChildren().add(r);
   }
 }

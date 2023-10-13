@@ -42,12 +42,13 @@ abstract class AbstractDiagram extends ScrollPane {
   private static final double ZOOM_PRECISION = 0.01;
   private static final double ROTATE_PRECISION = 0.1;
 
-  protected final Pane blocks = new Pane();
-  protected final Pane connectors = new Pane();
-  protected final StackPane layers = new StackPane(connectors, blocks);
-  protected final StackPane content = new StackPane(layers);
-  protected final Affine transform = new Affine();
-  protected final ToggleGroup outputToggleGroup = new ToggleGroup();
+  final Pane connectors = new Pane();
+  final Pane blocks = new Pane();
+  final Pane debugNodes = new Pane();
+  final StackPane layers = new StackPane(connectors, blocks, debugNodes);
+  final StackPane content = new StackPane(layers);
+  final Affine transform = new Affine();
+  final ToggleGroup outputToggleGroup = new ToggleGroup();
 
   private double mx;
   private double my;
@@ -55,6 +56,7 @@ abstract class AbstractDiagram extends ScrollPane {
   public DiagramBlockOutput currentOutput;
 
   AbstractDiagram() {
+    debugNodes.setMouseTransparent(true);
     setContent(content);
     setFitToHeight(true);
     setFitToWidth(true);
