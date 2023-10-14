@@ -78,8 +78,10 @@ public class DiagramLine extends Group {
   }
 
   private void onUpdate(Bounds inBounds, Bounds outBounds) {
-    if (trySimpleLine(inBounds, outBounds)) return;
-    if (tryLineOI(inBounds, outBounds)) return;
+    if (trySimpleLine(inBounds, outBounds))
+      return;
+    if (tryLineOI(inBounds, outBounds))
+      return;
     path.getElements().clear();
   }
 

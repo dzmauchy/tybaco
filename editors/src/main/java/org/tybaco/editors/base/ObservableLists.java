@@ -10,12 +10,12 @@ package org.tybaco.editors.base;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -28,7 +28,7 @@ import org.tybaco.util.MiscOps;
 import java.util.function.Function;
 
 public interface ObservableLists {
-  
+
   static <E, R> void synchronizeLists(ObservableList<E> original, ObservableList<R> result, Function<? super E, ? extends R> func) {
     var changeListener = (ListChangeListener<E>) c -> {
       if (c.getList() == result) return;
@@ -42,9 +42,7 @@ public interface ObservableLists {
       }
     };
     result.addListener(MiscOps.<ListChangeListener<R>>cast(changeListener));
-    Platform.runLater(() -> {
-      result.setAll(original.stream().map(func).toList());
-      original.addListener(new WeakListChangeListener<>(changeListener));
-    });
+    result.setAll(original.stream().map(func).toList());
+    original.addListener(new WeakListChangeListener<>(changeListener));
   }
 }

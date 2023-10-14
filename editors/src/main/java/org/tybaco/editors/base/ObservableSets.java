@@ -10,22 +10,22 @@ package org.tybaco.editors.base;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
 
-import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.collections.*;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.function.*;
 
 public interface ObservableSets {
@@ -46,10 +46,8 @@ public interface ObservableSets {
       }
     };
     set.addListener(listener);
-    Platform.runLater(() -> {
-      set.addAll(original);
-      original.addListener(new WeakSetChangeListener<>(listener));
-    });
+    set.addAll(original);
+    original.addListener(new WeakSetChangeListener<>(listener));
     return set;
   }
 
@@ -67,9 +65,7 @@ public interface ObservableSets {
       }
     };
     list.addListener((Observable o) -> changeListener.onChanged(null));
-    Platform.runLater(() -> {
-      original.addListener(new WeakSetChangeListener<>(changeListener));
-      list.addAll(original.stream().map(func).toList());
-    });
+    original.addListener(new WeakSetChangeListener<>(changeListener));
+    list.addAll(original.stream().map(func).toList());
   }
 }
