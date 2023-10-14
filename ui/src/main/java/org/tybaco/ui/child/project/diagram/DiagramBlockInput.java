@@ -25,9 +25,8 @@ import javafx.beans.Observable;
 import javafx.beans.property.SimpleSetProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import org.tybaco.editors.base.Scenes;
+import org.tybaco.editors.base.ObservableBounds;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibInput;
 import org.tybaco.ui.model.Connector;
@@ -35,7 +34,6 @@ import org.tybaco.ui.model.Link;
 
 import static java.util.Collections.binarySearch;
 import static org.tybaco.editors.base.ObservableSets.filteredSet;
-import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsBinding;
 
 public final class DiagramBlockInput extends Button {
 
@@ -46,6 +44,7 @@ public final class DiagramBlockInput extends Button {
   final Connector inp;
   final SimpleSetProperty<Link> links = new SimpleSetProperty<>(this, "links");
   final ObservableValue<Link> link;
+  final ObservableBounds spotBounds;
 
   public DiagramBlockInput(DiagramBlock block, LibInput input, String spot, int index) {
     this.block = block;
@@ -56,6 +55,13 @@ public final class DiagramBlockInput extends Button {
     this.links.set(filteredSet(block.links, l -> l.in.blockId == block.block.id && spot.equals(l.in.spot)));
     this.link = links.map(s -> s.stream().filter(l -> l.index == index).findFirst().orElse(null));
     this.link.addListener(this::onLink);
+    this.spotBounds = new ObservableBounds(block.diagram.blocks, this);
+    this.spotBounds.addListener((o, ov, nv) -> {
+      var l = link.getValue();
+      if (l != null) {
+        l.inBounds.set(nv);
+      }
+    });
     onLink(null, null, link.getValue());
     if (index < 0) {
       setGraphic(Icons.icon(classLoader(), input.icon(), 20));
@@ -66,26 +72,13 @@ public final class DiagramBlockInput extends Button {
     setTooltip(DiagramTooltips.tooltip(classLoader(), input));
     setFocusTraversable(false);
     setOnAction(this::onButton);
-    Scenes.applyOnScene(this, this::onScene);
-  }
-
-  private void onScene(Scene s) {
-    var l = link.getValue();
-    if (l != null) {
-      if (s == null) {
-        l.input.set(null);
-        l.inBounds.unbind();
-      } else {
-        l.input.set(this);
-        l.inBounds.bind(boundsBinding(block.diagram.blocks, this));
-      }
-    }
   }
 
   private void onLink(Observable observable, Link ol, Link nl) {
     if (nl != null) {
       nl.input.set(this);
-    } else if (ol != null && ol.input.get() == this) {
+      nl.inBounds.set(spotBounds.getValue());
+    } else if (ol != null) {
       ol.input.set(null);
     }
   }

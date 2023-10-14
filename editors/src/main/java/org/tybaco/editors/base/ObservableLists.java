@@ -21,17 +21,15 @@ package org.tybaco.editors.base;
  * #L%
  */
 
-import javafx.application.Platform;
 import javafx.collections.*;
-import org.tybaco.util.MiscOps;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 public interface ObservableLists {
 
-  static <E, R> void synchronizeLists(ObservableList<E> original, ObservableList<R> result, Function<? super E, ? extends R> func) {
+  static <E, R> Runnable synchronizeLists(ObservableList<E> original, ObservableList<R> result, Function<? super E, ? extends R> func) {
     var changeListener = (ListChangeListener<E>) c -> {
-      if (c.getList() == result) return;
       while (c.next()) {
         if (c.wasRemoved()) {
           result.remove(c.getFrom(), c.getTo());
@@ -41,8 +39,12 @@ public interface ObservableLists {
         }
       }
     };
-    result.addListener(MiscOps.<ListChangeListener<R>>cast(changeListener));
-    result.setAll(original.stream().map(func).toList());
+    var reset = (Runnable) () -> {
+      Objects.requireNonNull(changeListener);
+      result.setAll(original.stream().map(func).toList());
+    };
+    reset.run();
     original.addListener(new WeakListChangeListener<>(changeListener));
+    return reset;
   }
 }

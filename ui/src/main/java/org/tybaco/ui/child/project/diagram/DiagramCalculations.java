@@ -21,25 +21,10 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.beans.Observable;
-import javafx.beans.binding.ObjectBinding;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 
-import java.util.LinkedList;
-
-import static javafx.beans.binding.Bindings.createObjectBinding;
-
 interface DiagramCalculations {
-
-  static ObjectBinding<Bounds> boundsBinding(Node base, Node current) {
-    var observables = new LinkedList<Observable>();
-    observables.add(current.boundsInLocalProperty());
-    for (var c = current; c != base; c = c.getParent()) {
-      observables.add(c.localToParentTransformProperty());
-    }
-    return createObjectBinding(() -> boundsIn(base, current), observables.toArray(Observable[]::new));
-  }
 
   static Bounds boundsIn(Node base, Node current) {
     var b = current.getBoundsInLocal();

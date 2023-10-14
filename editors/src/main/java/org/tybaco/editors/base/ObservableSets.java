@@ -24,6 +24,7 @@ package org.tybaco.editors.base;
 import javafx.beans.Observable;
 import javafx.collections.*;
 
+import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.function.*;
@@ -55,17 +56,20 @@ public interface ObservableSets {
     return filteredSet(original, filter, () -> FXCollections.observableSet(new HashSet<>()));
   }
 
-  static <E, R> void synchronizeSet(ObservableSet<E> original, ObservableList<R> list, Function<? super E, ? extends R> func, Function<? super R, ? extends E> reversed) {
+  static <E, R> Runnable synchronizeSet(ObservableSet<E> original, ObservableList<R> list, Function<? super E, ? extends R> func, Function<? super R, ? extends E> reversed) {
     var changeListener = (SetChangeListener<E>) c -> {
-      if (c == null) return;
       if (c.wasRemoved()) {
         list.removeIf(v -> Objects.equals(reversed.apply(v), c.getElementRemoved()));
       } else if (c.wasAdded()) {
         list.add(func.apply(c.getElementAdded()));
       }
     };
-    list.addListener((Observable o) -> changeListener.onChanged(null));
     original.addListener(new WeakSetChangeListener<>(changeListener));
-    list.addAll(original.stream().map(func).toList());
+    var reset = (Runnable) () -> {
+      Objects.requireNonNull(changeListener);
+      list.setAll(original.stream().map(func).toList());
+    };
+    reset.run();
+    return reset;
   }
 }
