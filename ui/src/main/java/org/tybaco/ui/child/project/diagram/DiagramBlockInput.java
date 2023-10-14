@@ -21,6 +21,8 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.beans.property.SimpleSetProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
@@ -30,6 +32,7 @@ import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 
 import static java.util.Collections.binarySearch;
+import static org.tybaco.editors.base.ObservableSets.filteredSet;
 import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
 public final class DiagramBlockInput extends Button {
@@ -39,6 +42,8 @@ public final class DiagramBlockInput extends Button {
   final String spot;
   final int index;
   final Connector inp;
+  final SimpleSetProperty<Link> links = new SimpleSetProperty<>(this, "links");
+  final ObservableValue<Link> link;
   final DiagramBlockInputCompanion companion;
 
   public DiagramBlockInput(DiagramBlock block, LibInput input, String spot, int index) {
@@ -47,8 +52,17 @@ public final class DiagramBlockInput extends Button {
     this.spot = spot;
     this.index = index;
     this.inp = new Connector(block.block.id, spot);
+    this.links.set(filteredSet(block.links, l -> l.in.blockId == block.block.id && spot.equals(l.in.spot)));
+    this.link = links.map(s -> s.stream().filter(l -> l.index == index).findFirst().orElse(null));
+    this.link.addListener((o, ol, nl) -> {
+      if (nl != null) {
+        nl.input.set(this);
+      } else if (ol != null && ol.input.get() == this) {
+        ol.input.set(null);
+      }
+    });
     this.companion = new DiagramBlockInputCompanion(this);
-    if (index < 0 || !input.vector()) {
+    if (index < 0) {
       setGraphic(Icons.icon(classLoader(), input.icon(), 20));
     } else {
       setText(Integer.toString(index));
@@ -61,18 +75,6 @@ public final class DiagramBlockInput extends Button {
 
   private ClassLoader classLoader() {
     return block.diagram.classpath.getClassLoader();
-  }
-
-  public void onLink(Link link, boolean added) {
-    if (added) {
-      setUnderline(true);
-      link.input.set(this);
-      companion.update(link);
-    } else {
-      setUnderline(false);
-      companion.reset();
-      if (link.input.get() == this) link.input.set(null);
-    }
   }
 
   private void onButton(ActionEvent event) {
@@ -90,7 +92,7 @@ public final class DiagramBlockInput extends Button {
           .max()
           .orElseThrow() + 1;
         var b = new DiagramBlockInput(block, input, spot, nextIndex);
-        var i = binarySearch(block.inputs.getChildren(), b, DiagramBlockInput::internalCompare);
+        var i = binarySearch(block.inputs.getChildren(), b, DiagramBlockInput::cmp);
         block.inputs.getChildren().add(-(i + 1), b);
         block.diagram.project.links.add(new Link(out, inp, nextIndex));
       } else {
@@ -101,7 +103,7 @@ public final class DiagramBlockInput extends Button {
     }
   }
 
-  static int internalCompare(Object o1, Object o2) {
+  static int cmp(Object o1, Object o2) {
     if (o1 instanceof DiagramBlockInput i1 && o2 instanceof DiagramBlockInput i2) {
       var c = i1.spot.compareTo(i2.spot);
       if (c != 0) return c;
@@ -116,7 +118,7 @@ public final class DiagramBlockInput extends Button {
   }
 
   Bounds spotBounds() {
-    return boundsIn(block.diagram.blocks, this);
+    return companion.isVisible() ? boundsIn(block.diagram.companions, companion) : boundsIn(block.diagram.blocks, this);
   }
 
   @Override

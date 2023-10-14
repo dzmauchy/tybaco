@@ -21,15 +21,13 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.beans.Observable;
-import javafx.collections.*;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.change.SetChange;
 import org.tybaco.ui.child.project.classpath.BlockCache;
 import org.tybaco.ui.child.project.classpath.ProjectClasspath;
-import org.tybaco.ui.model.*;
+import org.tybaco.ui.model.Project;
 
 import static org.tybaco.editors.base.ObservableLists.synchronizeLists;
+import static org.tybaco.editors.base.ObservableSets.synchronizeSet;
 
 @Component
 public class Diagram extends AbstractDiagram {
@@ -37,40 +35,21 @@ public class Diagram extends AbstractDiagram {
   public final Project project;
   final BlockCache blockCache;
   final ProjectClasspath classpath;
-  private final SetChangeListener<Link> linkListener = this::onLinkChange;
 
   public Diagram(Project project, BlockCache blockCache, ProjectClasspath classpath) {
     this.project = project;
     this.blockCache = blockCache;
     this.classpath = classpath;
-    project.links.forEach(l -> linkListener.onChanged(new SetChange<>(project.links, null, l)));
     initialize();
   }
 
   private void initialize() {
     synchronizeLists(project.blocks, blocks.getChildren(), b -> new DiagramBlock(this, b));
-    project.links.addListener(new WeakSetChangeListener<>(linkListener));
-    blockCache.addListener(this::onClassPathChange);
-  }
-
-  private void onLinkChange(SetChangeListener.Change<? extends Link> change) {
-    var e = change.wasAdded() ? change.getElementAdded() : change.getElementRemoved();
-    for (var n : blocks.getChildren()) {
-      if (n instanceof DiagramBlock b) {
-        if (b.block.id == e.in.blockId || b.block.id == e.out.blockId) {
-          b.onLink(e, change.wasAdded());
-        }
-      }
-    }
-    if (change.wasAdded()) {
-      connectors.getChildren().add(new DiagramLine(change.getElementAdded()));
-    } else {
-      connectors.getChildren().removeIf(n -> n instanceof DiagramLine l && l.link == e);
-    }
-  }
-
-  private void onClassPathChange(Observable o) {
-    for (var block : blocks.getChildren()) if (block instanceof DiagramBlock b) b.onClasspathChange();
-    project.links.forEach(l -> linkListener.onChanged(new SetChange<>(project.links, null, l)));
+    synchronizeSet(project.links, connectors.getChildren(), DiagramLine::new, l -> l instanceof DiagramLine e ? e.link : null);
+    blockCache.addListener(o -> {
+      companions.getChildren().clear();
+      blocks.getChildren().setAll(project.blocks.stream().map(b -> new DiagramBlock(this, b)).toList());
+      connectors.getChildren().setAll(project.links.stream().map(DiagramLine::new).toList());
+    });
   }
 }

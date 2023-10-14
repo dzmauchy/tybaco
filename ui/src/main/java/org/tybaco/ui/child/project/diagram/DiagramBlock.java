@@ -21,7 +21,9 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.application.Platform;
+import javafx.beans.property.SimpleSetProperty;
+import javafx.collections.SetChangeListener;
+import org.tybaco.editors.base.ObservableSets;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.ui.model.Block;
 import org.tybaco.ui.model.Link;
@@ -31,44 +33,33 @@ import static java.util.Collections.binarySearch;
 public final class DiagramBlock extends AbstractDiagramBlock {
 
   final Diagram diagram;
+  final SimpleSetProperty<Link> links = new SimpleSetProperty<>(this, "link");
 
   public DiagramBlock(Diagram diagram, Block block) {
     super(block);
     this.diagram = diagram;
-    onClasspathChange();
-  }
-
-  public void onClasspathChange() {
-    inputs.getChildren().clear();
-    outputs.getChildren().clear();
-    diagram.blockCache.blockById(block.factoryId).ifPresent(b -> {
+    this.links.set(ObservableSets.filteredSet(diagram.project.links, l -> l.out.blockId == block.id || l.in.blockId == block.id));
+    this.links.addListener((SetChangeListener<Link>) c -> {
+      if (c.wasAdded()) {
+        var e = c.getElementAdded();
+        if (e.index >= 0 && e.in.blockId == block.id) {
+          var baseIndex = binarySearch(inputs.getChildren(), new Link(e.out, e.in, -1), DiagramBlockInput::cmp);
+          var index = binarySearch(inputs.getChildren(), e, DiagramBlockInput::cmp);
+          if (index < 0 && baseIndex >= 0 && inputs.getChildren().get(baseIndex) instanceof DiagramBlockInput i) {
+            inputs.getChildren().add(-(index + 1), new DiagramBlockInput(this, i.input, i.spot, e.index));
+          }
+        }
+      } else if (c.wasRemoved()) {
+        var e = c.getElementRemoved();
+        if (e.index >= 0 && e.in.blockId == block.id) {
+          inputs.getChildren().removeIf(v -> v instanceof DiagramBlockInput i && i.spot.equals(e.in.spot) && i.index == e.index);
+        }
+      }
+    });
+    this.diagram.blockCache.blockById(block.factoryId).ifPresent(b -> {
       factory.setGraphic(Icons.icon(diagram.classpath.getClassLoader(), b.icon(), 32));
       b.forEachInput((spot, i) -> inputs.getChildren().add(new DiagramBlockInput(this, i, spot, -1)));
       b.forEachOutput((spot, o) -> outputs.getChildren().add(new DiagramBlockOutput(this, o, spot)));
     });
-  }
-
-  public void onLink(Link link, boolean added) {
-    for (var n : inputs.getChildren()) {
-      if (n instanceof DiagramBlockInput i && i.block.block.id == link.in.blockId && i.spot.equals(link.in.spot)) {
-        if (i.index == link.index) {
-          Platform.runLater(() -> i.onLink(link, added));
-        } else {
-          Platform.runLater(() -> {
-            var ni = new DiagramBlockInput(i.block, i.input, i.spot, link.index);
-            var k = binarySearch(inputs.getChildren(), link, DiagramBlockInput::internalCompare);
-            if (k < 0) {
-              inputs.getChildren().add(-(k + 1), ni);
-              ni.onLink(link, added);
-            }
-          });
-        }
-      }
-    }
-    for (var n : outputs.getChildren()) {
-      if (n instanceof DiagramBlockOutput o && o.block.block.id == link.out.blockId && o.spot.equals(link.out.spot)) {
-        Platform.runLater(() -> o.onLink(link, added));
-      }
-    }
   }
 }

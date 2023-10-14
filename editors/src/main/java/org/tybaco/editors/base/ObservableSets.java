@@ -22,14 +22,15 @@ package org.tybaco.editors.base;
  */
 
 import javafx.application.Platform;
+import javafx.beans.Observable;
 import javafx.collections.*;
 
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.function.*;
 
 public interface ObservableSets {
 
-  static <E> ObservableSet<E> filtered(ObservableSet<E> original, Predicate<? super E> filter, Supplier<? extends ObservableSet<E>> supplier) {
+  static <E> ObservableSet<E> filteredSet(ObservableSet<E> original, Predicate<? super E> filter, Supplier<? extends ObservableSet<E>> supplier) {
     var set = supplier.get();
     var listener = (SetChangeListener<E>) c -> {
       if (c.getSet() != set) {
@@ -50,5 +51,25 @@ public interface ObservableSets {
       original.addListener(new WeakSetChangeListener<>(listener));
     });
     return set;
+  }
+
+  static <E> ObservableSet<E> filteredSet(ObservableSet<E> original, Predicate<? super E> filter) {
+    return filteredSet(original, filter, () -> FXCollections.observableSet(new HashSet<>()));
+  }
+
+  static <E, R> void synchronizeSet(ObservableSet<E> original, ObservableList<R> list, Function<? super E, ? extends R> func, Function<? super R, ? extends E> reversed) {
+    var changeListener = (SetChangeListener<E>) c -> {
+      if (c == null) return;
+      if (c.wasRemoved()) {
+        list.removeIf(v -> Objects.equals(reversed.apply(v), c.getElementRemoved()));
+      } else if (c.wasAdded()) {
+        list.add(func.apply(c.getElementAdded()));
+      }
+    };
+    list.addListener((Observable o) -> changeListener.onChanged(null));
+    Platform.runLater(() -> {
+      original.addListener(new WeakSetChangeListener<>(changeListener));
+      list.addAll(original.stream().map(func).toList());
+    });
   }
 }

@@ -21,7 +21,6 @@ package org.tybaco.editors.base;
  * #L%
  */
 
-import com.google.common.collect.Lists;
 import javafx.application.Platform;
 import javafx.collections.*;
 import org.tybaco.util.MiscOps;
@@ -38,7 +37,7 @@ public interface ObservableLists {
           result.remove(c.getFrom(), c.getTo());
         }
         if (c.wasAdded()) {
-          result.addAll(c.getFrom(), Lists.transform(c.getAddedSubList(), func::apply));
+          result.addAll(c.getFrom(), c.getAddedSubList().stream().map(func).toList());
         }
       }
     };

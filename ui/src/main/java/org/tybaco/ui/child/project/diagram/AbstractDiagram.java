@@ -43,9 +43,10 @@ abstract class AbstractDiagram extends ScrollPane {
   private static final double ROTATE_PRECISION = 0.1;
 
   final Pane connectors = new Pane();
+  final Pane companions = new Pane();
   final Pane blocks = new Pane();
   final Pane debugNodes = new Pane();
-  final StackPane layers = new StackPane(connectors, blocks, debugNodes);
+  final StackPane layers = new StackPane(connectors, companions, blocks, debugNodes);
   final StackPane content = new StackPane(layers);
   final Affine transform = new Affine();
   final ToggleGroup outputToggleGroup = new ToggleGroup();

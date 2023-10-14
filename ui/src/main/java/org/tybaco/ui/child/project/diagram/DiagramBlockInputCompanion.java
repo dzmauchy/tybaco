@@ -27,9 +27,7 @@ import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Line;
-import org.tybaco.ui.model.Link;
 
-import static javafx.beans.binding.Bindings.createBooleanBinding;
 import static javafx.beans.binding.Bindings.createDoubleBinding;
 import static javafx.scene.layout.BorderStrokeStyle.SOLID;
 import static javafx.scene.paint.Color.WHITE;
@@ -60,22 +58,12 @@ public final class DiagramBlockInputCompanion extends Group {
         line.startYProperty().bind(createDoubleBinding(() -> bb.get().getCenterY(), bb));
         line.endXProperty().bind(createDoubleBinding(() -> bb.get().getMinX(), bb));
         line.endYProperty().bind(line.startYProperty());
-        input.block.diagram.connectors.getChildren().add(this);
+        input.block.diagram.companions.getChildren().add(this);
       } else {
-        input.block.diagram.connectors.getChildren().remove(this);
+        input.block.diagram.companions.getChildren().remove(this);
       }
     });
-    reset();
-  }
-
-  void reset() {
-    label.setText(null);
-    visibleProperty().unbind();
-    setVisible(false);
-  }
-
-  void update(Link link) {
-    label.setText(link.out.toString());
-    visibleProperty().bind(createBooleanBinding(() -> link.separated.get() || link.output.get() == null, link.separated, link.output));
+    visibleProperty().bind(input.link.flatMap(l -> l.separated));
+    label.textProperty().bind(input.link.map(l -> l.out.toString()));
   }
 }

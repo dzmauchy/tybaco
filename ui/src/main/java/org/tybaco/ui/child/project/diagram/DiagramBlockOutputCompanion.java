@@ -21,6 +21,7 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.beans.Observable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -62,11 +63,14 @@ public final class DiagramBlockOutputCompanion extends Group {
         line.startYProperty().bind(createDoubleBinding(() -> bb.get().getCenterY(), bb));
         line.endXProperty().bind(createDoubleBinding(() -> bb.get().getMaxX() + 10d, bb));
         line.endYProperty().bind(line.startYProperty());
-        output.block.diagram.connectors.getChildren().add(this);
+        output.block.diagram.companions.getChildren().add(this);
       } else {
-        output.block.diagram.connectors.getChildren().remove(this);
+        output.block.diagram.companions.getChildren().remove(this);
       }
     });
-    visibleProperty().bind(createBooleanBinding(() -> output.links.values().stream().anyMatch(l -> l), output.links, sceneProperty()));
+    visibleProperty().bind(output.links.flatMap(ls -> {
+      var observables = ls.stream().map(l -> l.separated).toArray(Observable[]::new);
+      return createBooleanBinding(() -> ls.stream().anyMatch(l -> l.separated.get()), observables);
+    }));
   }
 }
