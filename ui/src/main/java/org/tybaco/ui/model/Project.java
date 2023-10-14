@@ -22,13 +22,14 @@ package org.tybaco.ui.model;
  */
 
 import javafx.beans.Observable;
+import javafx.beans.property.SimpleSetProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 import static java.nio.ByteBuffer.allocate;
 import static java.util.Base64.getUrlEncoder;
@@ -43,7 +44,7 @@ public final class Project {
   public final SimpleStringProperty name;
   public final ObservableList<Block> blocks;
   public final ObservableList<Constant> constants;
-  public final ObservableSet<Link> links;
+  public final SimpleSetProperty<Link> links;
   public final ObservableList<Dependency> dependencies;
   private final Observable[] observables;
 
@@ -53,7 +54,7 @@ public final class Project {
     this.name = new SimpleStringProperty(this, "name", name);
     this.constants = Constant.newList(constants);
     this.blocks = Block.newList(blocks);
-    this.links = FXCollections.observableSet(new HashSet<>(links));
+    this.links = new SimpleSetProperty<>(this, "links", FXCollections.observableSet(links.toArray(Link[]::new)));
     this.dependencies = Dependency.libs(dependencies);
     this.observables = new Observable[] {this.name, this.constants, this.blocks, this.dependencies};
   }
@@ -94,29 +95,6 @@ public final class Project {
     return FXCollections.observableArrayList(Project::observables);
   }
 
-  public Block blockById(int id) {
-    return blocks.stream()
-      .filter(b -> b.id == id)
-      .findFirst()
-      .orElseThrow(() -> new NoSuchElementException("Block" + id + " not found"));
-  }
-
-  public Stream<Link> linksFrom(Connector out) {
-    return links.stream().filter(l -> l.out.equals(out));
-  }
-
-  public Stream<Link> linksTo(Connector in) {
-    return links.stream().filter(l -> l.in.equals(in));
-  }
-
-  public Stream<Link> linksFrom(Block block) {
-    return links.stream().filter(l -> l.out.blockId == block.id);
-  }
-
-  public Stream<Link> linksTo(Block block) {
-    return links.stream().filter(l -> l.in.blockId == block.id);
-  }
-
   public Block newBlock(String name, String factoryId, double x, double y) {
     var block = new Block(nextId(), name, factoryId, x, y);
     blocks.add(block);
@@ -134,10 +112,6 @@ public final class Project {
     blocks.forEach(b -> set.set(b.id));
     constants.forEach(c -> set.set(c.id));
     return set.nextClearBit(0);
-  }
-
-  public String guessBlockName() {
-    return "Block " + nextId();
   }
 
   private String newId() {
