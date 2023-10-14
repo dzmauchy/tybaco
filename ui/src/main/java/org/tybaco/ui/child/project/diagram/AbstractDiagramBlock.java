@@ -24,6 +24,7 @@ package org.tybaco.ui.child.project.diagram;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -31,26 +32,35 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import org.tybaco.ui.model.Block;
 
+import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.layout.BorderStrokeStyle.SOLID;
 import static javafx.scene.paint.Color.WHITE;
 
 abstract class AbstractDiagramBlock extends BorderPane {
 
-  protected final Block block;
-  protected final Label title = new Label();
-  protected final Label factory = new Label();
-  protected final VBox inputs = new VBox(3);
-  protected final VBox outputs = new VBox(3);
+  final Block block;
+  final Label blockId = new Label();
+  final Label blockName = new Label();
+  final HBox title = new HBox(3d, blockId, new Separator(VERTICAL), blockName);
+  final Label factory = new Label();
+  final VBox inputs = new VBox(3);
+  final VBox outputs = new VBox(3);
 
-  protected double bx;
-  protected double by;
+  double bx;
+  double by;
 
   AbstractDiagramBlock(Block block) {
     this.block = block;
     setBackground(new Background(new BackgroundFill(Color.gray(0.2), new CornerRadii(5), Insets.EMPTY)));
     setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(5d), new BorderWidths(2d))));
     factory.setPadding(new Insets(4d));
-    title.textProperty().bind(block.name);
+    blockName.textProperty().bind(block.name);
+    blockName.setFont(Font.font(null, FontWeight.BOLD, 12));
+    blockName.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+    blockName.setAlignment(Pos.BASELINE_CENTER);
+    blockId.setText(Integer.toString(block.id));
+    blockId.setAlignment(Pos.BASELINE_CENTER);
+    HBox.setHgrow(blockName, Priority.ALWAYS);
     setLayoutX(block.x.get());
     setLayoutY(block.y.get());
     block.x.bind(layoutXProperty());
@@ -65,10 +75,8 @@ abstract class AbstractDiagramBlock extends BorderPane {
     outputs.setFillWidth(true);
     title.setBorder(new Border(new BorderStroke(WHITE, SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 2, 0))));
     title.setPadding(new Insets(5d));
-    title.setAlignment(Pos.CENTER);
+    title.setFillHeight(true);
     title.setStyle("-fx-background-color: linear-gradient(to top, black, transparent);");
-    title.setFont(Font.font(null, FontWeight.BOLD, 12));
-    title.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     addEventHandler(MouseEvent.MOUSE_MOVED, this::onMouseMoved);
     addEventHandler(MouseEvent.MOUSE_DRAGGED, this::onMouseDragged);
   }

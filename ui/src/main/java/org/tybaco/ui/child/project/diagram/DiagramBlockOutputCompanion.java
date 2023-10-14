@@ -67,6 +67,6 @@ public final class DiagramBlockOutputCompanion extends Group {
         output.block.diagram.connectors.getChildren().remove(this);
       }
     });
-    visibleProperty().bind(createBooleanBinding(() -> output.links.keySet().stream().anyMatch(l -> l.separated.get()), output.links));
+    visibleProperty().bind(createBooleanBinding(() -> output.links.values().stream().anyMatch(l -> l), output.links, sceneProperty()));
   }
 }
