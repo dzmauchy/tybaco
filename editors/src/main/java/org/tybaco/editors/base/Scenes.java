@@ -1,4 +1,4 @@
-package org.tybaco.editors.change;
+package org.tybaco.editors.base;
 
 /*-
  * #%L
@@ -21,37 +21,19 @@ package org.tybaco.editors.change;
  * #L%
  */
 
-import javafx.collections.ObservableSet;
-import javafx.collections.SetChangeListener;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 
-public final class SetChange<E> extends SetChangeListener.Change<E> {
+import java.util.function.Consumer;
 
-  private final E removed;
-  private final E added;
+public interface Scenes {
 
-  public SetChange(ObservableSet<E> set, E removed, E added) {
-    super(set);
-    this.added = added;
-    this.removed = removed;
-  }
-
-  @Override
-  public boolean wasAdded() {
-    return added != null;
-  }
-
-  @Override
-  public boolean wasRemoved() {
-    return removed != null;
-  }
-
-  @Override
-  public E getElementAdded() {
-    return added;
-  }
-
-  @Override
-  public E getElementRemoved() {
-    return removed;
+  static void applyOnScene(Node node, Consumer<Scene> consumer) {
+    var scene = node.getScene();
+    if (scene != null) {
+      consumer.accept(scene);
+    } else {
+      node.sceneProperty().addListener((o, ov, nv) -> consumer.accept(null));
+    }
   }
 }

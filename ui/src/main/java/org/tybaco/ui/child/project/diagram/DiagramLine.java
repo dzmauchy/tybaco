@@ -71,7 +71,9 @@ public class DiagramLine extends Group {
       path.getElements().clear();
       return;
     }
-    if (DEBUG) diagram.debugNodes.getChildren().removeIf(c -> c instanceof Rectangle);
+    if (DEBUG) {
+      diagram.debugNodes.getChildren().clear();
+    }
     onUpdate(link.inBounds.get(), link.outBounds.get());
   }
 
@@ -140,10 +142,9 @@ public class DiagramLine extends Group {
   }
 
   private boolean tryApply(Shape... shapes) {
-    var needsApply = Stream.concat(blocks(), companions()).noneMatch(b -> {
+    var needsApply = blocks().noneMatch(b -> {
       for (var s : shapes) {
         if (s.intersects((float) b.getMinX(), (float) b.getMinY(), (float) b.getWidth(), (float) b.getHeight())) {
-          if (DEBUG) debug(b);
           return true;
         }
       }
@@ -161,15 +162,9 @@ public class DiagramLine extends Group {
     return (DEBUG ? stream : stream.parallel()).map(n -> boundsIn(blocksBase, n));
   }
 
-  private Stream<Bounds> companions() {
-    var companionBase = diagram.companions;
-    var stream = companionBase.getChildren().stream();
-    return (DEBUG ? stream : stream.parallel()).map(n -> boundsIn(companionBase, n));
-  }
-
-  private void debug(Bounds b) {
+  private void debug(Bounds b, Color color) {
     var r = new Rectangle(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
-    r.setFill(new Color(0.9, 0.3, 0.2, 0.2));
+    r.setFill(color);
     diagram.debugNodes.getChildren().add(r);
   }
 

@@ -47,7 +47,6 @@ public class Diagram extends AbstractDiagram {
     synchronizeLists(project.blocks, blocks.getChildren(), b -> new DiagramBlock(this, b));
     synchronizeSet(project.links, connectors.getChildren(), l -> new DiagramLine(this, l), l -> l instanceof DiagramLine e ? e.link : null);
     blockCache.addListener(o -> {
-      companions.getChildren().clear();
       blocks.getChildren().setAll(project.blocks.stream().map(b -> new DiagramBlock(this, b)).toList());
       connectors.getChildren().setAll(project.links.stream().map(l -> new DiagramLine(this, l)).toList());
     });
