@@ -101,7 +101,6 @@ public class DiagramLine extends Group {
     var inBounds = input.spotBounds();
     if (trySimpleLine(input, output, inBounds, outBounds)) return;
     if (tryLineOI(input, output, inBounds, outBounds)) return;
-    link.separated.set(true);
     path.getElements().clear();
   }
 
@@ -161,7 +160,6 @@ public class DiagramLine extends Group {
       }
     }
     path.getElements().setAll(elems);
-    link.separated.set(false);
   }
 
   private boolean tryApply(DiagramBlockInput input, DiagramBlockOutput output, Shape... shapes) {

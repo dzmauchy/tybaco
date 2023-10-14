@@ -70,7 +70,7 @@ public final class DiagramBlockOutput extends ToggleButton {
   }
 
   Bounds spotBounds() {
-    return companion.isVisible() ? boundsIn(block.diagram.companions, companion) : boundsIn(block.diagram.blocks, this);
+    return boundsIn(block.diagram.companions, companion);
   }
 
   @Override

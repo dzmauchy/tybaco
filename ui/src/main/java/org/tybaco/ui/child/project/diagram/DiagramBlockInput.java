@@ -118,7 +118,7 @@ public final class DiagramBlockInput extends Button {
   }
 
   Bounds spotBounds() {
-    return companion.isVisible() ? boundsIn(block.diagram.companions, companion) : boundsIn(block.diagram.blocks, this);
+    return boundsIn(block.diagram.companions, companion);
   }
 
   @Override

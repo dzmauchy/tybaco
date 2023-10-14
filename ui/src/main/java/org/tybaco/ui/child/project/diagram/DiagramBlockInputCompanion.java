@@ -63,7 +63,6 @@ public final class DiagramBlockInputCompanion extends Group {
         input.block.diagram.companions.getChildren().remove(this);
       }
     });
-    visibleProperty().bind(input.link.flatMap(l -> l.separated));
     label.textProperty().bind(input.link.map(l -> l.out.toString()));
   }
 }

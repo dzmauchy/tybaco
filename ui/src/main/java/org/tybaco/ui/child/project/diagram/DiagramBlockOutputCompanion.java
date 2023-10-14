@@ -68,9 +68,5 @@ public final class DiagramBlockOutputCompanion extends Group {
         output.block.diagram.companions.getChildren().remove(this);
       }
     });
-    visibleProperty().bind(output.links.flatMap(ls -> {
-      var observables = ls.stream().map(l -> l.separated).toArray(Observable[]::new);
-      return createBooleanBinding(() -> ls.stream().anyMatch(l -> l.separated.get()), observables);
-    }));
   }
 }
