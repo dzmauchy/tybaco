@@ -21,8 +21,6 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.beans.property.SimpleSetProperty;
-import javafx.collections.SetChangeListener;
 import javafx.scene.control.ToggleButton;
 import org.tybaco.editors.base.ObservableBounds;
 import org.tybaco.editors.icon.Icons;
@@ -30,14 +28,14 @@ import org.tybaco.editors.model.LibOutput;
 import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 
-import static org.tybaco.editors.base.ObservableSets.filteredSet;
+import java.util.HashMap;
 
 public final class DiagramBlockOutput extends ToggleButton {
 
   final DiagramBlock block;
   final LibOutput output;
   final String spot;
-  final SimpleSetProperty<Link> links = new SimpleSetProperty<>(this, "links");
+  final HashMap<Link, Boolean> links = new HashMap<>();
   private final ObservableBounds spotBounds;
 
   public DiagramBlockOutput(DiagramBlock block, LibOutput output, String spot) {
@@ -46,19 +44,22 @@ public final class DiagramBlockOutput extends ToggleButton {
     this.output = output;
     this.spot = spot;
     this.spotBounds = new ObservableBounds(block.diagram.blocks, this);
-    this.spotBounds.addListener((o, ov, nv) -> links.forEach(l -> l.outBounds.set(nv)));
-    this.links.set(filteredSet(block.links, l -> l.out.blockId == block.block.id && spot.equals(l.out.spot)));
-    this.links.addListener((SetChangeListener<? super Link>) c -> onLink(c.wasAdded() ? c.getElementAdded() : c.getElementRemoved(), c.wasAdded()));
+    this.spotBounds.addListener((o, ov, nv) -> links.forEach((l, b) -> l.outBounds.set(nv)));
     setToggleGroup(block.diagram.outputToggleGroup);
     setGraphic(Icons.icon(classLoader(), output.icon(), 20));
     setTooltip(DiagramTooltips.tooltip(classLoader(), output));
     selectedProperty().addListener((o, ov, nv) -> block.diagram.setCurrentOutput(nv, this));
-    this.links.forEach(l -> onLink(l, true));
   }
 
-  private void onLink(Link link, boolean added) {
-    link.output.set(added ? this : null);
-    link.outBounds.set(spotBounds.getValue());
+  void onLink(Link link, boolean added) {
+    if (added) {
+      links.put(link, Boolean.TRUE);
+      link.output.set(this);
+      link.outBounds.set(spotBounds.getValue());
+    } else {
+      links.remove(link);
+      link.output.set(null);
+    }
   }
 
   private ClassLoader classLoader() {

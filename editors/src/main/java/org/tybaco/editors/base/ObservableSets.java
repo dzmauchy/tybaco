@@ -21,40 +21,12 @@ package org.tybaco.editors.base;
  * #L%
  */
 
-import javafx.beans.Observable;
 import javafx.collections.*;
 
-import java.lang.ref.WeakReference;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.function.*;
+import java.util.function.Function;
 
 public interface ObservableSets {
-
-  static <E> ObservableSet<E> filteredSet(ObservableSet<E> original, Predicate<? super E> filter, Supplier<? extends ObservableSet<E>> supplier) {
-    var set = supplier.get();
-    var listener = (SetChangeListener<E>) c -> {
-      if (c.getSet() != set) {
-        if (c.wasRemoved()) {
-          if (filter.test(c.getElementRemoved())) {
-            set.remove(c.getElementRemoved());
-          }
-        } else if (c.wasAdded()) {
-          if (filter.test(c.getElementAdded())) {
-            set.add(c.getElementAdded());
-          }
-        }
-      }
-    };
-    set.addListener(listener);
-    set.addAll(original);
-    original.addListener(new WeakSetChangeListener<>(listener));
-    return set;
-  }
-
-  static <E> ObservableSet<E> filteredSet(ObservableSet<E> original, Predicate<? super E> filter) {
-    return filteredSet(original, filter, () -> FXCollections.observableSet(new HashSet<>()));
-  }
 
   static <E, R> Runnable synchronizeSet(ObservableSet<E> original, ObservableList<R> list, Function<? super E, ? extends R> func, Function<? super R, ? extends E> reversed) {
     var changeListener = (SetChangeListener<E>) c -> {

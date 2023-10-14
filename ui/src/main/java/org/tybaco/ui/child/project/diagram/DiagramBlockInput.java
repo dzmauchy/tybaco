@@ -21,9 +21,6 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.beans.Observable;
-import javafx.beans.property.SimpleSetProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import org.tybaco.editors.base.ObservableBounds;
@@ -33,7 +30,6 @@ import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 
 import static java.util.Collections.binarySearch;
-import static org.tybaco.editors.base.ObservableSets.filteredSet;
 
 public final class DiagramBlockInput extends Button {
 
@@ -42,9 +38,9 @@ public final class DiagramBlockInput extends Button {
   final String spot;
   final int index;
   final Connector inp;
-  final SimpleSetProperty<Link> links = new SimpleSetProperty<>(this, "links");
-  final ObservableValue<Link> link;
   final ObservableBounds spotBounds;
+
+  private Link link;
 
   public DiagramBlockInput(DiagramBlock block, LibInput input, String spot, int index) {
     this.block = block;
@@ -52,17 +48,10 @@ public final class DiagramBlockInput extends Button {
     this.spot = spot;
     this.index = index;
     this.inp = new Connector(block.block.id, spot);
-    this.links.set(filteredSet(block.links, l -> l.in.blockId == block.block.id && spot.equals(l.in.spot)));
-    this.link = links.map(s -> s.stream().filter(l -> l.index == index).findFirst().orElse(null));
-    this.link.addListener(this::onLink);
     this.spotBounds = new ObservableBounds(block.diagram.blocks, this);
     this.spotBounds.addListener((o, ov, nv) -> {
-      var l = link.getValue();
-      if (l != null) {
-        l.inBounds.set(nv);
-      }
+      if (link != null) link.inBounds.set(nv);
     });
-    onLink(null, null, link.getValue());
     if (index < 0) {
       setGraphic(Icons.icon(classLoader(), input.icon(), 20));
     } else {
@@ -74,12 +63,14 @@ public final class DiagramBlockInput extends Button {
     setOnAction(this::onButton);
   }
 
-  private void onLink(Observable observable, Link ol, Link nl) {
-    if (nl != null) {
-      nl.input.set(this);
-      nl.inBounds.set(spotBounds.getValue());
-    } else if (ol != null) {
-      ol.input.set(null);
+  void onLink(Link link, boolean added) {
+    if (added) {
+      this.link = link;
+      link.input.set(this);
+      link.inBounds.set(spotBounds.getValue());
+    } else {
+      this.link = null;
+      link.input.set(null);
     }
   }
 
