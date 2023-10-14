@@ -27,6 +27,7 @@ import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Line;
+import org.tybaco.ui.model.Link;
 
 import static javafx.beans.binding.Bindings.createDoubleBinding;
 import static javafx.scene.layout.BorderStrokeStyle.SOLID;
@@ -59,6 +60,12 @@ public final class DiagramBlockInputCompanion extends Group {
         line.endXProperty().bind(createDoubleBinding(() -> bb.get().getMinX(), bb));
         line.endYProperty().bind(line.startYProperty());
         input.block.diagram.companions.getChildren().add(this);
+        var cbb = boundsBinding(input.block.diagram.companions, this);
+        cbb.addListener((obs, ob, nb) -> {
+          if (input.link.getValue() instanceof Link l) {
+            l.inBounds.set(nb);
+          }
+        });
       } else {
         input.block.diagram.companions.getChildren().remove(this);
       }

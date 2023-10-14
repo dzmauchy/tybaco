@@ -32,7 +32,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.*;
 import org.tybaco.ui.model.Link;
 
-import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.stream.Stream;
 
@@ -63,24 +62,23 @@ public class DiagramLine extends Group {
     var cwl = new WeakInvalidationListener(connectorsInvalidationListener);
     link.input.addListener(cwl);
     link.output.addListener(cwl);
+    link.inBounds.addListener(cwl);
+    link.outBounds.addListener(cwl);
     cwl.invalidated(null);
   }
 
   private void onUpdateConnectors(Observable o) {
     var input = link.input.get();
     var output = link.output.get();
-    if (input == null || output == null) {
+    var inBounds = link.inBounds.get();
+    var outBounds = link.outBounds.get();
+    if (input == null || output == null || inBounds == null || outBounds == null) {
       setVisible(false);
       return;
     }
     var wl = new WeakInvalidationListener(boundsInvalidationListener);
-    var base = input.block.diagram.blocks;
-    var map = new IdentityHashMap<Observable, WeakInvalidationListener>();
-    map.put(input.boundsInLocalProperty(), wl);
-    for (Node c = input; c != base; c = c.getParent()) map.put(c.localToParentTransformProperty(), wl);
-    map.put(output.boundsInLocalProperty(), wl);
-    for (Node c = output; c != base; c = c.getParent()) map.put(c.localToParentTransformProperty(), wl);
-    map.forEach(Observable::addListener);
+    link.inBounds.addListener(wl);
+    link.outBounds.addListener(wl);
     setVisible(true);
     onUpdate(null);
   }
@@ -88,17 +86,17 @@ public class DiagramLine extends Group {
   private void onUpdate(Observable o) {
     var input = link.input.get();
     var output = link.output.get();
-    if (input == null || output == null || getScene() == null) {
+    var inBounds = link.inBounds.get();
+    var outBounds = link.outBounds.get();
+    if (input == null || output == null || inBounds == null || outBounds == null) {
       path.getElements().clear();
       return;
     }
     if (DEBUG) input.block.diagram.debugNodes.getChildren().removeIf(c -> c instanceof Rectangle);
-    onUpdate(input, output);
+    onUpdate(input, output, outBounds, inBounds);
   }
 
-  private void onUpdate(DiagramBlockInput input, DiagramBlockOutput output) {
-    var outBounds = output.spotBounds();
-    var inBounds = input.spotBounds();
+  private void onUpdate(DiagramBlockInput input, DiagramBlockOutput output, Bounds outBounds, Bounds inBounds) {
     if (trySimpleLine(input, output, inBounds, outBounds)) return;
     if (tryLineOI(input, output, inBounds, outBounds)) return;
     path.getElements().clear();

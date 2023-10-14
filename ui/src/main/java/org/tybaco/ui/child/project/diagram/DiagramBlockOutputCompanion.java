@@ -21,7 +21,6 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.beans.Observable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -30,7 +29,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Line;
 
-import static javafx.beans.binding.Bindings.createBooleanBinding;
 import static javafx.beans.binding.Bindings.createDoubleBinding;
 import static javafx.scene.layout.BorderStrokeStyle.SOLID;
 import static javafx.scene.paint.Color.WHITE;
@@ -64,6 +62,8 @@ public final class DiagramBlockOutputCompanion extends Group {
         line.endXProperty().bind(createDoubleBinding(() -> bb.get().getMaxX() + 10d, bb));
         line.endYProperty().bind(line.startYProperty());
         output.block.diagram.companions.getChildren().add(this);
+        var cbb = boundsBinding(output.block.diagram.companions, this);
+        cbb.addListener((obs, ob, nb) -> output.links.forEach(l -> l.outBounds.set(nb)));
       } else {
         output.block.diagram.companions.getChildren().remove(this);
       }

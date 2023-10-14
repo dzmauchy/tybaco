@@ -24,6 +24,8 @@ package org.tybaco.ui.model;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.BoundingBox;
+import javafx.geometry.Bounds;
 import org.tybaco.ui.child.project.diagram.DiagramBlockInput;
 import org.tybaco.ui.child.project.diagram.DiagramBlockOutput;
 import org.w3c.dom.Element;
@@ -40,6 +42,8 @@ public final class Link {
   public final int index;
   public final SimpleObjectProperty<DiagramBlockOutput> output = new SimpleObjectProperty<>(this, "output");
   public final SimpleObjectProperty<DiagramBlockInput> input = new SimpleObjectProperty<>(this, "input");
+  public final SimpleObjectProperty<Bounds> outBounds = new SimpleObjectProperty<>(this, "outBounds");
+  public final SimpleObjectProperty<Bounds> inBounds = new SimpleObjectProperty<>(this, "inBounds");
 
   public Link(Connector out, Connector in, int index) {
     this.out = out;

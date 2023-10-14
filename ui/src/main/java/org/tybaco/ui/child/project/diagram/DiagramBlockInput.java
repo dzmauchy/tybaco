@@ -24,7 +24,6 @@ package org.tybaco.ui.child.project.diagram;
 import javafx.beans.property.SimpleSetProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
-import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibInput;
@@ -33,7 +32,6 @@ import org.tybaco.ui.model.Link;
 
 import static java.util.Collections.binarySearch;
 import static org.tybaco.editors.base.ObservableSets.filteredSet;
-import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
 public final class DiagramBlockInput extends Button {
 
@@ -115,10 +113,6 @@ public final class DiagramBlockInput extends Button {
     } else {
       return 0;
     }
-  }
-
-  Bounds spotBounds() {
-    return boundsIn(block.diagram.companions, companion);
   }
 
   @Override

@@ -23,7 +23,6 @@ package org.tybaco.ui.child.project.diagram;
 
 import javafx.beans.property.SimpleSetProperty;
 import javafx.collections.SetChangeListener;
-import javafx.geometry.Bounds;
 import javafx.scene.control.ToggleButton;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibOutput;
@@ -31,7 +30,6 @@ import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 
 import static org.tybaco.editors.base.ObservableSets.filteredSet;
-import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
 public final class DiagramBlockOutput extends ToggleButton {
 
@@ -46,6 +44,7 @@ public final class DiagramBlockOutput extends ToggleButton {
     this.block = block;
     this.output = output;
     this.spot = spot;
+    this.companion = new DiagramBlockOutputCompanion(this);
     this.links.set(filteredSet(block.links, l -> l.out.blockId == block.block.id && spot.equals(l.out.spot)));
     this.links.addListener((SetChangeListener<? super Link>) c -> {
       if (c.wasRemoved()) {
@@ -62,15 +61,10 @@ public final class DiagramBlockOutput extends ToggleButton {
     selectedProperty().addListener((o, ov, nv) -> {
       if (nv) block.diagram.currentOutput = this;
     });
-    companion = new DiagramBlockOutputCompanion(this);
   }
 
   private ClassLoader classLoader() {
     return block.diagram.classpath.getClassLoader();
-  }
-
-  Bounds spotBounds() {
-    return boundsIn(block.diagram.companions, companion);
   }
 
   @Override
