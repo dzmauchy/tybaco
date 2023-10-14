@@ -72,7 +72,15 @@ public class DiagramLine extends Group {
       return;
     }
     if (DEBUG) {
-      diagram.debugNodes.getChildren().clear();
+      diagram.debugNodes.getChildren().removeIf(n -> {
+        if (n.getUserData() instanceof Link l) {
+          return l.output.get() == null || l.input.get() == null || l == link;
+        } else {
+          return true;
+        }
+      });
+      debug(link.inBounds.get(), new Color(0.9, 0.1, 0.1, 0.2));
+      debug(link.outBounds.get(), new Color(0.1, 0.9, 0.1, 0.2));
     }
     onUpdate(link.inBounds.get(), link.outBounds.get());
   }
@@ -167,6 +175,7 @@ public class DiagramLine extends Group {
   private void debug(Bounds b, Color color) {
     var r = new Rectangle(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
     r.setFill(color);
+    r.setUserData(link);
     diagram.debugNodes.getChildren().add(r);
   }
 
