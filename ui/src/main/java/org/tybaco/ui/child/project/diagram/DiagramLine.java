@@ -26,7 +26,6 @@ import com.sun.javafx.geom.*;
 import javafx.beans.*;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.*;
@@ -45,12 +44,14 @@ public class DiagramLine extends Group {
   private static final boolean DEBUG = false;
 
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
-  private final InvalidationListener connectorsInvalidationListener = this::onUpdateConnectors;
+  final Diagram diagram;
   final Link link;
   final Path path = new Path();
 
-  public DiagramLine(Link link) {
+  public DiagramLine(Diagram diagram, Link link) {
+    this.diagram = diagram;
     this.link = link;
+    visibleProperty().bind(link.input.isNotNull().and(link.output.isNotNull()).and(link.inBounds.isNotNull()).and(link.outBounds.isNotNull()));
     getChildren().add(path);
     path.setStrokeWidth(2d);
     path.setStroke(Color.WHITE);
@@ -59,50 +60,28 @@ public class DiagramLine extends Group {
   }
 
   private void initialize() {
-    var cwl = new WeakInvalidationListener(connectorsInvalidationListener);
-    link.input.addListener(cwl);
-    link.output.addListener(cwl);
-    link.inBounds.addListener(cwl);
-    link.outBounds.addListener(cwl);
-    cwl.invalidated(null);
-  }
-
-  private void onUpdateConnectors(Observable o) {
-    var input = link.input.get();
-    var output = link.output.get();
-    var inBounds = link.inBounds.get();
-    var outBounds = link.outBounds.get();
-    if (input == null || output == null || inBounds == null || outBounds == null) {
-      setVisible(false);
-      return;
-    }
-    var wl = new WeakInvalidationListener(boundsInvalidationListener);
-    link.inBounds.addListener(wl);
-    link.outBounds.addListener(wl);
-    setVisible(true);
+    var wil = new WeakInvalidationListener(boundsInvalidationListener);
+    link.inBounds.addListener(wil);
+    link.outBounds.addListener(wil);
     onUpdate(null);
   }
 
   private void onUpdate(Observable o) {
-    var input = link.input.get();
-    var output = link.output.get();
-    var inBounds = link.inBounds.get();
-    var outBounds = link.outBounds.get();
-    if (input == null || output == null || inBounds == null || outBounds == null) {
+    if (!isVisible()) {
       path.getElements().clear();
       return;
     }
-    if (DEBUG) input.block.diagram.debugNodes.getChildren().removeIf(c -> c instanceof Rectangle);
-    onUpdate(input, output, outBounds, inBounds);
+    if (DEBUG) diagram.debugNodes.getChildren().removeIf(c -> c instanceof Rectangle);
+    onUpdate(link.inBounds.get(), link.outBounds.get());
   }
 
-  private void onUpdate(DiagramBlockInput input, DiagramBlockOutput output, Bounds outBounds, Bounds inBounds) {
-    if (trySimpleLine(input, output, inBounds, outBounds)) return;
-    if (tryLineOI(input, output, inBounds, outBounds)) return;
+  private void onUpdate(Bounds inBounds, Bounds outBounds) {
+    if (trySimpleLine(inBounds, outBounds)) return;
+    if (tryLineOI(inBounds, outBounds)) return;
     path.getElements().clear();
   }
 
-  private boolean trySimpleLine(DiagramBlockInput i, DiagramBlockOutput o, Bounds ib, Bounds ob) {
+  private boolean trySimpleLine(Bounds ib, Bounds ob) {
     var xs = (float) ob.getMaxX();
     var ys = (float) ob.getCenterY();
     var xe = (float) ib.getMinX();
@@ -111,13 +90,13 @@ public class DiagramLine extends Group {
       if (xe - xs >= 50f) {
         var dx = (xe - xs) / 5f;
         var shape = new CubicCurve2D(xs + SAFE_DIST, ys, xs + dx, ys, xe - dx, ye, xe - SAFE_DIST, ye);
-        return tryApply(i, o, shape);
+        return tryApply(shape);
       }
     }
     return false;
   }
 
-  private boolean tryLineOI(DiagramBlockInput i, DiagramBlockOutput o, Bounds ib, Bounds ob) {
+  private boolean tryLineOI(Bounds ib, Bounds ob) {
     var xs = (float) ob.getMaxX();
     var ys = (float) ob.getCenterY();
     var xe = (float) ib.getMinX();
@@ -132,7 +111,7 @@ public class DiagramLine extends Group {
         var minX = (float) (min(lb.getMinX(), ub.getMinX()) - lb.getWidth() * 13d);
         var ly = (float) (lb.getMinY() - gapY / 3f);
         var shape = new CubicCurve2D(xs + SAFE_DIST, ys, maxX, ry, minX, ly, xe - SAFE_DIST, ye);
-        return tryApply(i, o, divide(shape));
+        return tryApply(divide(shape));
       }
     }
     return false;
@@ -160,11 +139,11 @@ public class DiagramLine extends Group {
     path.getElements().setAll(elems);
   }
 
-  private boolean tryApply(DiagramBlockInput input, DiagramBlockOutput output, Shape... shapes) {
-    var needsApply = Stream.concat(blocks(input), connectors(input, output)).noneMatch(b -> {
+  private boolean tryApply(Shape... shapes) {
+    var needsApply = Stream.concat(blocks(), companions()).noneMatch(b -> {
       for (var s : shapes) {
         if (s.intersects((float) b.getMinX(), (float) b.getMinY(), (float) b.getWidth(), (float) b.getHeight())) {
-          if (DEBUG) debug(input, b);
+          if (DEBUG) debug(b);
           return true;
         }
       }
@@ -176,36 +155,22 @@ public class DiagramLine extends Group {
     return needsApply;
   }
 
-  private Stream<Bounds> blocks(DiagramBlockInput input) {
-    var blocksBase = input.block.diagram.blocks;
+  private Stream<Bounds> blocks() {
+    var blocksBase = diagram.blocks;
     var stream = blocksBase.getChildren().stream();
-    return (DEBUG ? stream : stream.parallel())
-      .filter(Node::isVisible)
-      .map(n -> boundsIn(blocksBase, n));
+    return (DEBUG ? stream : stream.parallel()).map(n -> boundsIn(blocksBase, n));
   }
 
-  private Stream<Bounds> connectors(DiagramBlockInput input, DiagramBlockOutput output) {
-    var connectorsBase = input.block.diagram.connectors;
-    var stream = connectorsBase.getChildren().stream();
-    return (DEBUG ? stream : stream.parallel())
-      .filter(n -> !(n instanceof DiagramLine))
-      .filter(Node::isVisible)
-      .filter(n -> checkCompanion(n, input, output))
-      .map(n -> boundsIn(connectorsBase, n));
+  private Stream<Bounds> companions() {
+    var companionBase = diagram.companions;
+    var stream = companionBase.getChildren().stream();
+    return (DEBUG ? stream : stream.parallel()).map(n -> boundsIn(companionBase, n));
   }
 
-  private boolean checkCompanion(Node node, DiagramBlockInput input, DiagramBlockOutput output) {
-    return switch (node) {
-      case DiagramBlockInputCompanion c -> c.input != input;
-      case DiagramBlockOutputCompanion c -> c.output != output;
-      default -> true;
-    };
-  }
-
-  private void debug(DiagramBlockInput input, Bounds b) {
+  private void debug(Bounds b) {
     var r = new Rectangle(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
     r.setFill(new Color(0.9, 0.3, 0.2, 0.2));
-    input.block.diagram.debugNodes.getChildren().add(r);
+    diagram.debugNodes.getChildren().add(r);
   }
 
   private CubicCurve2D[] divide(CubicCurve2D c) {

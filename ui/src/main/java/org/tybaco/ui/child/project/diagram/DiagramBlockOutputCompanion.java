@@ -51,8 +51,9 @@ public final class DiagramBlockOutputCompanion extends Group {
     line.setStroke(WHITE);
     line.setStrokeWidth(2d);
     getChildren().addAll(line, label);
-    output.sceneProperty().addListener((o, os, ns) -> {
-      if (ns != null) {
+    var initialized = output.sceneProperty().isNotNull().and(sceneProperty().isNotNull());
+    initialized.addListener((o, ov, nv) -> {
+      if (nv) {
         var bb = boundsBinding(output.block.diagram.blocks, output);
         label.layoutXProperty().bind(createDoubleBinding(() -> bb.get().getMaxX() + 10d, bb));
         label.layoutYProperty().bind(createDoubleBinding(() -> bb.get().getMinY(), bb));
@@ -61,7 +62,6 @@ public final class DiagramBlockOutputCompanion extends Group {
         line.startYProperty().bind(createDoubleBinding(() -> bb.get().getCenterY(), bb));
         line.endXProperty().bind(createDoubleBinding(() -> bb.get().getMaxX() + 10d, bb));
         line.endYProperty().bind(line.startYProperty());
-        output.block.diagram.companions.getChildren().add(this);
         var cbb = boundsBinding(output.block.diagram.companions, this);
         cbb.addListener((obs, ob, nb) -> output.links.forEach(l -> l.outBounds.set(nb)));
       } else {

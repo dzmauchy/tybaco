@@ -69,6 +69,7 @@ public final class DiagramBlockInput extends Button {
     setTooltip(DiagramTooltips.tooltip(classLoader(), input));
     setFocusTraversable(false);
     setOnAction(this::onButton);
+    block.diagram.companions.getChildren().add(companion);
   }
 
   private ClassLoader classLoader() {

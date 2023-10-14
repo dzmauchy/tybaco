@@ -49,8 +49,9 @@ public final class DiagramBlockInputCompanion extends Group {
     line.setStroke(WHITE);
     line.setStrokeWidth(2d);
     getChildren().addAll(line, label);
-    input.sceneProperty().addListener((o, os, ns) -> {
-      if (ns != null) {
+    var initialized = input.sceneProperty().isNotNull().and(sceneProperty().isNotNull());
+    initialized.addListener((o, ov, nv) -> {
+      if (nv) {
         var bb = boundsBinding(input.block.diagram.blocks, input);
         label.layoutXProperty().bind(createDoubleBinding(() -> bb.get().getMinX() - 10d - label.getWidth(), bb, label.widthProperty()));
         label.layoutYProperty().bind(createDoubleBinding(() -> bb.get().getMinY(), bb));
@@ -59,7 +60,6 @@ public final class DiagramBlockInputCompanion extends Group {
         line.startYProperty().bind(createDoubleBinding(() -> bb.get().getCenterY(), bb));
         line.endXProperty().bind(createDoubleBinding(() -> bb.get().getMinX(), bb));
         line.endYProperty().bind(line.startYProperty());
-        input.block.diagram.companions.getChildren().add(this);
         var cbb = boundsBinding(input.block.diagram.companions, this);
         cbb.addListener((obs, ob, nb) -> {
           if (input.link.getValue() instanceof Link l) {

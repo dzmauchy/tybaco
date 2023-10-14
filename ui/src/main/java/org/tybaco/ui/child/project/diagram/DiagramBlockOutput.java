@@ -61,6 +61,7 @@ public final class DiagramBlockOutput extends ToggleButton {
     selectedProperty().addListener((o, ov, nv) -> {
       if (nv) block.diagram.currentOutput = this;
     });
+    block.diagram.companions.getChildren().add(companion);
   }
 
   private ClassLoader classLoader() {
