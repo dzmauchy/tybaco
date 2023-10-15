@@ -21,13 +21,20 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.beans.InvalidationListener;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
-import javafx.scene.control.Button;
+import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import org.tybaco.editors.base.ObservableBounds;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibInput;
 import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
+
+import static javafx.geometry.Orientation.VERTICAL;
 
 public final class DiagramBlockInput extends Button {
 
@@ -35,39 +42,51 @@ public final class DiagramBlockInput extends Button {
   final LibInput input;
   final String spot;
   final int index;
-  final Connector inp;
   final ObservableBounds spotBounds;
 
-  private Link link;
+  private final SimpleObjectProperty<Link> link = new SimpleObjectProperty<>(this, "link");
 
   public DiagramBlockInput(DiagramBlock block, LibInput input, String spot, int index) {
     this.block = block;
     this.input = input;
     this.spot = spot;
     this.index = index;
-    this.inp = new Connector(block.block.id, spot);
     this.spotBounds = new ObservableBounds(block.diagram.blocks, this);
     this.spotBounds.addListener((o, ov, nv) -> {
-      if (link != null) link.inBounds.set(nv);
+      var l = link.get();
+      if (l != null) l.inBounds.set(nv);
     });
-    if (index < 0) {
-      setGraphic(Icons.icon(classLoader(), input.icon(), 20));
-    } else {
-      setText(Integer.toString(index));
-    }
+    var lil = (InvalidationListener) o -> {
+      var l = link.get();
+      if (l == null) {
+        setText(null);
+        setGraphic(index < 0 ? Icons.icon(classLoader(), input.icon(), 20) : new Label(Integer.toString(index)));
+      } else {
+        setText(Integer.toString(l.out.blockId));
+        var box = new HBox(2);
+        box.setFillHeight(true);
+        box.getChildren().add(index < 0 ? Icons.icon(classLoader(), input.icon(), 20) : new Label(Integer.toString(index)));
+        box.getChildren().add(new Separator(VERTICAL));
+        setGraphic(box);
+      }
+    };
+    link.addListener(lil);
+    lil.invalidated(null);
     setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     setTooltip(DiagramTooltips.tooltip(classLoader(), input));
+    setContentDisplay(ContentDisplay.LEFT);
+    setAlignment(Pos.BASELINE_LEFT);
     setFocusTraversable(false);
     setOnAction(this::onButton);
   }
 
   void onLink(Link link, boolean added) {
     if (added) {
-      this.link = link;
+      this.link.set(link);
       link.input.set(this);
       link.inBounds.set(spotBounds.getValue());
     } else {
-      this.link = null;
+      this.link.set(null);
       link.input.set(null);
     }
   }
@@ -82,6 +101,7 @@ public final class DiagramBlockInput extends Button {
 
     } else {
       co.setSelected(false);
+      var inp = new Connector(block.block.id, spot);
       var out = new Connector(co.block.block.id, co.spot);
       if (input.vector() && index < 0) {
         var m = block.inputMap.get(spot);
