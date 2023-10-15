@@ -29,9 +29,9 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.*;
 import org.tybaco.ui.model.Link;
 import org.tybaco.ui.util.CurveDivider;
+import org.tybaco.ui.util.GeneticLine;
 
 import java.awt.Shape;
-
 import java.awt.geom.*;
 import java.util.LinkedList;
 import java.util.stream.Stream;
@@ -39,10 +39,10 @@ import java.util.stream.Stream;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
+import static org.tybaco.ui.util.GeneticLine.SAFE_DIST;
 
 public class DiagramLine extends Group {
 
-  private static final float SAFE_DIST = 3f;
   private static final boolean DEBUG = false;
 
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
@@ -90,7 +90,9 @@ public class DiagramLine extends Group {
       return;
     if (tryLineOI(inBounds, outBounds))
       return;
-    path.getElements().clear();
+    if (tryOuter(inBounds, outBounds))
+      return;
+    useGeneticLine(inBounds, outBounds);
   }
 
   private boolean trySimpleLine(Bounds ib, Bounds ob) {
@@ -102,7 +104,7 @@ public class DiagramLine extends Group {
       if (xe - xs >= 50f) {
         var dx = (xe - xs) / 5f;
         var shape = new CubicCurve2D.Double(xs + SAFE_DIST, ys, xs + dx, ys, xe - dx, ye, xe - SAFE_DIST, ye);
-        return tryApply(CurveDivider.divide(shape, 3));
+        return tryApply(CurveDivider.divide(3, shape));
       }
     }
     return false;
@@ -123,10 +125,47 @@ public class DiagramLine extends Group {
         var minX = (float) (min(lb.getMinX(), ub.getMinX()) - lb.getWidth() * 13d);
         var ly = (float) (lb.getMinY() - gapY / 3f);
         var shape = new CubicCurve2D.Double(xs + SAFE_DIST, ys, maxX, ry, minX, ly, xe - SAFE_DIST, ye);
-        return tryApply(CurveDivider.divide(shape, 3));
+        return tryApply(CurveDivider.divide(3, shape));
       }
     }
     return false;
+  }
+
+  private boolean tryOuter(Bounds ib, Bounds ob) {
+    var xs = (float) ob.getMaxX();
+    var ys = (float) ob.getCenterY();
+    var xe = (float) ib.getMinX();
+    var ye = (float) ib.getCenterY();
+    {
+      var cx1 = xs + ob.getWidth();
+      var cy1 = Math.max(ib.getMaxY(), ob.getMaxY()) + ob.getHeight() + ib.getHeight();
+      var cx2 = xe - ib.getWidth();
+      var cy2 = cy1 - ob.getHeight();
+      var shape = new CubicCurve2D.Double(xs + SAFE_DIST, ys, cx1, cy1, cx2, cy2, xe - SAFE_DIST, ye);
+      if (tryApply(CurveDivider.divide(3, shape))) {
+        return true;
+      }
+    }
+    {
+      var cx1 = xs + ob.getWidth();
+      var cy1 = Math.min(ib.getMinY(), ob.getMinY()) - ob.getHeight() - ib.getHeight();
+      var cx2 = xe - ib.getWidth();
+      var cy2 = cy1 + ob.getHeight();
+      var shape = new CubicCurve2D.Double(xs + SAFE_DIST, ys, cx1, cy1, cx2, cy2, xe - SAFE_DIST, ye);
+      return tryApply(CurveDivider.divide(3, shape));
+    }
+  }
+
+  private void useGeneticLine(Bounds ib, Bounds ob) {
+    var line = new GeneticLine(this::blocks, ob, ib);
+    var curves = line.produce();
+    var elems = new LinkedList<PathElement>();
+    var first = curves.removeFirst();
+    elems.addLast(new MoveTo(first.x1, first.y1));
+    elems.addLast(new CubicCurveTo(first.ctrlx1, first.ctrly1, first.ctrlx2, first.ctrly2, first.x2, first.y2));
+    var second = curves.removeFirst();
+    elems.addLast(new CubicCurveTo(second.ctrlx1, second.ctrly1, second.ctrlx2, second.ctrly2, second.x2, second.y2));
+    path.getElements().setAll(elems);
   }
 
   private void apply(Iterable<? extends Shape> shapes) {
@@ -168,8 +207,7 @@ public class DiagramLine extends Group {
 
   private Stream<Bounds> blocks() {
     var blocksBase = diagram.blocks;
-    var stream = blocksBase.getChildren().stream();
-    return (DEBUG ? stream : stream.parallel()).map(n -> boundsIn(blocksBase, n));
+    return blocksBase.getChildren().stream().map(n -> boundsIn(blocksBase, n));
   }
 
   private void debug(Bounds b, Color color) {

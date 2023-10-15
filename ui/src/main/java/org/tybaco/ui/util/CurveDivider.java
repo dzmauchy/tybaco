@@ -22,15 +22,19 @@ package org.tybaco.ui.util;
  */
 
 import java.awt.geom.CubicCurve2D;
-import java.util.LinkedList;
+import java.util.*;
 
 public interface CurveDivider {
 
-  static Iterable<CubicCurve2D.Double> divide(CubicCurve2D.Double curve, int steps) {
-    var list = new LinkedList<CubicCurve2D.Double>();
-    list.add(curve);
+  static Iterable<CubicCurve2D.Double> divide(int steps, CubicCurve2D.Double... curves) {
+    var list = new LinkedList<>(Arrays.asList(curves));
+    divide(steps, list);
+    return list;
+  }
+
+  static void divide(int steps, List<CubicCurve2D.Double> curves) {
     for (int i = 0; i < steps; i++) {
-      for (var it = list.listIterator(0); it.hasNext(); ) {
+      for (var it = curves.listIterator(0); it.hasNext(); ) {
         var c = it.next();
         var c1 = new CubicCurve2D.Double();
         var c2 = new CubicCurve2D.Double();
@@ -39,6 +43,5 @@ public interface CurveDivider {
         it.add(c1);
       }
     }
-    return list;
   }
 }
