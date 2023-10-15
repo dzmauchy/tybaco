@@ -21,6 +21,7 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.application.Platform;
 import javafx.collections.SetChangeListener;
 import javafx.collections.WeakSetChangeListener;
 import org.tybaco.editors.icon.Icons;

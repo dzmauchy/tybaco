@@ -49,8 +49,8 @@ public class Diagram extends AbstractDiagram {
 
   private void initialize() {
     blockCache.addListener(o -> {
-      resetLinks.run();
       resetBlocks.run();
+      resetLinks.run();
     });
   }
 }

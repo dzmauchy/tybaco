@@ -114,7 +114,7 @@ public final class DiagramBlockInput extends Button {
       if (c != 0) return c;
       return Integer.compare(i1.index, l2.index);
     } else {
-      return 0;
+      throw new IllegalStateException();
     }
   }
 
