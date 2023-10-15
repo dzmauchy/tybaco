@@ -25,6 +25,7 @@ import javafx.collections.*;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.child.project.classpath.BlockCache;
 import org.tybaco.ui.child.project.classpath.ProjectClasspath;
+import org.tybaco.ui.child.project.diagram.line.DiagramLine;
 import org.tybaco.ui.model.*;
 
 @Component

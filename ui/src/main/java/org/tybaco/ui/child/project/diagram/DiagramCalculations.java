@@ -24,7 +24,7 @@ package org.tybaco.ui.child.project.diagram;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 
-interface DiagramCalculations {
+public interface DiagramCalculations {
 
   static Bounds boundsIn(Node base, Node current) {
     var b = current.getBoundsInLocal();

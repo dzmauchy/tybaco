@@ -1,4 +1,4 @@
-package org.tybaco.ui.child.project.diagram;
+package org.tybaco.ui.child.project.diagram.line;
 
 /*-
  * #%L
@@ -26,6 +26,8 @@ import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
+import org.tybaco.ui.child.project.diagram.Diagram;
+import org.tybaco.ui.child.project.diagram.DiagramCalculations;
 import org.tybaco.ui.model.Link;
 import org.tybaco.ui.util.ArrayBasedCurveDivider;
 
@@ -34,7 +36,6 @@ import java.util.stream.Stream;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
 public class DiagramLine extends Group {
 
@@ -45,8 +46,8 @@ public class DiagramLine extends Group {
   private static final ArrayBasedCurveDivider D5 = new ArrayBasedCurveDivider(5);
 
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
-  final Diagram diagram;
-  final Link link;
+  public final Diagram diagram;
+  public final Link link;
   final CubicCurve path = new CubicCurve();
 
   public DiagramLine(Diagram diagram, Link link) {
@@ -171,7 +172,7 @@ public class DiagramLine extends Group {
 
   private Stream<Bounds> blocks() {
     var blocksBase = diagram.blocks;
-    return blocksBase.getChildren().stream().map(n -> boundsIn(blocksBase, n));
+    return blocksBase.getChildren().stream().map(n -> DiagramCalculations.boundsIn(blocksBase, n));
   }
 
   private void debug(Bounds b, Color color) {
