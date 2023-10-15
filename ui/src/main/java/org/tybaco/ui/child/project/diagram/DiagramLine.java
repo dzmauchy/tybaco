@@ -39,8 +39,8 @@ import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 public class DiagramLine extends Group {
 
   private static final double SAFE_DIST = 3d;
+  private static final double STEP = 30d;
   private static final boolean DEBUG = false;
-  private static final ArrayBasedCurveDivider D2 = new ArrayBasedCurveDivider(2);
   private static final ArrayBasedCurveDivider D4 = new ArrayBasedCurveDivider(4);
   private static final ArrayBasedCurveDivider D5 = new ArrayBasedCurveDivider(5);
 
@@ -87,26 +87,30 @@ public class DiagramLine extends Group {
   private void onUpdate(Bounds inBounds, Bounds outBounds) {
     if (trySimpleLine(inBounds, outBounds))
       return;
+    /**
     if (tryLineOI(inBounds, outBounds))
       return;
     if (tryOuter(inBounds, outBounds))
       return;
+     **/
     path.setVisible(false);
   }
 
   private boolean trySimpleLine(Bounds ib, Bounds ob) {
-    var xs = (float) ob.getMaxX();
-    var ys = (float) ob.getCenterY();
-    var xe = (float) ib.getMinX();
-    var ye = (float) ib.getCenterY();
-    if (xs < xe) {
-      if (xe - xs >= 50f) {
-        var dx = (xe - xs) / 5f;
-        var applier = D2.divide(xs + SAFE_DIST, ys, xs + dx, ys, xe - dx, ye, xe - SAFE_DIST, ye);
-        return tryApply(D2, applier);
-      }
+    if (ib.getMinX() > ob.getMaxX() + 40d) {
+      var dx = (ib.getMinX() - ob.getMaxX()) / 10d;
+      return trySimpleLine(ob.getMaxX(), ob.getCenterY(), ib.getMinX(), ib.getCenterY(), ob.getMaxX() + dx, ib.getMinX() - dx);
     }
     return false;
+  }
+
+  private boolean trySimpleLine(double xs, double ys, double xe, double ye, double cx1, double cx2) {
+    if (cx2 - cx1 <= STEP)
+      return false;
+    var applier = D4.divide(xs + SAFE_DIST, ys, cx1, ys, cx2, ye, xe - SAFE_DIST, ye);
+    if (tryApply(D4, applier))
+      return true;
+    return trySimpleLine(xs, ys, xe, ye, cx1 + STEP, cx2) || trySimpleLine(xs, ys, xe, ye, cx1, cx2 - STEP);
   }
 
   private boolean tryLineOI(Bounds ib, Bounds ob) {
