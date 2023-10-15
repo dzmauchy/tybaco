@@ -26,16 +26,13 @@ import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
-import org.tybaco.ui.child.project.diagram.Diagram;
-import org.tybaco.ui.child.project.diagram.DiagramCalculations;
+import org.tybaco.ui.child.project.diagram.*;
 import org.tybaco.ui.model.Link;
 import org.tybaco.ui.util.ArrayBasedCurveDivider;
 
 import java.util.stream.Stream;
 
 public class DiagramLine extends Group {
-
-  static final boolean DEBUG = false;
 
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
   public final Diagram diagram;
@@ -66,22 +63,19 @@ public class DiagramLine extends Group {
     if (!isVisible()) {
       return;
     }
-    if (DEBUG) {
-      diagram.debugNodes.getChildren().removeIf(n -> {
-        if (n.getUserData() instanceof Link l) {
-          return l.output.get() == null || l.input.get() == null || l == link;
-        } else {
-          return true;
-        }
-      });
+    var ib = link.inBounds.get();
+    var ob = link.outBounds.get();
+    var inp = link.input.get();
+    var out = link.output.get();
+    if (ib != null && ob != null && inp != null && out != null) {
+      onUpdate(ib, ob, inp, out);
     }
-    onUpdate(link.inBounds.get(), link.outBounds.get());
   }
 
-  private void onUpdate(Bounds inBounds, Bounds outBounds) {
+  private void onUpdate(Bounds inBounds, Bounds outBounds, DiagramBlockInput input, DiagramBlockOutput output) {
     for (var type : LineType.LINE_TYPES) {
       var line = LineType.createLine(type, this);
-      if (line.tryApply(inBounds, outBounds)) {
+      if (line.tryApply(inBounds, outBounds, input, output)) {
         return;
       }
     }
@@ -102,12 +96,5 @@ public class DiagramLine extends Group {
   private Stream<Bounds> blocks() {
     var blocksBase = diagram.blocks;
     return blocksBase.getChildren().stream().map(n -> DiagramCalculations.boundsIn(blocksBase, n));
-  }
-
-  private void debug(Bounds b, Color color) {
-    var r = new Rectangle(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
-    r.setFill(color);
-    r.setUserData(link);
-    diagram.debugNodes.getChildren().add(r);
   }
 }

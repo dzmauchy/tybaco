@@ -37,7 +37,7 @@ import static javafx.geometry.Orientation.VERTICAL;
 
 public final class DiagramBlockInput extends Button {
 
-  final DiagramBlock block;
+  public final DiagramBlock block;
   final LibInput input;
   final String spot;
   final int index;

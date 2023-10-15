@@ -22,6 +22,8 @@ package org.tybaco.ui.child.project.diagram.line;
  */
 
 import javafx.geometry.Bounds;
+import org.tybaco.ui.child.project.diagram.DiagramBlockInput;
+import org.tybaco.ui.child.project.diagram.DiagramBlockOutput;
 import org.tybaco.ui.util.ArrayBasedCurveDivider;
 
 public sealed interface Line permits SimpleLine {
@@ -31,5 +33,5 @@ public sealed interface Line permits SimpleLine {
   ArrayBasedCurveDivider D4 = new ArrayBasedCurveDivider(4);
   ArrayBasedCurveDivider D5 = new ArrayBasedCurveDivider(5);
 
-  boolean tryApply(Bounds ib, Bounds ob);
+  boolean tryApply(Bounds ib, Bounds ob, DiagramBlockInput input, DiagramBlockOutput output);
 }

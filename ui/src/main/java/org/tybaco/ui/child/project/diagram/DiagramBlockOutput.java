@@ -32,7 +32,7 @@ import java.util.HashMap;
 
 public final class DiagramBlockOutput extends ToggleButton {
 
-  final DiagramBlock block;
+  public final DiagramBlock block;
   final LibOutput output;
   final String spot;
   final HashMap<Link, Boolean> links = new HashMap<>();
