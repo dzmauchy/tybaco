@@ -21,10 +21,7 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.beans.InvalidationListener;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -33,6 +30,8 @@ import org.tybaco.editors.icon.Icons;
 import org.tybaco.editors.model.LibInput;
 import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
+
+import java.util.Optional;
 
 import static javafx.geometry.Orientation.VERTICAL;
 
@@ -44,7 +43,7 @@ public final class DiagramBlockInput extends Button {
   final int index;
   final ObservableBounds spotBounds;
 
-  private final SimpleObjectProperty<Link> link = new SimpleObjectProperty<>(this, "link");
+  private Link link;
 
   public DiagramBlockInput(DiagramBlock block, LibInput input, String spot, int index) {
     this.block = block;
@@ -52,26 +51,8 @@ public final class DiagramBlockInput extends Button {
     this.spot = spot;
     this.index = index;
     this.spotBounds = new ObservableBounds(block.diagram.blocks, this);
-    this.spotBounds.addListener((o, ov, nv) -> {
-      var l = link.get();
-      if (l != null) l.inBounds.set(nv);
-    });
-    var lil = (InvalidationListener) o -> {
-      var l = link.get();
-      if (l == null) {
-        setText(null);
-        setGraphic(index < 0 ? Icons.icon(classLoader(), input.icon(), 20) : new Label(Integer.toString(index)));
-      } else {
-        setText(Integer.toString(l.out.blockId));
-        var box = new HBox(2);
-        box.setFillHeight(true);
-        box.getChildren().add(index < 0 ? Icons.icon(classLoader(), input.icon(), 20) : new Label(Integer.toString(index)));
-        box.getChildren().add(new Separator(VERTICAL));
-        setGraphic(box);
-      }
-    };
-    link.addListener(lil);
-    lil.invalidated(null);
+    this.spotBounds.addListener((o, ov, nv) -> Optional.ofNullable(link).ifPresent(l -> l.inBounds.set(nv)));
+    update();
     setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     setTooltip(DiagramTooltips.tooltip(classLoader(), input));
     setContentDisplay(ContentDisplay.LEFT);
@@ -80,14 +61,34 @@ public final class DiagramBlockInput extends Button {
     setOnAction(this::onButton);
   }
 
+  private void update() {
+    var l = link;
+    if (l == null) {
+      setText(null);
+      setGraphic(index < 0 ? Icons.icon(classLoader(), input.icon(), 20) : new Label(Integer.toString(index)));
+    } else {
+      setText(Integer.toString(l.out.blockId));
+      var box = new HBox(2);
+      box.setFillHeight(true);
+      box.getChildren().add(index < 0 ? Icons.icon(classLoader(), input.icon(), 20) : new Label(Integer.toString(index)));
+      if (l.output.get() instanceof DiagramBlockOutput dbo && !dbo.spot.equals("self")) {
+        box.getChildren().add(Icons.icon(classLoader(), dbo.output.icon(), 20));
+      }
+      box.getChildren().add(new Separator(VERTICAL));
+      setGraphic(box);
+    }
+  }
+
   void onLink(Link link, boolean added) {
     if (added) {
-      this.link.set(link);
+      this.link = link;
       link.input.set(this);
       link.inBounds.set(spotBounds.getValue());
+      update();
     } else {
-      this.link.set(null);
+      this.link = null;
       link.input.set(null);
+      update();
     }
   }
 
