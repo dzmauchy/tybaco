@@ -21,8 +21,6 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import com.sun.javafx.geom.Shape;
-import com.sun.javafx.geom.*;
 import javafx.beans.*;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
@@ -30,7 +28,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.*;
 import org.tybaco.ui.model.Link;
+import java.awt.Shape;
 
+import java.awt.geom.*;
 import java.util.LinkedList;
 import java.util.stream.Stream;
 
@@ -79,8 +79,6 @@ public class DiagramLine extends Group {
           return true;
         }
       });
-      debug(link.inBounds.get(), new Color(0.9, 0.1, 0.1, 0.2));
-      debug(link.outBounds.get(), new Color(0.1, 0.9, 0.1, 0.2));
     }
     onUpdate(link.inBounds.get(), link.outBounds.get());
   }
@@ -101,7 +99,7 @@ public class DiagramLine extends Group {
     if (xs < xe) {
       if (xe - xs >= 50f) {
         var dx = (xe - xs) / 5f;
-        var shape = new CubicCurve2D(xs + SAFE_DIST, ys, xs + dx, ys, xe - dx, ye, xe - SAFE_DIST, ye);
+        var shape = new CubicCurve2D.Double(xs + SAFE_DIST, ys, xs + dx, ys, xe - dx, ye, xe - SAFE_DIST, ye);
         return tryApply(shape);
       }
     }
@@ -122,8 +120,8 @@ public class DiagramLine extends Group {
         var ry = (float) (ub.getMinY() + gapY / 3f);
         var minX = (float) (min(lb.getMinX(), ub.getMinX()) - lb.getWidth() * 13d);
         var ly = (float) (lb.getMinY() - gapY / 3f);
-        var shape = new CubicCurve2D(xs + SAFE_DIST, ys, maxX, ry, minX, ly, xe - SAFE_DIST, ye);
-        return tryApply(divide(shape));
+        var shape = new CubicCurve2D.Double(xs + SAFE_DIST, ys, maxX, ry, minX, ly, xe - SAFE_DIST, ye);
+        return tryApply(shape);
       }
     }
     return false;
@@ -133,15 +131,15 @@ public class DiagramLine extends Group {
     var elems = new LinkedList<PathElement>();
     for (var shape : shapes) {
       switch (shape) {
-        case Line2D l -> {
+        case Line2D.Double l -> {
           elems.add(new MoveTo(l.x1, l.y1));
           elems.add(new LineTo(l.x2, l.y2));
         }
-        case CubicCurve2D c -> {
+        case CubicCurve2D.Double c -> {
           elems.add(new MoveTo(c.x1, c.y1));
           elems.add(new CubicCurveTo(c.ctrlx1, c.ctrly1, c.ctrlx2, c.ctrly2, c.x2, c.y2));
         }
-        case QuadCurve2D c -> {
+        case QuadCurve2D.Double c -> {
           elems.add(new MoveTo(c.x1, c.y1));
           elems.add(new QuadCurveTo(c.ctrlx, c.ctrly, c.x2, c.y2));
         }
@@ -154,7 +152,7 @@ public class DiagramLine extends Group {
   private boolean tryApply(Shape... shapes) {
     var needsApply = blocks().noneMatch(b -> {
       for (var s : shapes) {
-        if (s.intersects((float) b.getMinX(), (float) b.getMinY(), (float) b.getWidth(), (float) b.getHeight())) {
+        if (s.intersects(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight())) {
           return true;
         }
       }
@@ -177,13 +175,5 @@ public class DiagramLine extends Group {
     r.setFill(color);
     r.setUserData(link);
     diagram.debugNodes.getChildren().add(r);
-  }
-
-  private CubicCurve2D[] divide(CubicCurve2D c) {
-    var cs = new CubicCurve2D[] {new CubicCurve2D(), new CubicCurve2D(), new CubicCurve2D(), new CubicCurve2D()};
-    c.subdivide(cs[0], cs[2]);
-    cs[0].subdivide(cs[0], cs[1]);
-    cs[2].subdivide(cs[2], cs[3]);
-    return cs;
   }
 }
