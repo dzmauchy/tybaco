@@ -29,8 +29,6 @@ import org.tybaco.editors.model.LibInput;
 import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 
-import static java.util.Collections.binarySearch;
-
 public final class DiagramBlockInput extends Button {
 
   final DiagramBlock block;
@@ -86,35 +84,18 @@ public final class DiagramBlockInput extends Button {
       co.setSelected(false);
       var out = new Connector(co.block.block.id, co.spot);
       if (input.vector() && index < 0) {
-        var nextIndex = block.inputs.getChildren().stream()
-          .map(n -> (DiagramBlockInput) n)
-          .filter(i -> spot.equals(i.spot))
-          .mapToInt(i -> i.index)
-          .max()
-          .orElseThrow() + 1;
+        var m = block.inputMap.get(spot);
+        var nextIndex = m.lastKey();
+        var entry = m.floorEntry(nextIndex);
+        var insertionIndex = block.inputs.getChildren().indexOf(entry.getValue()) + 1;
         var b = new DiagramBlockInput(block, input, spot, nextIndex);
-        var i = binarySearch(block.inputs.getChildren(), b, DiagramBlockInput::cmp);
-        block.inputs.getChildren().add(-(i + 1), b);
+        block.inputs.getChildren().add(insertionIndex, b);
         block.diagram.project.links.add(new Link(out, inp, nextIndex));
       } else {
-        block.diagram.project.links.removeIf(l -> l.in.equals(inp));
+        block.diagram.project.links.removeIf(l -> l.in.equals(inp) && l.index == index);
         block.diagram.project.links.add(new Link(out, inp, index));
       }
       block.diagram.currentOutput = null;
-    }
-  }
-
-  static int cmp(Object o1, Object o2) {
-    if (o1 instanceof DiagramBlockInput i1 && o2 instanceof DiagramBlockInput i2) {
-      var c = i1.spot.compareTo(i2.spot);
-      if (c != 0) return c;
-      return Integer.compare(i1.index, i2.index);
-    } else if (o1 instanceof DiagramBlockInput i1 && o2 instanceof Link l2) {
-      var c = i1.spot.compareTo(l2.in.spot);
-      if (c != 0) return c;
-      return Integer.compare(i1.index, l2.index);
-    } else {
-      throw new IllegalStateException();
     }
   }
 

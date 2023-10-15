@@ -21,49 +21,79 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.application.Platform;
-import javafx.collections.SetChangeListener;
-import javafx.collections.WeakSetChangeListener;
+import javafx.collections.ListChangeListener;
+import javafx.scene.Node;
 import org.tybaco.editors.icon.Icons;
 import org.tybaco.ui.model.Block;
 import org.tybaco.ui.model.Link;
 
-import static java.util.Collections.binarySearch;
+import java.util.TreeMap;
 
 public final class DiagramBlock extends AbstractDiagramBlock {
 
   final Diagram diagram;
-  final SetChangeListener<Link> linksListener = c -> onLink(c.wasAdded() ? c.getElementAdded() : c.getElementRemoved(), c.wasAdded());
+  final TreeMap<String, TreeMap<Integer, DiagramBlockInput>> inputMap = new TreeMap<>();
 
   public DiagramBlock(Diagram diagram, Block block) {
     super(block);
     this.diagram = diagram;
-    this.diagram.project.links.addListener(new WeakSetChangeListener<>(linksListener));
+    this.inputs.getChildren().addListener((ListChangeListener<? super Node>) c -> {
+      while (c.next()) {
+        if (c.wasRemoved()) {
+          c.getRemoved().forEach(n -> {
+            if (n instanceof DiagramBlockInput i) {
+              inputMap.compute(i.spot, (s, o) -> {
+                if (o != null) {
+                  o.remove(i.index);
+                  if (o.isEmpty()) return null;
+                }
+                return o;
+              });
+            }
+          });
+        }
+        if (c.wasAdded()) {
+          c.getAddedSubList().forEach(n -> {
+            if (n instanceof DiagramBlockInput i) {
+              inputMap.computeIfAbsent(i.spot, s -> new TreeMap<>()).put(i.index, i);
+            }
+          });
+        }
+      }
+    });
     this.diagram.blockCache.blockById(block.factoryId).ifPresent(b -> {
       factory.setGraphic(Icons.icon(diagram.classpath.getClassLoader(), b.icon(), 32));
       b.forEachInput((spot, i) -> inputs.getChildren().add(new DiagramBlockInput(this, i, spot, -1)));
       b.forEachOutput((spot, o) -> outputs.getChildren().add(new DiagramBlockOutput(this, o, spot)));
     });
-    this.diagram.project.links.forEach(l -> onLink(l, true));
   }
 
-  private void onLink(Link e, boolean added) {
-    if (e.in.blockId != block.id && e.out.blockId != block.id) return;
+  void onLink(Link e, boolean added) {
     if (e.index >= 0 && e.in.blockId == block.id) {
       if (added) {
-        var baseIndex = binarySearch(inputs.getChildren(), new Link(e.out, e.in, -1), DiagramBlockInput::cmp);
-        var index = binarySearch(inputs.getChildren(), e, DiagramBlockInput::cmp);
-        if (index < 0 && baseIndex >= 0 && inputs.getChildren().get(baseIndex) instanceof DiagramBlockInput i) {
-          inputs.getChildren().add(-(index + 1), new DiagramBlockInput(this, i.input, i.spot, e.index));
+        var m = inputMap.get(e.in.spot);
+        if (m != null && !m.containsKey(e.index)) {
+          var entry = m.floorEntry(e.index);
+          if (entry == null) {
+            var input = m.get(-1);
+            var index = inputs.getChildren().indexOf(input);
+            inputs.getChildren().add(index + 1, new DiagramBlockInput(this, input.input, e.in.spot, e.index));
+          } else {
+            var index = inputs.getChildren().indexOf(entry.getValue());
+            inputs.getChildren().add(index + 1, new DiagramBlockInput(this, entry.getValue().input, e.in.spot, e.index));
+          }
         }
       } else {
         inputs.getChildren().removeIf(v -> v instanceof DiagramBlockInput i && i.spot.equals(e.in.spot) && i.index == e.index);
       }
     }
     if (e.in.blockId == block.id) {
-      var index = binarySearch(inputs.getChildren(), e, DiagramBlockInput::cmp);
-      if (index >= 0 && inputs.getChildren().get(index) instanceof DiagramBlockInput i) {
-        i.onLink(e, added);
+      var m = inputMap.get(e.in.spot);
+      if (m != null) {
+        var input = m.get(e.index);
+        if (input != null) {
+          input.onLink(e, added);
+        }
       }
     }
     if (e.out.blockId == block.id) {

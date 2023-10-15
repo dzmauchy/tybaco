@@ -21,36 +21,81 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.collections.*;
 import org.springframework.stereotype.Component;
 import org.tybaco.ui.child.project.classpath.BlockCache;
 import org.tybaco.ui.child.project.classpath.ProjectClasspath;
-import org.tybaco.ui.model.Project;
-
-import static org.tybaco.editors.base.ObservableLists.synchronizeLists;
-import static org.tybaco.editors.base.ObservableSets.synchronizeSet;
+import org.tybaco.ui.model.*;
 
 @Component
 public class Diagram extends AbstractDiagram {
 
+  private final SetChangeListener<Link> linkListener = this::onLinkChange;
+  private final ListChangeListener<Block> blockListener = this::onBlockChange;
   public final Project project;
   final BlockCache blockCache;
   final ProjectClasspath classpath;
-  private final Runnable resetBlocks;
-  private final Runnable resetLinks;
 
   public Diagram(Project project, BlockCache blockCache, ProjectClasspath classpath) {
     this.project = project;
     this.blockCache = blockCache;
     this.classpath = classpath;
-    this.resetLinks = synchronizeSet(project.links, connectors.getChildren(), l -> new DiagramLine(this, l), l -> l instanceof DiagramLine e ? e.link : null);
-    this.resetBlocks = synchronizeLists(project.blocks, blocks.getChildren(), b -> new DiagramBlock(this, b));
     initialize();
   }
 
   private void initialize() {
+    project.links.addListener(new WeakSetChangeListener<>(linkListener));
+    project.blocks.addListener(new WeakListChangeListener<>(blockListener));
+    project.blocks.forEach(b -> onBlock(b, true));
+    project.links.forEach(l -> onLink(l, true));
     blockCache.addListener(o -> {
-      resetBlocks.run();
-      resetLinks.run();
+      blocks.getChildren().clear();
+      project.blocks.forEach(b -> onBlock(b, true));
+      project.links.forEach(l -> notifyBlockLink(l, true));
+    });
+  }
+
+  private void onLinkChange(SetChangeListener.Change<? extends Link> c) {
+    if (c.wasAdded()) {
+      onLink(c.getElementAdded(), true);
+    } else {
+      onLink(c.getElementRemoved(), false);
+    }
+  }
+
+  private void onBlockChange(ListChangeListener.Change<? extends Block> c) {
+    while (c.next()) {
+      if (c.wasRemoved()) {
+        c.getRemoved().forEach(b -> onBlock(b, false));
+      }
+      if (c.wasAdded()) {
+        c.getAddedSubList().forEach(b -> onBlock(b, true));
+      }
+    }
+  }
+
+  private void onBlock(Block block, boolean add) {
+    if (add) {
+      blocks.getChildren().add(new DiagramBlock(this, block));
+    } else {
+      blocks.getChildren().removeIf(n -> n instanceof DiagramBlock b && b.block == block);
+    }
+  }
+
+  private void onLink(Link link, boolean add) {
+    if (add) {
+      connectors.getChildren().add(new DiagramLine(this, link));
+    } else {
+      connectors.getChildren().removeIf(n -> n instanceof DiagramLine l && l.link == link);
+    }
+    notifyBlockLink(link, add);
+  }
+
+  private void notifyBlockLink(Link link, boolean added) {
+    blocks.getChildren().forEach(n -> {
+      if (n instanceof DiagramBlock b && (b.block.id == link.out.blockId || b.block.id == link.in.blockId)) {
+        b.onLink(link, added);
+      }
     });
   }
 }
