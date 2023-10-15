@@ -35,24 +35,31 @@ final class SimpleLine {
 
   boolean trySimpleLine(Bounds ib, Bounds ob) {
     double xs = ob.getMaxX() + SAFE_DIST, xe = ib.getMinX() - SAFE_DIST;
-    if (xe - xs <= 30d)
-      return false;
+    if (xe - xs <= 30d) return false;
     double ys = ob.getCenterY(), ye = ib.getCenterY();
+    double vs = Math.signum(ye - ys);
     double w = (xe - xs) / 5d;
-    if (r1(xs, ys, xe, ye, xs + w, xe - w))
-      return true;
-    if (l2(xs, ys, xe, ye, xs + w, xe - w))
-      return true;
+    for (double cx1 = xs + w, cx2 = xe - w; cx1 <= xe - w; cx1 += STEP) {
+      if (tryVertical(xs, xe, ys, ye, vs, cx1, cx2)) return true;
+    }
+    for (double cx1 = xs + w, cx2 = xe - w; cx2 >= xs + w; cx2 -= STEP) {
+      if (tryVertical(xs, xe, ys, ye, vs, cx1, cx2)) return true;
+    }
+    for (double cx1 = xs + w + STEP, cx2 = xe - w - STEP; cx2 >= xs + w && cx1 <= xe - w; cx1 += STEP, cx2 -= STEP) {
+      if (tryVertical(xs, xe, ys, ye, vs, cx1, cx2)) return true;
+    }
     return false;
   }
 
-  private boolean r1(double xs, double ys, double xe, double ye, double cx1, double cx2) {
-    if (cx2 - cx1 <= STEP) return false;
-    return line.tryApply(D4, xs + SAFE_DIST, ys, cx1, ys, cx2, ye, xe - SAFE_DIST, ye) || r1(xs, ys, xe, ye, cx1 + STEP, cx2);
-  }
-
-  private boolean l2(double xs, double ys, double xe, double ye, double cx1, double cx2) {
-    if (cx2 - cx1 <= STEP) return false;
-    return line.tryApply(D4, xs + SAFE_DIST, ys, cx1, ys, cx2, ye, xe - SAFE_DIST, ye) || l2(xs, ys, xe, ye, cx1, cx2 - STEP);
+  private boolean tryVertical(double xs, double xe, double ys, double ye, double vs, double cx1, double cx2) {
+    for (int i = 0; i < 6; i++) {
+      if (line.tryApply(D4, xs, ys, cx1, ys + i * STEP * vs, cx2, ye - i - STEP * vs, xe, ye)) {
+        return true;
+      }
+      if (line.tryApply(D4, xs, ys, cx1, ys - i * STEP * vs, cx2, ye - i + STEP * vs, xe, ye)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

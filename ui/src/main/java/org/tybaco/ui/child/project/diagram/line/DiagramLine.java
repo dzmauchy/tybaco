@@ -38,7 +38,7 @@ import static java.lang.Math.min;
 
 public class DiagramLine extends Group {
 
-  static final double SAFE_DIST = 2d;
+  static final double SAFE_DIST = 3d;
   static final double STEP = 30d;
   static final boolean DEBUG = false;
   static final ArrayBasedCurveDivider D4 = new ArrayBasedCurveDivider(4);
@@ -65,6 +65,7 @@ public class DiagramLine extends Group {
     var wil = new WeakInvalidationListener(boundsInvalidationListener);
     link.inBounds.addListener(wil);
     link.outBounds.addListener(wil);
+    diagram.diagramBlockBoundsObserver.addListener(wil);
     onUpdate(null);
   }
 
