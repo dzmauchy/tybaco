@@ -24,8 +24,7 @@ package org.tybaco.ui.util;
 import javafx.geometry.Bounds;
 import javafx.scene.shape.CubicCurve;
 
-import java.awt.geom.CubicCurve2D;
-import java.awt.geom.Line2D;
+import java.awt.geom.*;
 import java.util.function.Consumer;
 
 public final class ArrayBasedCurveDivider {
@@ -60,8 +59,8 @@ public final class ArrayBasedCurveDivider {
 
   public boolean intersects(Bounds bounds) {
     for (int i = 0; i < array.length; i += 8) {
-      var line = new Line2D.Double(array[i], array[i + 1], array[i + 6], array[i + 7]);
-      if (line.intersects(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight())) {
+      var rect = new Rectangle2D.Double(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
+      if (rect.intersectsLine(array[i], array[i + 1], array[i + 6], array[i + 7])) {
         return true;
       }
     }
