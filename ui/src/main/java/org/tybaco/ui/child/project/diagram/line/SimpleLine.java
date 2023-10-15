@@ -34,17 +34,25 @@ final class SimpleLine {
   }
 
   boolean trySimpleLine(Bounds ib, Bounds ob) {
-    if (ib.getMinX() > ob.getMaxX() + 40d) {
-      var dx = (ib.getMinX() - ob.getMaxX()) / 10d;
-      return trySimpleLine(ob.getMaxX(), ob.getCenterY(), ib.getMinX(), ib.getCenterY(), ob.getMaxX() + dx, ib.getMinX() - dx);
-    }
+    double xs = ob.getMaxX() + SAFE_DIST, xe = ib.getMinX() - SAFE_DIST;
+    if (xe - xs <= 30d)
+      return false;
+    double ys = ob.getCenterY(), ye = ib.getCenterY();
+    double w = (xe - xs) / 5d;
+    if (r1(xs, ys, xe, ye, xs + w, xe - w))
+      return true;
+    if (l2(xs, ys, xe, ye, xs + w, xe - w))
+      return true;
     return false;
   }
 
-  private boolean trySimpleLine(double xs, double ys, double xe, double ye, double cx1, double cx2) {
+  private boolean r1(double xs, double ys, double xe, double ye, double cx1, double cx2) {
     if (cx2 - cx1 <= STEP) return false;
-    var applier = D4.divide(xs + SAFE_DIST, ys, cx1, ys, cx2, ye, xe - SAFE_DIST, ye);
-    if (line.tryApply(D4, applier)) return true;
-    return trySimpleLine(xs, ys, xe, ye, cx1 + STEP, cx2) || trySimpleLine(xs, ys, xe, ye, cx1, cx2 - STEP);
+    return line.tryApply(D4, xs + SAFE_DIST, ys, cx1, ys, cx2, ye, xe - SAFE_DIST, ye) || r1(xs, ys, xe, ye, cx1 + STEP, cx2);
+  }
+
+  private boolean l2(double xs, double ys, double xe, double ye, double cx1, double cx2) {
+    if (cx2 - cx1 <= STEP) return false;
+    return line.tryApply(D4, xs + SAFE_DIST, ys, cx1, ys, cx2, ye, xe - SAFE_DIST, ye) || l2(xs, ys, xe, ye, cx1, cx2 - STEP);
   }
 }

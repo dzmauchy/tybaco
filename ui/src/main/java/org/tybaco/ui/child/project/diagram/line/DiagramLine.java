@@ -31,7 +31,6 @@ import org.tybaco.ui.child.project.diagram.DiagramCalculations;
 import org.tybaco.ui.model.Link;
 import org.tybaco.ui.util.ArrayBasedCurveDivider;
 
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static java.lang.Math.max;
@@ -39,14 +38,13 @@ import static java.lang.Math.min;
 
 public class DiagramLine extends Group {
 
-  static final double SAFE_DIST = 3d;
+  static final double SAFE_DIST = 2d;
   static final double STEP = 30d;
   static final boolean DEBUG = false;
   static final ArrayBasedCurveDivider D4 = new ArrayBasedCurveDivider(4);
   static final ArrayBasedCurveDivider D5 = new ArrayBasedCurveDivider(5);
 
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
-  private final SimpleLine simpleLine = new SimpleLine(this);
   public final Diagram diagram;
   public final Link link;
   final CubicCurve path = new CubicCurve();
@@ -87,7 +85,7 @@ public class DiagramLine extends Group {
   }
 
   private void onUpdate(Bounds inBounds, Bounds outBounds) {
-    if (simpleLine.trySimpleLine(inBounds, outBounds))
+    if (new SimpleLine(this).trySimpleLine(inBounds, outBounds))
       return;
     /**
     if (tryLineOI(inBounds, outBounds))
@@ -112,8 +110,7 @@ public class DiagramLine extends Group {
         var ry = (float) (ub.getMinY() + gapY / 3f);
         var minX = (float) (min(lb.getMinX(), ub.getMinX()) - lb.getWidth() * 13d);
         var ly = (float) (lb.getMinY() - gapY / 3f);
-        var applier = D4.divide(xs + SAFE_DIST, ys, maxX, ry, minX, ly, xe - SAFE_DIST, ye);
-        return tryApply(D4, applier);
+        return tryApply(D4, xs + SAFE_DIST, ys, maxX, ry, minX, ly, xe - SAFE_DIST, ye);
       }
     }
     return false;
@@ -129,8 +126,7 @@ public class DiagramLine extends Group {
       var cy1 = Math.max(ib.getMaxY(), ob.getMaxY()) + ob.getHeight() + ib.getHeight();
       var cx2 = xe - ib.getWidth();
       var cy2 = cy1 - ob.getHeight();
-      var applier = D4.divide(xs + SAFE_DIST, ys, cx1, cy1, cx2, cy2, xe - SAFE_DIST, ye);
-      if (tryApply(D4, applier)) {
+      if (tryApply(D4, xs + SAFE_DIST, ys, cx1, cy1, cx2, cy2, xe - SAFE_DIST, ye)) {
         return true;
       }
     }
@@ -139,12 +135,12 @@ public class DiagramLine extends Group {
       var cy1 = Math.min(ib.getMinY(), ob.getMinY()) - ob.getHeight() - ib.getHeight();
       var cx2 = xe - ib.getWidth();
       var cy2 = cy1 + ob.getHeight();
-      var applier = D4.divide(xs + SAFE_DIST, ys, cx1, cy1, cx2, cy2, xe - SAFE_DIST, ye);
-      return tryApply(D4, applier);
+      return tryApply(D4, xs + SAFE_DIST, ys, cx1, cy1, cx2, cy2, xe - SAFE_DIST, ye);
     }
   }
 
-  boolean tryApply(ArrayBasedCurveDivider divider, Consumer<CubicCurve> applier) {
+  boolean tryApply(ArrayBasedCurveDivider divider, double x1, double y1, double cx1, double cy1, double cx2, double cy2, double x2, double y2) {
+    var applier = divider.divide(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
     if (blocks().noneMatch(divider::intersects)) {
       applier.accept(path);
       path.setVisible(true);
