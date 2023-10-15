@@ -1,4 +1,4 @@
-package org.tybaco.ui.child.project.diagram;
+package org.tybaco.ui.child.project.diagram.line;
 
 /*-
  * #%L
@@ -21,12 +21,17 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import org.tybaco.editors.util.InvalidationListeners;
+import java.util.EnumSet;
 
-public final class DiagramBlockBoundsObserver extends InvalidationListeners {
+public enum LineType {
 
-  @Override
-  public void fire() {
-    super.fire();
+  SIMPLE;
+
+  static final EnumSet<LineType> LINE_TYPES = EnumSet.allOf(LineType.class);
+
+  public static Line createLine(LineType type, DiagramLine line) {
+    return switch (type) {
+      case SIMPLE -> new SimpleLine(line);
+    };
   }
 }

@@ -1,4 +1,4 @@
-package org.tybaco.ui.child.project.diagram;
+package org.tybaco.ui.child.project.diagram.line;
 
 /*-
  * #%L
@@ -21,12 +21,15 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import org.tybaco.editors.util.InvalidationListeners;
+import javafx.geometry.Bounds;
+import org.tybaco.ui.util.ArrayBasedCurveDivider;
 
-public final class DiagramBlockBoundsObserver extends InvalidationListeners {
+public sealed interface Line permits SimpleLine {
 
-  @Override
-  public void fire() {
-    super.fire();
-  }
+  double SAFE_DIST = 3d;
+  double STEP = 30d;
+  ArrayBasedCurveDivider D4 = new ArrayBasedCurveDivider(4);
+  ArrayBasedCurveDivider D5 = new ArrayBasedCurveDivider(5);
+
+  boolean tryApply(Bounds ib, Bounds ob);
 }

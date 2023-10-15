@@ -23,9 +23,7 @@ package org.tybaco.ui.child.project.diagram.line;
 
 import javafx.geometry.Bounds;
 
-import static org.tybaco.ui.child.project.diagram.line.DiagramLine.*;
-
-final class SimpleLine {
+final class SimpleLine implements Line {
 
   private final DiagramLine line;
 
@@ -33,7 +31,8 @@ final class SimpleLine {
     this.line = line;
   }
 
-  boolean trySimpleLine(Bounds ib, Bounds ob) {
+  @Override
+  public boolean tryApply(Bounds ib, Bounds ob) {
     double xs = ob.getMaxX() + SAFE_DIST, xe = ib.getMinX() - SAFE_DIST;
     if (xe - xs <= 30d) return false;
     double ys = ob.getCenterY(), ye = ib.getCenterY();
