@@ -28,6 +28,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.*;
 import org.tybaco.ui.model.Link;
+import org.tybaco.ui.util.CurveDivider;
+
 import java.awt.Shape;
 
 import java.awt.geom.*;
@@ -100,7 +102,7 @@ public class DiagramLine extends Group {
       if (xe - xs >= 50f) {
         var dx = (xe - xs) / 5f;
         var shape = new CubicCurve2D.Double(xs + SAFE_DIST, ys, xs + dx, ys, xe - dx, ye, xe - SAFE_DIST, ye);
-        return tryApply(shape);
+        return tryApply(CurveDivider.divide(shape, 3));
       }
     }
     return false;
@@ -121,13 +123,13 @@ public class DiagramLine extends Group {
         var minX = (float) (min(lb.getMinX(), ub.getMinX()) - lb.getWidth() * 13d);
         var ly = (float) (lb.getMinY() - gapY / 3f);
         var shape = new CubicCurve2D.Double(xs + SAFE_DIST, ys, maxX, ry, minX, ly, xe - SAFE_DIST, ye);
-        return tryApply(shape);
+        return tryApply(CurveDivider.divide(shape, 3));
       }
     }
     return false;
   }
 
-  private void apply(Shape... shapes) {
+  private void apply(Iterable<? extends Shape> shapes) {
     var elems = new LinkedList<PathElement>();
     for (var shape : shapes) {
       switch (shape) {
@@ -149,7 +151,7 @@ public class DiagramLine extends Group {
     path.getElements().setAll(elems);
   }
 
-  private boolean tryApply(Shape... shapes) {
+  private boolean tryApply(Iterable<? extends Shape> shapes) {
     var needsApply = blocks().noneMatch(b -> {
       for (var s : shapes) {
         if (s.intersects(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight())) {
