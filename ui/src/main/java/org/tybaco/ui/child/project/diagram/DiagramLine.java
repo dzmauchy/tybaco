@@ -34,6 +34,7 @@ import org.tybaco.ui.util.GeneticLine;
 import java.awt.Shape;
 import java.awt.geom.*;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static java.lang.Math.max;
@@ -158,14 +159,12 @@ public class DiagramLine extends Group {
 
   private void useGeneticLine(Bounds ib, Bounds ob) {
     var line = new GeneticLine(this::blocks, ob, ib);
-    var curves = line.produce();
-    var elems = new LinkedList<PathElement>();
-    var first = curves.removeFirst();
-    elems.addLast(new MoveTo(first.x1, first.y1));
-    elems.addLast(new CubicCurveTo(first.ctrlx1, first.ctrly1, first.ctrlx2, first.ctrly2, first.x2, first.y2));
-    var second = curves.removeFirst();
-    elems.addLast(new CubicCurveTo(second.ctrlx1, second.ctrly1, second.ctrlx2, second.ctrly2, second.x2, second.y2));
-    path.getElements().setAll(elems);
+    var curve = line.produce();
+    var list = List.of(
+      new MoveTo(curve.x1, curve.y1),
+      new CubicCurveTo(curve.ctrlx1, curve.ctrly1, curve.ctrlx2, curve.ctrly2, curve.x2, curve.y2)
+    );
+    path.getElements().setAll(list);
   }
 
   private void apply(Iterable<? extends Shape> shapes) {

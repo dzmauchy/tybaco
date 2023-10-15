@@ -30,7 +30,9 @@ interface DiagramCalculations {
     var b = current.getBoundsInLocal();
     for (var c = current; c != base; c = c.getParent()) {
       if (c == null) return b;
-      b = c.getLocalToParentTransform().transform(b);
+      var t = c.getLocalToParentTransform();
+      if (t == null) return b;
+      b = t.transform(b);
     }
     return b;
   }
