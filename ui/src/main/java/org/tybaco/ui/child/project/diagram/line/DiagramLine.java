@@ -43,6 +43,11 @@ public class DiagramLine extends Group {
   private final LineTo endConnector = new LineTo();
   private final Path path = new Path(startPoint, startConnector, curve, endConnector);
 
+  private double xs;
+  private double ys;
+  private double xe;
+  private double ye;
+
   public DiagramLine(Diagram diagram, Link link) {
     this.diagram = diagram;
     this.link = link;
@@ -75,20 +80,21 @@ public class DiagramLine extends Group {
   }
 
   private void onUpdate(Bounds ib, Bounds ob) {
-    var context = new LineContext(ob.getMaxX() + SAFE_DIST, ob.getCenterY(), ib.getMinX() - SAFE_DIST, ib.getCenterY());
-    if (new SimpleLine(this, context).tryApply()) {
+    xs = ob.getMaxX() + SAFE_DIST;
+    ys = ob.getCenterY();
+    xe = ib.getMinX() - SAFE_DIST;
+    ye = ib.getCenterY();
+    if (new SimpleLine(this).tryApply(xs, ys, xe, ye)) {
       return;
-    } else if (new InnerLine(this, context).tryApply()) {
+    } else if (new InnerLine(this).tryApply(xs, ys, xe, ye)) {
       return;
-    } else if (new OuterLine(this, context).tryApply()) {
+    } else if (new OuterLine(this).tryApply(xs, ys, xe, ye)) {
       return;
     }
     path.setVisible(false);
   }
 
   boolean tryApply(Line line, double cx1, double cy1, double cx2, double cy2) {
-    var context = line.getContext();
-    double xs = context.xs(), ys = context.ys(), xe = context.xe(), ye = context.ye();
     var divider = line.getDivider();
     divider.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
     if (checkConstraint(divider)) {

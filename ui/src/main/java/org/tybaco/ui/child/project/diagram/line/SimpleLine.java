@@ -26,16 +26,13 @@ import org.tybaco.ui.util.ArrayBasedCurveDivider;
 final class SimpleLine implements Line {
 
   private final DiagramLine line;
-  private final LineContext context;
 
-  SimpleLine(DiagramLine line, LineContext context) {
+  SimpleLine(DiagramLine line) {
     this.line = line;
-    this.context = context;
   }
 
   @Override
-  public boolean tryApply() {
-    double xs = context.xs(), ys = context.ys(), xe = context.xe(), ye = context.ye();
+  public boolean tryApply(double xs, double ys, double xe, double ye) {
     if (xe - xs <= 30d) return false;
     double vs = Math.signum(ye - ys) * STEP, w = (xe - xs) / 5d;
     for (double cx1 = xs + w, cx2 = xe - w, r = xe - w; cx1 <= r; cx1 += STEP) {
@@ -45,11 +42,6 @@ final class SimpleLine implements Line {
       if (tryVertical(ys, ye, vs, cx1, cx2)) return true;
     }
     return false;
-  }
-
-  @Override
-  public LineContext getContext() {
-    return context;
   }
 
   @Override

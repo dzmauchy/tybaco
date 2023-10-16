@@ -31,16 +31,13 @@ import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 public final class OuterLine implements Line {
 
   private final DiagramLine line;
-  private final LineContext context;
 
-  public OuterLine(DiagramLine line, LineContext context) {
+  public OuterLine(DiagramLine line) {
     this.line = line;
-    this.context = context;
   }
 
   @Override
-  public boolean tryApply() {
-    double ys = context.ys(), ye = context.ye();
+  public boolean tryApply(double xs, double ys, double xe, double ye) {
     var input = line.link.input.get();
     var output = line.link.output.get();
     if (input == null || output == null) return false;
@@ -52,11 +49,6 @@ public final class OuterLine implements Line {
     } else {
       return tryTop(ys, ib, ob) || tryBottom(ys, ib, ob);
     }
-  }
-
-  @Override
-  public LineContext getContext() {
-    return context;
   }
 
   @Override

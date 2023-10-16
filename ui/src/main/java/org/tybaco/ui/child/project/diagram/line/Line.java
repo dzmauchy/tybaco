@@ -29,7 +29,6 @@ public sealed interface Line permits SimpleLine, InnerLine, OuterLine {
   ArrayBasedCurveDivider D4 = new ArrayBasedCurveDivider(4);
   ArrayBasedCurveDivider D5 = new ArrayBasedCurveDivider(5);
 
-  boolean tryApply();
-  LineContext getContext();
+  boolean tryApply(double xs, double ys, double xe, double ye);
   ArrayBasedCurveDivider getDivider();
 }
