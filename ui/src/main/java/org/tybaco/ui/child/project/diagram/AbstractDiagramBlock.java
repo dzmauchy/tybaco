@@ -38,6 +38,7 @@ import static javafx.scene.paint.Color.WHITE;
 
 abstract class AbstractDiagramBlock extends BorderPane {
 
+  final Diagram diagram;
   final Block block;
   final Label blockId = new Label();
   final Label blockName = new Label();
@@ -49,7 +50,8 @@ abstract class AbstractDiagramBlock extends BorderPane {
   double bx;
   double by;
 
-  AbstractDiagramBlock(Block block) {
+  AbstractDiagramBlock(Diagram diagram, Block block) {
+    this.diagram = diagram;
     this.block = block;
     setBackground(new Background(new BackgroundFill(Color.gray(0.2), new CornerRadii(5), Insets.EMPTY)));
     setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(5d), new BorderWidths(2d))));

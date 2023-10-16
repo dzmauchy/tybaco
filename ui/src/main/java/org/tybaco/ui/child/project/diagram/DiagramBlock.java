@@ -31,12 +31,10 @@ import java.util.TreeMap;
 
 public final class DiagramBlock extends AbstractDiagramBlock {
 
-  final Diagram diagram;
   final TreeMap<String, TreeMap<Integer, DiagramBlockInput>> inputMap = new TreeMap<>();
 
   public DiagramBlock(Diagram diagram, Block block) {
-    super(block);
-    this.diagram = diagram;
+    super(diagram, block);
     this.inputs.getChildren().addListener((ListChangeListener<? super Node>) c -> {
       while (c.next()) {
         if (c.wasRemoved()) {
