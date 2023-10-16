@@ -25,14 +25,14 @@ import javafx.beans.*;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.*;
-import org.tybaco.ui.child.project.diagram.*;
+import javafx.scene.shape.CubicCurve;
+import javafx.scene.shape.StrokeLineJoin;
+import org.tybaco.ui.child.project.diagram.Diagram;
+import org.tybaco.ui.child.project.diagram.DiagramCalculations;
 import org.tybaco.ui.model.Link;
 import org.tybaco.ui.util.ArrayBasedCurveDivider;
 
 import java.util.stream.Stream;
-
-import static org.tybaco.ui.child.project.diagram.line.Line.SAFE_DIST;
 
 public class DiagramLine extends Group {
 
@@ -73,20 +73,23 @@ public class DiagramLine extends Group {
   }
 
   private void onUpdate(Bounds ib, Bounds ob) {
-    double xs = ob.getMaxX() + SAFE_DIST, ys = ob.getCenterY(), xe = ib.getMinX() - SAFE_DIST, ye = ib.getCenterY();
+    var context = new LineContext(ib, ob);
     for (var type : LineType.LINE_TYPES) {
-      var line = LineType.createLine(type, this);
-      if (line.tryApply(xs, ys, xe, ye)) {
+      var line = LineType.createLine(type, this, context);
+      if (line.tryApply()) {
         return;
       }
     }
     path.setVisible(false);
   }
 
-  boolean tryApply(ArrayBasedCurveDivider divider, double x1, double y1, double cx1, double cy1, double cx2, double cy2, double x2, double y2) {
-    divider.divide(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+  boolean tryApply(Line line, double cx1, double cy1, double cx2, double cy2) {
+    var divider = line.getDivider();
+    var context = line.getContext();
+    double xs = context.xs(), ys = context.ys(), xe = context.xe(), ye = context.ye();
+    divider.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
     if (blocks().noneMatch(divider::intersects)) {
-      divider.setCurve(path, x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+      divider.setCurve(path, xs, ys, cx1, cy1, cx2, cy2, xe, ye);
       path.setVisible(true);
       return true;
     } else {

@@ -21,21 +21,13 @@ package org.tybaco.ui.child.project.diagram.line;
  * #L%
  */
 
-import java.util.EnumSet;
+import javafx.geometry.Bounds;
 
-public enum LineType {
+import static org.tybaco.ui.child.project.diagram.line.Line.SAFE_DIST;
 
-  SIMPLE,
-  INNER,
-  OUTER;
+public record LineContext(double xs, double ys, double xe, double ye) {
 
-  static final EnumSet<LineType> LINE_TYPES = EnumSet.allOf(LineType.class);
-
-  public static Line createLine(LineType type, DiagramLine line, LineContext context) {
-    return switch (type) {
-      case SIMPLE -> new SimpleLine(line, context);
-      case INNER -> new InnerLine(line, context);
-      case OUTER -> new OuterLine(line, context);
-    };
+  public LineContext(Bounds ib, Bounds ob) {
+    this(ob.getMaxX() + SAFE_DIST, ob.getCenterY(), ib.getMinX() - SAFE_DIST, ib.getCenterY());
   }
 }

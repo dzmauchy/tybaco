@@ -21,26 +21,41 @@ package org.tybaco.ui.child.project.diagram.line;
  * #L%
  */
 
+import org.tybaco.ui.util.ArrayBasedCurveDivider;
+
 public final class InnerLine implements Line {
 
   private final DiagramLine line;
+  private final LineContext context;
 
-  public InnerLine(DiagramLine line) {
+  public InnerLine(DiagramLine line, LineContext context) {
     this.line = line;
+    this.context = context;
   }
 
   @Override
-  public boolean tryApply(double xs, double ys, double xe, double ye) {
+  public boolean tryApply() {
+    double xs = context.xs(), ys = context.ys(), xe = context.xe(), ye = context.ye();
     var vs = Math.signum(ye - ys) * STEP;
     for (int i = 7; i < 20; i++) {
       var cx1 = xs + i * STEP;
       var cx2 = xe - i * STEP;
       for (int j = 10; j >= 1; j--) {
-        if (line.tryApply(D5, xs, ys, cx1, ys + j * vs, cx2, ye - j * vs, xe, ye)) {
+        if (line.tryApply(this, cx1, ys + j * vs, cx2, ye - j * vs)) {
           return true;
         }
       }
     }
     return false;
+  }
+
+  @Override
+  public ArrayBasedCurveDivider getDivider() {
+    return D5;
+  }
+
+  @Override
+  public LineContext getContext() {
+    return context;
   }
 }

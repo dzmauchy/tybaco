@@ -22,6 +22,7 @@ package org.tybaco.ui.child.project.diagram.line;
  */
 
 import javafx.geometry.Bounds;
+import org.tybaco.ui.util.ArrayBasedCurveDivider;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -30,13 +31,16 @@ import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 public final class OuterLine implements Line {
 
   private final DiagramLine line;
+  private final LineContext context;
 
-  public OuterLine(DiagramLine line) {
+  public OuterLine(DiagramLine line, LineContext context) {
     this.line = line;
+    this.context = context;
   }
 
   @Override
-  public boolean tryApply(double xs, double ys, double xe, double ye) {
+  public boolean tryApply() {
+    double xs = context.xs(), ys = context.ys(), xe = context.xe(), ye = context.ye();
     var input = line.link.input.get();
     var output = line.link.output.get();
     if (input == null || output == null) return false;
@@ -44,36 +48,46 @@ public final class OuterLine implements Line {
     var ob = boundsIn(line.diagram.blocks, output.block);
     if (ib == null || ob == null) return false;
     if (ye > ys) {
-      return tryBottom(xs, ys, xe, ye, ib, ob) || tryTop(xs, ys, xe, ye, ib, ob);
+      return tryBottom(ys, ib, ob) || tryTop(ys, ib, ob);
     } else {
-      return tryTop(xs, ys, xe, ye, ib, ob) || tryBottom(xs, ys, xe, ye, ib, ob);
+      return tryTop(ys, ib, ob) || tryBottom(ys, ib, ob);
     }
   }
 
-  private boolean tryBottom(double xs, double ys, double xe, double ye, Bounds ib, Bounds ob) {
+  @Override
+  public LineContext getContext() {
+    return context;
+  }
+
+  @Override
+  public ArrayBasedCurveDivider getDivider() {
+    return D5;
+  }
+
+  private boolean tryBottom(double ys, Bounds ib, Bounds ob) {
     double maxX = max(ib.getMaxX(), ob.getMaxX()), minX = min(ib.getMinX(), ob.getMinX());
     double maxY = max(ib.getMaxY(), ob.getMaxY());
     for (int i = 10; i < 30; i++) {
       double cx1 = maxX + i * STEP, cx2 = minX - i * STEP;
       for (int j = 0; j < 20; j++) {
-        if (line.tryApply(D5, xs, ys, cx1, ys + j * STEP, cx2, maxY + j * STEP, xe, ye))
+        if (line.tryApply(this, cx1, ys + j * STEP, cx2, maxY + j * STEP))
           return true;
-        if (line.tryApply(D5, xs, ys, cx1, ys - j * STEP, cx2, maxY - j * STEP, xe, ye))
+        if (line.tryApply(this, cx1, ys - j * STEP, cx2, maxY - j * STEP))
           return true;
       }
     }
     return false;
   }
 
-  private boolean tryTop(double xs, double ys, double xe, double ye, Bounds ib, Bounds ob) {
+  private boolean tryTop(double ys, Bounds ib, Bounds ob) {
     double maxX = max(ib.getMaxX(), ob.getMaxX()), minX = min(ib.getMinX(), ob.getMinX());
     double minY = min(ib.getMinY(), ob.getMinY());
     for (int i = 10; i < 30; i++) {
       double cx1 = maxX + i * STEP, cx2 = minX - i * STEP;
       for (int j = 0; j < 20; j++) {
-        if (line.tryApply(D5, xs, ys, cx1, ys - j * STEP, cx2, minY - j * STEP, xe, ye))
+        if (line.tryApply(this, cx1, ys - j * STEP, cx2, minY - j * STEP))
           return true;
-        if (line.tryApply(D5, xs, ys, cx1, ys + j * STEP, cx2, minY + j * STEP, xe, ye))
+        if (line.tryApply(this, cx1, ys + j * STEP, cx2, minY + j * STEP))
           return true;
       }
     }
