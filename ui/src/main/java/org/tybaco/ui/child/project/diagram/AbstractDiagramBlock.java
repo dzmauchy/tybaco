@@ -89,24 +89,30 @@ abstract class AbstractDiagramBlock extends BorderPane {
 
   protected void onMouseDragged(MouseEvent event) {
     event.consume();
-    if (checkConstraints(event)) {
+    var bounds = getBoundsInParent();
+    var bb = new BoundingBox(
+      bounds.getMinX() + event.getX() - bx,
+      bounds.getMinY() + event.getY() - by,
+      bounds.getWidth(),
+      bounds.getHeight()
+    );
+    if (checkConstraints(bb)) {
       setLayoutX(getLayoutX() + event.getX() - bx);
       setLayoutY(getLayoutY() + event.getY() - by);
     }
   }
 
-  private boolean checkConstraints(MouseEvent event) {
-    var p = localToParent(event.getX(), event.getY());
+  private boolean checkConstraints(Bounds bounds) {
     for (var node : diagram.blocks.getChildren()) {
       if (node != this) {
-        var bounds = node.getBoundsInParent();
+        var b = node.getBoundsInParent();
         var bb = new BoundingBox(
-          bounds.getMinX() - 10d,
-          bounds.getMinY() - 10d,
-          bounds.getWidth() + 20d,
-          bounds.getHeight() + 20d
+          b.getMinX() - 10d,
+          b.getMinY() - 10d,
+          b.getWidth() + 20d,
+          b.getHeight() + 20d
         );
-        if (bb.contains(p)) {
+        if (bb.intersects(bounds)) {
           return false;
         }
       }
