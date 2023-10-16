@@ -10,12 +10,12 @@ package org.tybaco.ui.util;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
 
 public final class ArrayBasedCurveDivider {
 
-  private final double[] array;
+  final double[] array;
 
   public ArrayBasedCurveDivider(int steps) {
     array = new double[8 << steps];
@@ -59,10 +59,11 @@ public final class ArrayBasedCurveDivider {
   }
 
   private void subDivide(int offset, int size) {
-    if (size == 8) return;
-    int newSize = size >> 1, newOffset = offset + newSize;
-    CubicCurve2D.subdivide(array, offset, array, offset, array, newOffset);
-    subDivide(offset, newSize);
-    subDivide(newOffset, newSize);
+    int newSize = size >>> 1, newOffset = offset + newSize;
+    if (newSize >= 8) {
+      CubicCurve2D.subdivide(array, offset, array, offset, array, newOffset);
+      subDivide(offset, newSize);
+      subDivide(newOffset, newSize);
+    }
   }
 }
