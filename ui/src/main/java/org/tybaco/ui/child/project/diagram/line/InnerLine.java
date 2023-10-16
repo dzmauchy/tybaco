@@ -21,14 +21,26 @@ package org.tybaco.ui.child.project.diagram.line;
  * #L%
  */
 
-import org.tybaco.ui.util.ArrayBasedCurveDivider;
+public final class InnerLine implements Line {
 
-public sealed interface Line permits SimpleLine, InnerLine {
+  private final DiagramLine line;
 
-  double SAFE_DIST = 3d;
-  double STEP = 30d;
-  ArrayBasedCurveDivider D4 = new ArrayBasedCurveDivider(4);
-  ArrayBasedCurveDivider D5 = new ArrayBasedCurveDivider(5);
+  public InnerLine(DiagramLine line) {
+    this.line = line;
+  }
 
-  boolean tryApply(double xs, double ys, double xe, double ye);
+  @Override
+  public boolean tryApply(double xs, double ys, double xe, double ye) {
+    var vs = Math.signum(ye - ys) * STEP;
+    for (int i = 7; i < 20; i++) {
+      var cx1 = xs + i * STEP;
+      var cx2 = xe - i * STEP;
+      for (int j = 10; j >= 0; j--) {
+        if (line.tryApply(D5, xs, ys, cx1, ys + j * vs, cx2, ye - j * vs, xe, ye)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 }

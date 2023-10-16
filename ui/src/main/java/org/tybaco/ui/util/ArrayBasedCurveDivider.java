@@ -45,16 +45,7 @@ public final class ArrayBasedCurveDivider {
     array[6] = x2;
     array[7] = y2;
     subDivide(0, array.length);
-    return c -> {
-      c.setStartX(x1);
-      c.setStartY(y1);
-      c.setControlX1(cx1);
-      c.setControlY1(cy1);
-      c.setControlX2(cx2);
-      c.setControlY2(cy2);
-      c.setEndX(x2);
-      c.setEndY(y2);
-    };
+    return c -> setCurve(c, x1, y1, cx1, cy1, cx2, cy2, x2, y2);
   }
 
   public boolean intersects(Bounds bounds) {
@@ -75,5 +66,16 @@ public final class ArrayBasedCurveDivider {
     CubicCurve2D.subdivide(array, offset, array, offset, array, newOffset);
     subDivide(offset, newSize);
     subDivide(newOffset, newSize);
+  }
+
+  public void setCurve(CubicCurve c, double x1, double y1, double cx1, double cy1, double cx2, double cy2, double x2, double y2) {
+    c.setStartX(x1);
+    c.setStartY(y1);
+    c.setControlX1(cx1);
+    c.setControlY1(cy1);
+    c.setControlX2(cx2);
+    c.setControlY2(cy2);
+    c.setEndX(x2);
+    c.setEndY(y2);
   }
 }

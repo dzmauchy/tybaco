@@ -32,6 +32,8 @@ import org.tybaco.ui.util.ArrayBasedCurveDivider;
 
 import java.util.stream.Stream;
 
+import static org.tybaco.ui.child.project.diagram.line.Line.SAFE_DIST;
+
 public class DiagramLine extends Group {
 
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
@@ -65,17 +67,16 @@ public class DiagramLine extends Group {
     }
     var ib = link.inBounds.get();
     var ob = link.outBounds.get();
-    var inp = link.input.get();
-    var out = link.output.get();
-    if (ib != null && ob != null && inp != null && out != null) {
-      onUpdate(ib, ob, inp, out);
+    if (ib != null && ob != null) {
+      onUpdate(ib, ob);
     }
   }
 
-  private void onUpdate(Bounds inBounds, Bounds outBounds, DiagramBlockInput input, DiagramBlockOutput output) {
+  private void onUpdate(Bounds ib, Bounds ob) {
+    double xs = ob.getMaxX() + SAFE_DIST, ys = ob.getCenterY(), xe = ib.getMinX() - SAFE_DIST, ye = ib.getCenterY();
     for (var type : LineType.LINE_TYPES) {
       var line = LineType.createLine(type, this);
-      if (line.tryApply(inBounds, outBounds, input, output)) {
+      if (line.tryApply(xs, ys, xe, ye)) {
         return;
       }
     }
@@ -91,6 +92,11 @@ public class DiagramLine extends Group {
     } else {
       return false;
     }
+  }
+
+  boolean apply(ArrayBasedCurveDivider divider, double x1, double y1, double cx1, double cy1, double cx2, double cy2, double x2, double y2) {
+    divider.setCurve(path, x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+    return true;
   }
 
   private Stream<Bounds> blocks() {

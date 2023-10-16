@@ -25,13 +25,15 @@ import java.util.EnumSet;
 
 public enum LineType {
 
-  SIMPLE;
+  SIMPLE,
+  INNER;
 
   static final EnumSet<LineType> LINE_TYPES = EnumSet.allOf(LineType.class);
 
   public static Line createLine(LineType type, DiagramLine line) {
     return switch (type) {
       case SIMPLE -> new SimpleLine(line);
+      case INNER -> new InnerLine(line);
     };
   }
 }
