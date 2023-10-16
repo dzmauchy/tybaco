@@ -24,8 +24,8 @@ package org.tybaco.ui.util;
 import javafx.geometry.Bounds;
 import javafx.scene.shape.CubicCurve;
 
-import java.awt.geom.*;
-import java.util.function.Consumer;
+import java.awt.geom.CubicCurve2D;
+import java.awt.geom.Rectangle2D;
 
 public final class ArrayBasedCurveDivider {
 
@@ -35,7 +35,7 @@ public final class ArrayBasedCurveDivider {
     array = new double[8 << steps];
   }
 
-  public Consumer<CubicCurve> divide(double x1, double y1, double cx1, double cy1, double cx2, double cy2, double x2, double y2) {
+  public void divide(double x1, double y1, double cx1, double cy1, double cx2, double cy2, double x2, double y2) {
     array[0] = x1;
     array[1] = y1;
     array[2] = cx1;
@@ -45,7 +45,6 @@ public final class ArrayBasedCurveDivider {
     array[6] = x2;
     array[7] = y2;
     subDivide(0, array.length);
-    return c -> setCurve(c, x1, y1, cx1, cy1, cx2, cy2, x2, y2);
   }
 
   public boolean intersects(Bounds bounds) {

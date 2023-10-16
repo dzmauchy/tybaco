@@ -84,9 +84,9 @@ public class DiagramLine extends Group {
   }
 
   boolean tryApply(ArrayBasedCurveDivider divider, double x1, double y1, double cx1, double cy1, double cx2, double cy2, double x2, double y2) {
-    var applier = divider.divide(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+    divider.divide(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
     if (blocks().noneMatch(divider::intersects)) {
-      applier.accept(path);
+      divider.setCurve(path, x1, y1, cx1, cy1, cx2, cy2, x2, y2);
       path.setVisible(true);
       return true;
     } else {
