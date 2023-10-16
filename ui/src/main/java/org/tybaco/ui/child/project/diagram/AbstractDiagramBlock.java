@@ -21,8 +21,7 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.geometry.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.input.MouseEvent;
@@ -90,7 +89,28 @@ abstract class AbstractDiagramBlock extends BorderPane {
 
   protected void onMouseDragged(MouseEvent event) {
     event.consume();
-    setLayoutX(getLayoutX() + event.getX() - bx);
-    setLayoutY(getLayoutY() + event.getY() - by);
+    if (checkConstraints(event)) {
+      setLayoutX(getLayoutX() + event.getX() - bx);
+      setLayoutY(getLayoutY() + event.getY() - by);
+    }
+  }
+
+  private boolean checkConstraints(MouseEvent event) {
+    var p = localToParent(event.getX(), event.getY());
+    for (var node : diagram.blocks.getChildren()) {
+      if (node != this) {
+        var bounds = node.getBoundsInParent();
+        var bb = new BoundingBox(
+          bounds.getMinX() - 10d,
+          bounds.getMinY() - 10d,
+          bounds.getWidth() + 20d,
+          bounds.getHeight() + 20d
+        );
+        if (bb.contains(p)) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 }
