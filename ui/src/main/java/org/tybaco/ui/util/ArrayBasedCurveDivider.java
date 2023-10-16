@@ -59,11 +59,11 @@ public final class ArrayBasedCurveDivider {
   }
 
   private void subDivide(int offset, int size) {
-    int newSize = size >>> 1, newOffset = offset + newSize;
-    if (newSize >= 8) {
+    if ((size >>>= 1) >= 8) {
+      var newOffset = offset + size;
       CubicCurve2D.subdivide(array, offset, array, offset, array, newOffset);
-      subDivide(offset, newSize);
-      subDivide(newOffset, newSize);
+      subDivide(offset, size);
+      subDivide(newOffset, size);
     }
   }
 }
