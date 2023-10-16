@@ -46,10 +46,15 @@ public final class ArrayBasedCurveDivider {
     subDivide(0, array.length);
   }
 
-  public boolean intersects(Bounds bounds) {
+  public boolean intersects(Bounds bounds, double safeDist) {
+    var rect = new Rectangle2D.Double(
+      bounds.getMinX() - safeDist / 2d,
+      bounds.getMinY() - safeDist / 2d,
+      bounds.getWidth() + safeDist,
+      bounds.getHeight() + safeDist
+    );
     var array = this.array;
     for (int i = 0; i < array.length; i += 8) {
-      var rect = new Rectangle2D.Double(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
       if (rect.intersectsLine(array[i], array[i + 1], array[i + 6], array[i + 7])) {
         return true;
       }

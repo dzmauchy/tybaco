@@ -91,7 +91,7 @@ public class DiagramLine extends Group {
     double xs = context.xs(), ys = context.ys(), xe = context.xe(), ye = context.ye();
     var divider = line.getDivider();
     divider.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
-    if (constraintBounds().noneMatch(divider::intersects)) {
+    if (constraintBounds().noneMatch(b -> divider.intersects(b, SAFE_DIST))) {
       startPoint.setX(xs - SAFE_DIST + 2d);
       startPoint.setY(ys);
       startConnector.setX(xs);
