@@ -77,11 +77,12 @@ public class DiagramLine extends Group {
 
   private void onUpdate(Bounds ib, Bounds ob) {
     var context = new LineContext(ob.getMaxX() + SAFE_DIST, ob.getCenterY(), ib.getMinX() - SAFE_DIST, ib.getCenterY());
-    for (var type : LineType.LINE_TYPES) {
-      var line = LineType.createLine(type, this, context);
-      if (line.tryApply()) {
-        return;
-      }
+    if (new SimpleLine(this, context).tryApply()) {
+      return;
+    } else if (new InnerLine(this, context).tryApply()) {
+      return;
+    } else if (new OuterLine(this, context).tryApply()) {
+      return;
     }
     path.setVisible(false);
   }
