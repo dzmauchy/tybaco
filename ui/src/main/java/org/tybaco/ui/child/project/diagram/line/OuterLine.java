@@ -40,7 +40,7 @@ public final class OuterLine implements Line {
 
   @Override
   public boolean tryApply() {
-    double xs = context.xs(), ys = context.ys(), xe = context.xe(), ye = context.ye();
+    double ys = context.ys(), ye = context.ye();
     var input = line.link.input.get();
     var output = line.link.output.get();
     if (input == null || output == null) return false;
