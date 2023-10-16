@@ -44,9 +44,6 @@ final class SimpleLine implements Line {
     for (double cx1 = xs + w, cx2 = xe - w, l = xs + w; cx2 >= l; cx2 -= STEP) {
       if (tryVertical(ys, ye, vs, cx1, cx2)) return true;
     }
-    for (double cx1 = xs + w + STEP, cx2 = xe - w - STEP, l = xs + w, r = xe - w; cx2 >= l && cx1 <= r; cx1 += STEP, cx2 -= STEP) {
-      if (tryVertical(ys, ye, vs, cx1, cx2)) return true;
-    }
     return false;
   }
 
