@@ -23,6 +23,8 @@ package org.tybaco.ui.child.project.diagram.line;
 
 import javafx.geometry.Bounds;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
 public final class OuterLine implements Line {
@@ -49,10 +51,32 @@ public final class OuterLine implements Line {
   }
 
   private boolean tryBottom(double xs, double ys, double xe, double ye, Bounds ib, Bounds ob) {
+    double maxX = max(ib.getMaxX(), ob.getMaxX()), minX = min(ib.getMinX(), ob.getMinX());
+    double maxY = max(ib.getMaxY(), ob.getMaxY());
+    for (int i = 10; i < 30; i++) {
+      double cx1 = maxX + i * STEP, cx2 = minX - i * STEP;
+      for (int j = 0; j < 20; j++) {
+        if (line.tryApply(D5, xs, ys, cx1, ys + j * STEP, cx2, maxY + j * STEP, xe, ye))
+          return true;
+        if (line.tryApply(D5, xs, ys, cx1, ys - j * STEP, cx2, maxY - j * STEP, xe, ye))
+          return true;
+      }
+    }
     return false;
   }
 
   private boolean tryTop(double xs, double ys, double xe, double ye, Bounds ib, Bounds ob) {
+    double maxX = max(ib.getMaxX(), ob.getMaxX()), minX = min(ib.getMinX(), ob.getMinX());
+    double minY = min(ib.getMinY(), ob.getMinY());
+    for (int i = 10; i < 30; i++) {
+      double cx1 = maxX + i * STEP, cx2 = minX - i * STEP;
+      for (int j = 0; j < 20; j++) {
+        if (line.tryApply(D5, xs, ys, cx1, ys - j * STEP, cx2, minY - j * STEP, xe, ye))
+          return true;
+        if (line.tryApply(D5, xs, ys, cx1, ys + j * STEP, cx2, minY + j * STEP, xe, ye))
+          return true;
+      }
+    }
     return false;
   }
 }
