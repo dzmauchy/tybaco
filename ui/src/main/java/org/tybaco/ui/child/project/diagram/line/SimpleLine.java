@@ -32,15 +32,14 @@ final class SimpleLine implements Line {
   @Override
   public boolean tryApply(double xs, double ys, double xe, double ye) {
     if (xe - xs <= 30d) return false;
-    double vs = Math.signum(ye - ys) * STEP;
-    double w = (xe - xs) / 5d;
-    for (double cx1 = xs + w, cx2 = xe - w; cx1 <= xe - w; cx1 += STEP) {
+    double vs = Math.signum(ye - ys) * STEP, w = (xe - xs) / 5d;
+    for (double cx1 = xs + w, cx2 = xe - w, r = xe - w; cx1 <= r; cx1 += STEP) {
       if (tryVertical(xs, xe, ys, ye, vs, cx1, cx2)) return true;
     }
-    for (double cx1 = xs + w, cx2 = xe - w; cx2 >= xs + w; cx2 -= STEP) {
+    for (double cx1 = xs + w, cx2 = xe - w, l = xs + w; cx2 >= l; cx2 -= STEP) {
       if (tryVertical(xs, xe, ys, ye, vs, cx1, cx2)) return true;
     }
-    for (double cx1 = xs + w + STEP, cx2 = xe - w - STEP; cx2 >= xs + w && cx1 <= xe - w; cx1 += STEP, cx2 -= STEP) {
+    for (double cx1 = xs + w + STEP, cx2 = xe - w - STEP, l = xs + w, r = xe - w; cx2 >= l && cx1 <= r; cx1 += STEP, cx2 -= STEP) {
       if (tryVertical(xs, xe, ys, ye, vs, cx1, cx2)) return true;
     }
     return false;

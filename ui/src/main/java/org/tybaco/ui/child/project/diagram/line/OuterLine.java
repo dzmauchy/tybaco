@@ -21,26 +21,38 @@ package org.tybaco.ui.child.project.diagram.line;
  * #L%
  */
 
-public final class InnerLine implements Line {
+import javafx.geometry.Bounds;
+
+import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
+
+public final class OuterLine implements Line {
 
   private final DiagramLine line;
 
-  public InnerLine(DiagramLine line) {
+  public OuterLine(DiagramLine line) {
     this.line = line;
   }
 
   @Override
   public boolean tryApply(double xs, double ys, double xe, double ye) {
-    var vs = Math.signum(ye - ys) * STEP;
-    for (int i = 7; i < 20; i++) {
-      var cx1 = xs + i * STEP;
-      var cx2 = xe - i * STEP;
-      for (int j = 10; j >= 1; j--) {
-        if (line.tryApply(D5, xs, ys, cx1, ys + j * vs, cx2, ye - j * vs, xe, ye)) {
-          return true;
-        }
-      }
+    var input = line.link.input.get();
+    var output = line.link.output.get();
+    if (input == null || output == null) return false;
+    var ib = boundsIn(line.diagram.blocks, input.block);
+    var ob = boundsIn(line.diagram.blocks, output.block);
+    if (ib == null || ob == null) return false;
+    if (ye > ys) {
+      return tryBottom(xs, ys, xe, ye, ib, ob) || tryTop(xs, ys, xe, ye, ib, ob);
+    } else {
+      return tryTop(xs, ys, xe, ye, ib, ob) || tryBottom(xs, ys, xe, ye, ib, ob);
     }
+  }
+
+  private boolean tryBottom(double xs, double ys, double xe, double ye, Bounds ib, Bounds ob) {
+    return false;
+  }
+
+  private boolean tryTop(double xs, double ys, double xe, double ye, Bounds ib, Bounds ob) {
     return false;
   }
 }

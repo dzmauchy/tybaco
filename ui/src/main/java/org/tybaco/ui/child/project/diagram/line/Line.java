@@ -23,7 +23,7 @@ package org.tybaco.ui.child.project.diagram.line;
 
 import org.tybaco.ui.util.ArrayBasedCurveDivider;
 
-public sealed interface Line permits SimpleLine, InnerLine {
+public sealed interface Line permits SimpleLine, InnerLine, OuterLine {
 
   double SAFE_DIST = 3d;
   double STEP = 30d;
