@@ -47,14 +47,10 @@ public final class ArrayBasedCurveDivider {
   }
 
   public boolean intersects(Bounds bounds, double safeDist) {
-    var rect = new Rectangle2D.Double(
-      bounds.getMinX() - safeDist / 2d,
-      bounds.getMinY() - safeDist / 2d,
-      bounds.getWidth() + safeDist,
-      bounds.getHeight() + safeDist
-    );
+    var d = safeDist / 2d;
+    var rect = new Rectangle2D.Double(bounds.getMinX() - d, bounds.getMinY() - d, bounds.getWidth() + safeDist, bounds.getHeight() + safeDist);
     var array = this.array;
-    for (int i = 0; i < array.length; i += 8) {
+    for (int i = 0, l = array.length; i < l; i += 8) {
       if (rect.intersectsLine(array[i], array[i + 1], array[i + 6], array[i + 7])) {
         return true;
       }
@@ -64,8 +60,7 @@ public final class ArrayBasedCurveDivider {
 
   private void subDivide(int offset, int size) {
     if (size == 8) return;
-    var newSize = size >> 1;
-    var newOffset = offset + newSize;
+    int newSize = size >> 1, newOffset = offset + newSize;
     CubicCurve2D.subdivide(array, offset, array, offset, array, newOffset);
     subDivide(offset, newSize);
     subDivide(newOffset, newSize);

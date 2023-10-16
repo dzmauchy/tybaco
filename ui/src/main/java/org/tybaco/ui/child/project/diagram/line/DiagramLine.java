@@ -29,8 +29,7 @@ import javafx.scene.shape.*;
 import org.tybaco.ui.child.project.diagram.Diagram;
 import org.tybaco.ui.child.project.diagram.DiagramCalculations;
 import org.tybaco.ui.model.Link;
-
-import java.util.stream.Stream;
+import org.tybaco.ui.util.ArrayBasedCurveDivider;
 
 public class DiagramLine extends Group {
 
@@ -92,7 +91,7 @@ public class DiagramLine extends Group {
     double xs = context.xs(), ys = context.ys(), xe = context.xe(), ye = context.ye();
     var divider = line.getDivider();
     divider.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
-    if (constraintBounds().noneMatch(b -> divider.intersects(b, SAFE_DIST))) {
+    if (checkConstraint(divider)) {
       startPoint.setX(xs - SAFE_DIST + 2d);
       startPoint.setY(ys);
       startConnector.setX(xs);
@@ -112,8 +111,14 @@ public class DiagramLine extends Group {
     }
   }
 
-  private Stream<Bounds> constraintBounds() {
+  private boolean checkConstraint(ArrayBasedCurveDivider divider) {
     var blocksBase = diagram.blocks;
-    return blocksBase.getChildren().stream().map(n -> DiagramCalculations.boundsIn(blocksBase, n));
+    for (var node : blocksBase.getChildren()) {
+      var bounds = DiagramCalculations.boundsIn(blocksBase, node);
+      if (divider.intersects(bounds, SAFE_DIST)) {
+        return false;
+      }
+    }
+    return true;
   }
 }
