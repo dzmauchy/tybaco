@@ -25,7 +25,6 @@ import org.tybaco.ui.util.ArrayBasedCurveDivider;
 
 public sealed interface Line permits SimpleLine, InnerLine, OuterLine {
 
-  double SAFE_DIST = 3d;
   double STEP = 30d;
   ArrayBasedCurveDivider D4 = new ArrayBasedCurveDivider(4);
   ArrayBasedCurveDivider D5 = new ArrayBasedCurveDivider(5);

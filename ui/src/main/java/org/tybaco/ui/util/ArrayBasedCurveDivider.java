@@ -22,7 +22,6 @@ package org.tybaco.ui.util;
  */
 
 import javafx.geometry.Bounds;
-import javafx.scene.shape.CubicCurve;
 
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Rectangle2D;
@@ -65,16 +64,5 @@ public final class ArrayBasedCurveDivider {
     CubicCurve2D.subdivide(array, offset, array, offset, array, newOffset);
     subDivide(offset, newSize);
     subDivide(newOffset, newSize);
-  }
-
-  public void setCurve(CubicCurve c, double x1, double y1, double cx1, double cy1, double cx2, double cy2, double x2, double y2) {
-    c.setStartX(x1);
-    c.setStartY(y1);
-    c.setControlX1(cx1);
-    c.setControlY1(cy1);
-    c.setControlX2(cx2);
-    c.setControlY2(cy2);
-    c.setEndX(x2);
-    c.setEndY(y2);
   }
 }

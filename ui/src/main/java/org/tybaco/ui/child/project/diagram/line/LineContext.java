@@ -21,13 +21,6 @@ package org.tybaco.ui.child.project.diagram.line;
  * #L%
  */
 
-import javafx.geometry.Bounds;
-
-import static org.tybaco.ui.child.project.diagram.line.Line.SAFE_DIST;
-
 public record LineContext(double xs, double ys, double xe, double ye) {
 
-  public LineContext(Bounds ib, Bounds ob) {
-    this(ob.getMaxX() + SAFE_DIST, ob.getCenterY(), ib.getMinX() - SAFE_DIST, ib.getCenterY());
-  }
 }

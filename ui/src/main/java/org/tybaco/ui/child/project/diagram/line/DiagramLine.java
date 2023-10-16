@@ -25,21 +25,24 @@ import javafx.beans.*;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.CubicCurve;
-import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.shape.*;
 import org.tybaco.ui.child.project.diagram.Diagram;
 import org.tybaco.ui.child.project.diagram.DiagramCalculations;
 import org.tybaco.ui.model.Link;
-import org.tybaco.ui.util.ArrayBasedCurveDivider;
 
 import java.util.stream.Stream;
 
 public class DiagramLine extends Group {
 
+  private static final double SAFE_DIST = 6d;
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
   public final Diagram diagram;
   public final Link link;
-  final CubicCurve path = new CubicCurve();
+  private final MoveTo startPoint = new MoveTo();
+  private final LineTo startConnector = new LineTo();
+  private final CubicCurveTo curve = new CubicCurveTo();
+  private final LineTo endConnector = new LineTo();
+  private final Path path = new Path(startPoint, startConnector, curve, endConnector);
 
   public DiagramLine(Diagram diagram, Link link) {
     this.diagram = diagram;
@@ -73,7 +76,7 @@ public class DiagramLine extends Group {
   }
 
   private void onUpdate(Bounds ib, Bounds ob) {
-    var context = new LineContext(ib, ob);
+    var context = new LineContext(ob.getMaxX() + SAFE_DIST, ob.getCenterY(), ib.getMinX() - SAFE_DIST, ib.getCenterY());
     for (var type : LineType.LINE_TYPES) {
       var line = LineType.createLine(type, this, context);
       if (line.tryApply()) {
@@ -84,12 +87,23 @@ public class DiagramLine extends Group {
   }
 
   boolean tryApply(Line line, double cx1, double cy1, double cx2, double cy2) {
-    var divider = line.getDivider();
     var context = line.getContext();
     double xs = context.xs(), ys = context.ys(), xe = context.xe(), ye = context.ye();
+    var divider = line.getDivider();
     divider.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
-    if (blocks().noneMatch(divider::intersects)) {
-      divider.setCurve(path, xs, ys, cx1, cy1, cx2, cy2, xe, ye);
+    if (constraintBounds().noneMatch(divider::intersects)) {
+      startPoint.setX(xs - SAFE_DIST + 2d);
+      startPoint.setY(ys);
+      startConnector.setX(xs);
+      startConnector.setY(ys);
+      curve.setControlX1(cx1);
+      curve.setControlY1(cy1);
+      curve.setControlX2(cx2);
+      curve.setControlY2(cy2);
+      curve.setX(xe);
+      curve.setY(ye);
+      endConnector.setX(xe + SAFE_DIST - 2d);
+      endConnector.setY(ye);
       path.setVisible(true);
       return true;
     } else {
@@ -97,12 +111,7 @@ public class DiagramLine extends Group {
     }
   }
 
-  boolean apply(ArrayBasedCurveDivider divider, double x1, double y1, double cx1, double cy1, double cx2, double cy2, double x2, double y2) {
-    divider.setCurve(path, x1, y1, cx1, cy1, cx2, cy2, x2, y2);
-    return true;
-  }
-
-  private Stream<Bounds> blocks() {
+  private Stream<Bounds> constraintBounds() {
     var blocksBase = diagram.blocks;
     return blocksBase.getChildren().stream().map(n -> DiagramCalculations.boundsIn(blocksBase, n));
   }
