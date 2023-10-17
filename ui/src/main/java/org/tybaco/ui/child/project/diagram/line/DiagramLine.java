@@ -29,7 +29,7 @@ import javafx.scene.shape.*;
 import org.tybaco.ui.child.project.diagram.Diagram;
 import org.tybaco.ui.child.project.diagram.DiagramCalculations;
 import org.tybaco.ui.model.Link;
-import org.tybaco.ui.util.ArrayBasedCurveDivider;
+import org.tybaco.ui.util.CurveDivider;
 
 public class DiagramLine extends Group {
 
@@ -117,7 +117,7 @@ public class DiagramLine extends Group {
     }
   }
 
-  private boolean checkConstraint(ArrayBasedCurveDivider divider) {
+  private boolean checkConstraint(CurveDivider divider) {
     var blocksBase = diagram.blocks;
     for (var node : blocksBase.getChildren()) {
       var bounds = DiagramCalculations.boundsIn(blocksBase, node);

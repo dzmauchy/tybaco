@@ -27,11 +27,11 @@ import java.awt.geom.CubicCurve2D;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class ArrayBasedCurveDividerTest {
+class CurveDividerTest {
 
   @Test
   void divide2() {
-    var divider = new ArrayBasedCurveDivider(1);
+    var divider = new CurveDivider(1);
     assertEquals(16, divider.array.length);
     var c = new CubicCurve2D.Double(0, 0, 10, 10, 20, 30, 10, 2);
     divider.divide(c.x1, c.y1, c.ctrlx1, c.ctrly1, c.ctrlx2, c.ctrly2, c.x2, c.y2);

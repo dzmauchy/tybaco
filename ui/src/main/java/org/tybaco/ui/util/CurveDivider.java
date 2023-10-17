@@ -26,11 +26,11 @@ import javafx.geometry.Bounds;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Rectangle2D;
 
-public final class ArrayBasedCurveDivider {
+public final class CurveDivider {
 
   final double[] array;
 
-  public ArrayBasedCurveDivider(int steps) {
+  public CurveDivider(int steps) {
     array = new double[8 << steps];
   }
 
@@ -56,6 +56,15 @@ public final class ArrayBasedCurveDivider {
       }
     }
     return false;
+  }
+
+  public double length() {
+    double len = 0d;
+    var a = array;
+    for (int i = 0, l = a.length; i < l; i += 8) {
+      len += Math.hypot(a[0] - a[6], a[1] - a[7]);
+    }
+    return len;
   }
 
   private void subDivide(int offset, int size) {

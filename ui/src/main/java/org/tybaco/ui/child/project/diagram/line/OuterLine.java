@@ -22,7 +22,7 @@ package org.tybaco.ui.child.project.diagram.line;
  */
 
 import javafx.geometry.Bounds;
-import org.tybaco.ui.util.ArrayBasedCurveDivider;
+import org.tybaco.ui.util.CurveDivider;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -52,7 +52,7 @@ public final class OuterLine implements Line {
   }
 
   @Override
-  public ArrayBasedCurveDivider getDivider() {
+  public CurveDivider getDivider() {
     return D5;
   }
 

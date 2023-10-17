@@ -21,7 +21,7 @@ package org.tybaco.ui.child.project.diagram.line;
  * #L%
  */
 
-import org.tybaco.ui.util.ArrayBasedCurveDivider;
+import org.tybaco.ui.util.CurveDivider;
 
 public final class InnerLine implements Line {
 
@@ -47,7 +47,7 @@ public final class InnerLine implements Line {
   }
 
   @Override
-  public ArrayBasedCurveDivider getDivider() {
+  public CurveDivider getDivider() {
     return D5;
   }
 }

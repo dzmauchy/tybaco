@@ -1,4 +1,4 @@
-package org.tybaco.ui.child.project.diagram.line;
+package org.tybaco.ui.util;
 
 /*-
  * #%L
@@ -21,14 +21,17 @@ package org.tybaco.ui.child.project.diagram.line;
  * #L%
  */
 
-import org.tybaco.ui.util.CurveDivider;
+import static java.lang.ThreadLocal.withInitial;
+import static java.util.stream.IntStream.range;
 
-public sealed interface Line permits SimpleLine, InnerLine, OuterLine {
+public final class CurveDividers {
 
-  double STEP = 30d;
-  CurveDivider D4 = new CurveDivider(4);
-  CurveDivider D5 = new CurveDivider(5);
+  private static final ThreadLocal<CurveDivider[]> CURVE_DIVIDERS = withInitial(() -> range(0, 6)
+    .mapToObj(CurveDivider::new)
+    .toArray(CurveDivider[]::new)
+  );
 
-  boolean tryApply(double xs, double ys, double xe, double ye);
-  CurveDivider getDivider();
+  public static CurveDivider curveDivider(int steps) {
+    return CURVE_DIVIDERS.get()[steps];
+  }
 }
