@@ -24,21 +24,21 @@ package org.tybaco.ui.util;
 import javafx.geometry.Bounds;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveTask;
 import java.util.stream.IntStream;
 
 import static java.awt.geom.CubicCurve2D.getFlatnessSq;
 
 public final class CurveOptimizer {
 
-  private static final int PARALLELISM = 4;
+  private static final int PARALLELISM = 6;
   private static final int ORGANISMS = 16;
-  private static final int ITERATIONS = 64;
-  private static final float MUTATION_PROBABILITY = 0.1f;
-  private static final float INTERSECTION_SCORE = 1e5f;
+  private static final int ITERATIONS = 32;
+  private static final float MUTATION_PROBABILITY = 0.4f;
+  private static final float INTERSECTION_SCORE = 1e7f;
 
   private final float xs;
   private final float ys;
@@ -46,7 +46,6 @@ public final class CurveOptimizer {
   private final float ye;
   private final Bounds[] restricted;
   private final double safeDist;
-  private final ConcurrentSkipListMap<Float, CubicCurve2D.Float> best = new ConcurrentSkipListMap<>();
   private final float minX;
   private final float minY;
   private final float maxX;
@@ -74,7 +73,7 @@ public final class CurveOptimizer {
       if (b.getMinY() < minY) minY = (float) b.getMinY();
       if (b.getMaxY() > maxY) maxY = (float) b.getMaxY();
     }
-    return new Rectangle2D.Float(minX - 300f, minY - 300f, (maxX - minX) + 600f, (maxY - minY) + 600f);
+    return new Rectangle2D.Float(minX - 500f, minY - 500f, (maxX - minX) + 1000f, (maxY - minY) + 1000f);
   }
 
   public Optional<OptimizedCurve> bestFit() {
@@ -115,22 +114,30 @@ public final class CurveOptimizer {
       return fitFunc(divider, organism.cx1, organism.cy1, organism.cx2, organism.cy2);
     }
 
-    private Organism mutate(Organism original, Random random) {
+    private Organism mutate(Organism original, SplittableRandom random) {
       return random.nextFloat() < MUTATION_PROBABILITY ? randomOrganism(random) : original;
     }
 
     @Override
     protected OptimizedCurve compute() {
-      var random = new Random(seed);
+      var random = new SplittableRandom(seed);
       var divider = CurveDividers.curveDivider(5);
       var organisms = initialize(random, divider);
       for (int i = 0; i < ITERATIONS; i++) {
-        for (int j = 0; j < ORGANISMS; j++) {
-          var male = mutate(organisms[random.nextInt(ORGANISMS)], random);
-          var female = mutate(organisms[random.nextInt(ORGANISMS)], random);
+        for (int j = 1; j < ORGANISMS; j++) {
+          var o = organisms[j];
+          var mutated = mutate(o, random);
+          if (mutated != o) {
+            mutated.score = score(mutated, divider);
+            organisms[j] = mutated;
+          }
+        }
+        for (int j = 1; j < ORGANISMS; j++) {
+          var male = organisms[random.nextInt(ORGANISMS)];
+          var female = organisms[random.nextInt(ORGANISMS)];
           var child = male.crossover(female);
-          child.score = fitFunc(divider, child.cx1, child.cy1, child.cx2, child.cy2);
-          organisms[ORGANISMS + j] = child;
+          child.score = score(child, divider);
+          organisms[j] = child;
         }
         Arrays.sort(organisms);
       }
@@ -138,7 +145,7 @@ public final class CurveOptimizer {
       return new OptimizedCurve(xs, ys, best.cx1, best.cy1, best.cx2, best.cy2, xe, ye, best.score);
     }
 
-    private Organism randomOrganism(Random random) {
+    private Organism randomOrganism(SplittableRandom random) {
       return new Organism(
         random.nextFloat(minX, maxX),
         random.nextFloat(minY, maxY),
@@ -147,8 +154,8 @@ public final class CurveOptimizer {
       );
     }
 
-    private Organism[] initialize(Random random, CurveDivider divider) {
-      var organisms = new Organism[ORGANISMS * 2];
+    private Organism[] initialize(SplittableRandom random, CurveDivider divider) {
+      var organisms = new Organism[ORGANISMS];
       for (int i = 0; i < ORGANISMS; i++) {
         var o = randomOrganism(random);
         organisms[i] = o;
@@ -176,8 +183,8 @@ public final class CurveOptimizer {
     private Organism crossover(Organism that) {
       return new Organism(
         this.cx1,
-        that.cy1,
-        this.cx2,
+        this.cy1,
+        that.cx2,
         that.cy2
       );
     }
