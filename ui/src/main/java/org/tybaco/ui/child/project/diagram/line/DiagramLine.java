@@ -47,7 +47,7 @@ public class DiagramLine extends Group {
   private double ys;
   private double xe;
   private double ye;
-  Bounds[] bounds;
+  private Bounds[] bounds;
 
   public DiagramLine(Diagram diagram, Link link) {
     this.diagram = diagram;
