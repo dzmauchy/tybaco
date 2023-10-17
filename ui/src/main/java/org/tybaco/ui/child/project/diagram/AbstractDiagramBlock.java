@@ -24,7 +24,7 @@ package org.tybaco.ui.child.project.diagram;
 import javafx.geometry.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -37,9 +37,9 @@ import static javafx.scene.paint.Color.WHITE;
 
 abstract class AbstractDiagramBlock extends BorderPane {
 
+  private final Label blockIdLabel = new Label();
   final Diagram diagram;
   final Block block;
-  private final Label blockIdLabel = new Label();
   final Label blockName = new Label();
   final HBox title = new HBox(3d, blockIdLabel, new Separator(VERTICAL), blockName);
   final Label factory = new Label();
@@ -62,8 +62,8 @@ abstract class AbstractDiagramBlock extends BorderPane {
     configureInputsAndOutputs();
     configureBlockName();
     configureTitle();
-    addEventHandler(MouseEvent.MOUSE_MOVED, this::onMouseMoved);
     addEventHandler(MouseEvent.MOUSE_DRAGGED, this::onMouseDragged);
+    addEventHandler(MouseEvent.DRAG_DETECTED, this::onMouseDragDetected);
   }
 
   private void configureTitle() {
@@ -98,7 +98,7 @@ abstract class AbstractDiagramBlock extends BorderPane {
     blockIdLabel.setAlignment(Pos.BASELINE_CENTER);
   }
 
-  protected void onMouseMoved(MouseEvent event) {
+  protected void onMouseDragDetected(MouseEvent event) {
     bx = event.getX();
     by = event.getY();
   }
