@@ -80,6 +80,17 @@ public class DiagramLine extends Group {
     }
   }
 
+  private void old(Bounds ib, Bounds ob) {
+    if (new SimpleLine(this).tryApply(xs, ys, xe, ye)) {
+      return;
+    } else if (new InnerLine(this).tryApply(xs, ys, xe, ye)) {
+      return;
+    } else if (new OuterLine(this).tryApply(xs, ys, xe, ye)) {
+      return;
+    }
+    path.setVisible(false);
+  }
+
   private void onUpdate(Bounds ib, Bounds ob) {
     xs = ob.getMaxX() + SAFE_DIST;
     ys = ob.getCenterY();

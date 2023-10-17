@@ -22,21 +22,23 @@ package org.tybaco.ui.util;
  */
 
 import javafx.geometry.Bounds;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.stream.IntStream;
 
 import static java.awt.geom.CubicCurve2D.getFlatnessSq;
-import static java.util.concurrent.atomic.AtomicIntegerFieldUpdater.newUpdater;
 
 public final class CurveOptimizer {
 
-  private static final int ITERATIONS_PER_TASK = 100;
-  private static final int MAX_ITERATIONS = 1_000;
-  private static final AtomicIntegerFieldUpdater<CurveOptimizer> ITERATIONS = newUpdater(CurveOptimizer.class, "iterations");
+  private static final int PARALLELISM = 4;
+  private static final int ORGANISMS = 16;
+  private static final int ITERATIONS = 64;
+  private static final float MUTATION_PROBABILITY = 0.1f;
+  private static final float INTERSECTION_SCORE = 1e5f;
 
   private final float xs;
   private final float ys;
@@ -49,8 +51,6 @@ public final class CurveOptimizer {
   private final float minY;
   private final float maxX;
   private final float maxY;
-
-  private volatile int iterations;
 
   public CurveOptimizer(double xs, double ys, double xe, double ye, Bounds[] restricted, double safeDist) {
     this.xs = (float) xs;
@@ -77,53 +77,114 @@ public final class CurveOptimizer {
     return new Rectangle2D.Float(minX - 300f, minY - 300f, (maxX - minX) + 600f, (maxY - minY) + 600f);
   }
 
-  public Optional<CubicCurve2D.Float> bestFit() {
-    new Task(0L).fork().join();
-    var entry = best.pollFirstEntry();
-    return Optional.ofNullable(entry).map(Map.Entry::getValue);
+  public Optional<OptimizedCurve> bestFit() {
+    return IntStream.range(0, PARALLELISM)
+      .mapToObj(i -> new Task(i * 1_000_000L).fork())
+      .toList()
+      .stream()
+      .map(ForkJoinTask::join)
+      .sorted()
+      .findFirst()
+      .filter(c -> c.func < INTERSECTION_SCORE);
   }
 
-  private boolean notIntersects(CurveDivider divider) {
+  private boolean intersects(CurveDivider divider) {
     for (var b : restricted) {
       if (divider.intersects(b, safeDist)) {
-        return false;
+        return true;
       }
     }
-    return true;
+    return false;
   }
 
   private float fitFunc(CurveDivider divider, float cx1, float cy1, float cx2, float cy2) {
-    return (float) (getFlatnessSq(xs, ys, cx1, cy1, cx2, cy2, xe, ye) + divider.length());
+    var base = (float) (getFlatnessSq(xs, ys, cx1, cy1, cx2, cy2, xe, ye) + divider.length());
+    return intersects(divider) ? base + INTERSECTION_SCORE : base;
   }
 
-  private final class Task extends RecursiveAction {
+  private final class Task extends RecursiveTask<OptimizedCurve> {
 
     private final long seed;
-    private final Random random;
 
     private Task(long seed) {
       this.seed = seed;
-      this.random = new Random(seed);
+    }
+
+    private float score(Organism organism, CurveDivider divider) {
+      divider.divide(xs, ys, organism.cx1, organism.cy1, organism.cx2, organism.cy2, xe, ye);
+      return fitFunc(divider, organism.cx1, organism.cy1, organism.cx2, organism.cy2);
+    }
+
+    private Organism mutate(Organism original, Random random) {
+      return random.nextFloat() < MUTATION_PROBABILITY ? randomOrganism(random) : original;
     }
 
     @Override
-    protected void compute() {
+    protected OptimizedCurve compute() {
+      var random = new Random(seed);
       var divider = CurveDividers.curveDivider(5);
-      for (int i = 0; i < ITERATIONS_PER_TASK; i++) {
-        var cx1 = random.nextFloat(minX, maxX);
-        var cx2 = random.nextFloat(minX, maxX);
-        var cy1 = random.nextFloat(minY, maxY);
-        var cy2 = random.nextFloat(minY, maxY);
-        divider.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
-        if (notIntersects(divider)) {
-          best.put(fitFunc(divider, cx1, cy1, cx2, cy2), new CubicCurve2D.Float(xs, ys, cx1, cy1, cx2, cy2, xe, ye));
+      var organisms = initialize(random, divider);
+      for (int i = 0; i < ITERATIONS; i++) {
+        for (int j = 0; j < ORGANISMS; j++) {
+          var male = mutate(organisms[random.nextInt(ORGANISMS)], random);
+          var female = mutate(organisms[random.nextInt(ORGANISMS)], random);
+          var child = male.crossover(female);
+          child.score = fitFunc(divider, child.cx1, child.cy1, child.cx2, child.cy2);
+          organisms[ORGANISMS + j] = child;
         }
-        if (ITERATIONS.incrementAndGet(CurveOptimizer.this) > MAX_ITERATIONS) return;
+        Arrays.sort(organisms);
       }
-      var f1 = new Task(1000L * seed + 1000L).fork();
-      var f2 = new Task(1000L * seed + 2000L).fork();
-      f1.join();
-      f2.join();
+      var best = organisms[0];
+      return new OptimizedCurve(xs, ys, best.cx1, best.cy1, best.cx2, best.cy2, xe, ye, best.score);
+    }
+
+    private Organism randomOrganism(Random random) {
+      return new Organism(
+        random.nextFloat(minX, maxX),
+        random.nextFloat(minY, maxY),
+        random.nextFloat(minX, maxX),
+        random.nextFloat(minY, maxY)
+      );
+    }
+
+    private Organism[] initialize(Random random, CurveDivider divider) {
+      var organisms = new Organism[ORGANISMS * 2];
+      for (int i = 0; i < ORGANISMS; i++) {
+        var o = randomOrganism(random);
+        organisms[i] = o;
+        o.score = score(o, divider);
+      }
+      return organisms;
+    }
+  }
+
+  private static final class Organism implements Comparable<Organism> {
+
+    private final float cx1;
+    private final float cy1;
+    private final float cx2;
+    private final float cy2;
+    private float score;
+
+    private Organism(float cx1, float cy1, float cx2, float cy2) {
+      this.cx1 = cx1;
+      this.cy1 = cy1;
+      this.cx2 = cx2;
+      this.cy2 = cy2;
+    }
+
+    private Organism crossover(Organism that) {
+      return new Organism(
+        this.cx1,
+        that.cy1,
+        this.cx2,
+        that.cy2
+      );
+    }
+
+    @Override
+    public int compareTo(@NotNull CurveOptimizer.Organism o) {
+      return Float.compare(score, o.score);
     }
   }
 }
