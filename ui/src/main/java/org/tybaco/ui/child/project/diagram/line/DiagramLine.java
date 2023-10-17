@@ -30,7 +30,6 @@ import org.tybaco.ui.child.project.diagram.Diagram;
 import org.tybaco.ui.child.project.diagram.DiagramCalculations;
 import org.tybaco.ui.model.Link;
 import org.tybaco.ui.util.CurveDivider;
-import org.tybaco.ui.util.CurveOptimizer;
 
 public class DiagramLine extends Group {
 
@@ -48,9 +47,11 @@ public class DiagramLine extends Group {
   private double ys;
   private double xe;
   private double ye;
+  Bounds[] bounds;
 
   public DiagramLine(Diagram diagram, Link link) {
     this.diagram = diagram;
+    this.bounds = new Bounds[diagram.blocks.getChildren().size()];
     this.link = link;
     visibleProperty().bind(link.input.isNotNull().and(link.output.isNotNull()).and(link.inBounds.isNotNull()).and(link.outBounds.isNotNull()));
     getChildren().add(path);
@@ -80,7 +81,12 @@ public class DiagramLine extends Group {
     }
   }
 
-  private void old(Bounds ib, Bounds ob) {
+  private void onUpdate(Bounds ib, Bounds ob) {
+    xs = ob.getMaxX() + SAFE_DIST;
+    ys = ob.getCenterY();
+    xe = ib.getMinX() - SAFE_DIST;
+    ye = ib.getCenterY();
+    updateRestrictedAreas();
     if (new SimpleLine(this).tryApply(xs, ys, xe, ye)) {
       return;
     } else if (new InnerLine(this).tryApply(xs, ys, xe, ye)) {
@@ -89,30 +95,6 @@ public class DiagramLine extends Group {
       return;
     }
     path.setVisible(false);
-  }
-
-  private void onUpdate(Bounds ib, Bounds ob) {
-    xs = ob.getMaxX() + SAFE_DIST;
-    ys = ob.getCenterY();
-    xe = ib.getMinX() - SAFE_DIST;
-    ye = ib.getCenterY();
-    new CurveOptimizer(xs, ys, xe, ye, restrictedAreas(), SAFE_DIST).bestFit().ifPresentOrElse(
-      c -> {
-        startPoint.setX(xs - SAFE_DIST + 2d);
-        startPoint.setY(ys);
-        startConnector.setX(xs);
-        startConnector.setY(ys);
-        curve.setControlX1(c.ctrlx1);
-        curve.setControlY1(c.ctrly1);
-        curve.setControlX2(c.ctrlx2);
-        curve.setControlY2(c.ctrly2);
-        curve.setX(xe);
-        curve.setY(ye);
-        endConnector.setX(xe + SAFE_DIST - 2d);
-        endConnector.setY(ye);
-        path.setVisible(true);
-      },
-      () -> path.setVisible(false));
   }
 
   boolean tryApply(Line line, double cx1, double cy1, double cx2, double cy2) {
@@ -139,23 +121,22 @@ public class DiagramLine extends Group {
   }
 
   private boolean checkConstraint(CurveDivider divider) {
-    var blocksBase = diagram.blocks;
-    for (var node : blocksBase.getChildren()) {
-      var bounds = DiagramCalculations.boundsIn(blocksBase, node);
-      if (divider.intersects(bounds, SAFE_DIST)) {
+    for (var b : bounds) {
+      if (divider.intersects(b, SAFE_DIST)) {
         return false;
       }
     }
     return true;
   }
 
-  private Bounds[] restrictedAreas() {
+  private void updateRestrictedAreas() {
     var blocksBase = diagram.blocks;
     var children = blocksBase.getChildren();
-    var bounds = new Bounds[children.size()];
-    for (int i = 0, l = bounds.length; i < l; i++) {
+    var l = children.size();
+    var bounds = this.bounds.length == l ? this.bounds : new Bounds[l];
+    for (int i = 0; i < l; i++) {
       bounds[i] = DiagramCalculations.boundsIn(blocksBase, children.get(i));
     }
-    return bounds;
+    this.bounds = bounds;
   }
 }

@@ -26,25 +26,24 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.geom.Rectangle2D;
 import java.util.*;
-import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.RecursiveTask;
 import java.util.stream.IntStream;
 
-import static java.awt.geom.CubicCurve2D.getFlatnessSq;
+import static java.util.Spliterator.IMMUTABLE;
+import static java.util.Spliterator.NONNULL;
+import static java.util.stream.StreamSupport.stream;
 
 public final class CurveOptimizer {
 
-  private static final int PARALLELISM = 6;
+  private static final int PARALLELISM = 4;
   private static final int ORGANISMS = 16;
-  private static final int ITERATIONS = 32;
-  private static final float MUTATION_PROBABILITY = 0.4f;
+  private static final int ITERATIONS = 8;
   private static final float INTERSECTION_SCORE = 1e7f;
 
   private final float xs;
   private final float ys;
   private final float xe;
   private final float ye;
-  private final Bounds[] restricted;
+  private final Spliterator<Bounds> restricted;
   private final double safeDist;
   private final float minX;
   private final float minY;
@@ -56,16 +55,16 @@ public final class CurveOptimizer {
     this.ys = (float) ys;
     this.xe = (float) xe;
     this.ye = (float) ye;
-    this.restricted = restricted;
+    this.restricted = Spliterators.spliterator(restricted, NONNULL | IMMUTABLE);
     this.safeDist = safeDist;
-    var worldBounds = getWorldBounds();
+    var worldBounds = getWorldBounds(restricted);
     this.minX = worldBounds.x;
     this.minY = worldBounds.y;
     this.maxX = worldBounds.x + worldBounds.width;
     this.maxY = worldBounds.y + worldBounds.height;
   }
 
-  private Rectangle2D.Float getWorldBounds() {
+  private Rectangle2D.Float getWorldBounds(Bounds[] restricted) {
     float minX = 0f, maxX = 0f, minY = 0f, maxY = 0f;
     for (var b : restricted) {
       if (b.getMinX() < minX) minX = (float) b.getMinX();
@@ -77,31 +76,18 @@ public final class CurveOptimizer {
   }
 
   public Optional<OptimizedCurve> bestFit() {
-    return IntStream.range(0, PARALLELISM)
-      .mapToObj(i -> new Task(i * 1_000_000L).fork())
-      .toList()
-      .stream()
-      .map(ForkJoinTask::join)
+    return IntStream.range(0, PARALLELISM).parallel()
+      .mapToObj(i -> new Task(i * 1_000_000L).compute())
       .sorted()
       .findFirst()
       .filter(c -> c.func < INTERSECTION_SCORE);
   }
 
   private boolean intersects(CurveDivider divider) {
-    for (var b : restricted) {
-      if (divider.intersects(b, safeDist)) {
-        return true;
-      }
-    }
-    return false;
+    return stream(restricted, true).anyMatch(b -> divider.intersects(b, safeDist));
   }
 
-  private float fitFunc(CurveDivider divider, float cx1, float cy1, float cx2, float cy2) {
-    var base = (float) (getFlatnessSq(xs, ys, cx1, cy1, cx2, cy2, xe, ye) + divider.length());
-    return intersects(divider) ? base + INTERSECTION_SCORE : base;
-  }
-
-  private final class Task extends RecursiveTask<OptimizedCurve> {
+  private final class Task {
 
     private final long seed;
 
@@ -109,35 +95,27 @@ public final class CurveOptimizer {
       this.seed = seed;
     }
 
-    private float score(Organism organism, CurveDivider divider) {
-      divider.divide(xs, ys, organism.cx1, organism.cy1, organism.cx2, organism.cy2, xe, ye);
-      return fitFunc(divider, organism.cx1, organism.cy1, organism.cx2, organism.cy2);
+    private float score(float cx1, float cy1, float cx2, float cy2, CurveDivider divider) {
+      divider.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
+      return (float) divider.length() + (intersects(divider) ? INTERSECTION_SCORE : 0f);
     }
 
-    private Organism mutate(Organism original, SplittableRandom random) {
-      return random.nextFloat() < MUTATION_PROBABILITY ? randomOrganism(random) : original;
-    }
-
-    @Override
-    protected OptimizedCurve compute() {
+    private OptimizedCurve compute() {
       var random = new SplittableRandom(seed);
       var divider = CurveDividers.curveDivider(5);
       var organisms = initialize(random, divider);
       for (int i = 0; i < ITERATIONS; i++) {
-        for (int j = 1; j < ORGANISMS; j++) {
-          var o = organisms[j];
-          var mutated = mutate(o, random);
-          if (mutated != o) {
-            mutated.score = score(mutated, divider);
-            organisms[j] = mutated;
-          }
+        for (int j = 1, l = ORGANISMS >>> 2; j < l; j++) {
+          organisms[j] = mutate(random, divider, organisms[j]);
         }
         for (int j = 1; j < ORGANISMS; j++) {
-          var male = organisms[random.nextInt(ORGANISMS)];
-          var female = organisms[random.nextInt(ORGANISMS)];
-          var child = male.crossover(female);
-          child.score = score(child, divider);
-          organisms[j] = child;
+          var maleIndex = random.nextInt(ORGANISMS);
+          var femaleIndex = random.nextInt(ORGANISMS);
+          if (maleIndex != femaleIndex) {
+            organisms[j] = crossover(divider, organisms[maleIndex], organisms[femaleIndex]);
+          } else {
+            organisms[i] = randomOrganism(random, divider);
+          }
         }
         Arrays.sort(organisms);
       }
@@ -145,50 +123,40 @@ public final class CurveOptimizer {
       return new OptimizedCurve(xs, ys, best.cx1, best.cy1, best.cx2, best.cy2, xe, ye, best.score);
     }
 
-    private Organism randomOrganism(SplittableRandom random) {
-      return new Organism(
-        random.nextFloat(minX, maxX),
-        random.nextFloat(minY, maxY),
-        random.nextFloat(minX, maxX),
-        random.nextFloat(minY, maxY)
-      );
+    private Organism crossover(CurveDivider divider, Organism male, Organism female) {
+      var cx1 = (male.cx1 + female.cx1) / 2f;
+      var cy1 = (male.cy1 + female.cy1) / 2f;
+      var cx2 = (male.cx2 + female.cx2) / 2f;
+      var cy2 = (male.cy2 + female.cy2) / 2f;
+      return new Organism(cx1, cy1, cx2, cy2, score(cx1, cy1, cx2, cy2, divider));
+    }
+
+    private Organism mutate(SplittableRandom random, CurveDivider divider, Organism organism) {
+      var cx1 = organism.cx1 + random.nextFloat(-300f, 300f);
+      var cy1 = organism.cy1 + random.nextFloat(-300f, 300f);
+      var cx2 = organism.cx2 + random.nextFloat(-300f, 300f);
+      var cy2 = organism.cy2 + random.nextFloat(-300f, 300f);
+      return new Organism(cx1, cy1, cx2, cy2, score(cx1, cy1, cx2, cy2, divider));
+    }
+
+    private Organism randomOrganism(SplittableRandom random, CurveDivider divider) {
+      var cx1 = random.nextFloat(minX, maxX);
+      var cy1 = random.nextFloat(minY, maxY);
+      var cx2 = random.nextFloat(minX, maxX);
+      var cy2 = random.nextFloat(minY, maxY);
+      return new Organism(cx1, cy1, cx2, cy2, score(cx1, cy1, cx2, cy2, divider));
     }
 
     private Organism[] initialize(SplittableRandom random, CurveDivider divider) {
       var organisms = new Organism[ORGANISMS];
       for (int i = 0; i < ORGANISMS; i++) {
-        var o = randomOrganism(random);
-        organisms[i] = o;
-        o.score = score(o, divider);
+        organisms[i] = randomOrganism(random, divider);
       }
       return organisms;
     }
   }
 
-  private static final class Organism implements Comparable<Organism> {
-
-    private final float cx1;
-    private final float cy1;
-    private final float cx2;
-    private final float cy2;
-    private float score;
-
-    private Organism(float cx1, float cy1, float cx2, float cy2) {
-      this.cx1 = cx1;
-      this.cy1 = cy1;
-      this.cx2 = cx2;
-      this.cy2 = cy2;
-    }
-
-    private Organism crossover(Organism that) {
-      return new Organism(
-        this.cx1,
-        this.cy1,
-        that.cx2,
-        that.cy2
-      );
-    }
-
+  private record Organism(float cx1, float cy1, float cx2, float cy2, float score) implements Comparable<Organism> {
     @Override
     public int compareTo(@NotNull CurveOptimizer.Organism o) {
       return Float.compare(score, o.score);

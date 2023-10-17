@@ -47,8 +47,12 @@ public final class CurveDivider {
   }
 
   public boolean intersects(Bounds bounds, double safeDist) {
+    return intersects(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight(), safeDist);
+  }
+
+  public boolean intersects(double x, double y, double w, double h, double safeDist) {
     var d = safeDist / 2d;
-    var rect = new Rectangle2D.Double(bounds.getMinX() - d, bounds.getMinY() - d, bounds.getWidth() + safeDist, bounds.getHeight() + safeDist);
+    var rect = new Rectangle2D.Double(x - d, y - d, w + safeDist, h + safeDist + safeDist);
     var array = this.array;
     for (int i = 0, l = array.length; i < l; i += 8) {
       if (rect.intersectsLine(array[i], array[i + 1], array[i + 6], array[i + 7])) {
