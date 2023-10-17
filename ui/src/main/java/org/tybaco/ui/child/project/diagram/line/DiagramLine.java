@@ -30,10 +30,11 @@ import org.tybaco.ui.child.project.diagram.Diagram;
 import org.tybaco.ui.child.project.diagram.DiagramCalculations;
 import org.tybaco.ui.model.Link;
 import org.tybaco.ui.util.CurveDivider;
+import org.tybaco.ui.util.CurveOptimizer;
 
 public class DiagramLine extends Group {
 
-  private static final double SAFE_DIST = 6d;
+  private static final float SAFE_DIST = 6f;
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
   public final Diagram diagram;
   public final Link link;
@@ -84,14 +85,23 @@ public class DiagramLine extends Group {
     ys = ob.getCenterY();
     xe = ib.getMinX() - SAFE_DIST;
     ye = ib.getCenterY();
-    if (new SimpleLine(this).tryApply(xs, ys, xe, ye)) {
-      return;
-    } else if (new InnerLine(this).tryApply(xs, ys, xe, ye)) {
-      return;
-    } else if (new OuterLine(this).tryApply(xs, ys, xe, ye)) {
-      return;
-    }
-    path.setVisible(false);
+    new CurveOptimizer(xs, ys, xe, ye, restrictedAreas(), SAFE_DIST).bestFit().ifPresentOrElse(
+      c -> {
+        startPoint.setX(xs - SAFE_DIST + 2d);
+        startPoint.setY(ys);
+        startConnector.setX(xs);
+        startConnector.setY(ys);
+        curve.setControlX1(c.ctrlx1);
+        curve.setControlY1(c.ctrly1);
+        curve.setControlX2(c.ctrlx2);
+        curve.setControlY2(c.ctrly2);
+        curve.setX(xe);
+        curve.setY(ye);
+        endConnector.setX(xe + SAFE_DIST - 2d);
+        endConnector.setY(ye);
+        path.setVisible(true);
+      },
+      () -> path.setVisible(false));
   }
 
   boolean tryApply(Line line, double cx1, double cy1, double cx2, double cy2) {
@@ -126,5 +136,15 @@ public class DiagramLine extends Group {
       }
     }
     return true;
+  }
+
+  private Bounds[] restrictedAreas() {
+    var blocksBase = diagram.blocks;
+    var children = blocksBase.getChildren();
+    var bounds = new Bounds[children.size()];
+    for (int i = 0, l = bounds.length; i < l; i++) {
+      bounds[i] = DiagramCalculations.boundsIn(blocksBase, children.get(i));
+    }
+    return bounds;
   }
 }

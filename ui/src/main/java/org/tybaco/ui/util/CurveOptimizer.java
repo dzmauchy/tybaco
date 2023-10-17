@@ -10,12 +10,12 @@ package org.tybaco.ui.util;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -25,16 +25,18 @@ import javafx.geometry.Bounds;
 
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import static java.awt.geom.CubicCurve2D.getFlatnessSq;
-import static java.lang.Boolean.TRUE;
+import static java.util.concurrent.atomic.AtomicIntegerFieldUpdater.newUpdater;
 
 public final class CurveOptimizer {
 
-  private static final float STEP = 30f;
+  private static final int ITERATIONS_PER_TASK = 100;
+  private static final int MAX_ITERATIONS = 1_000;
+  private static final AtomicIntegerFieldUpdater<CurveOptimizer> ITERATIONS = newUpdater(CurveOptimizer.class, "iterations");
 
   private final float xs;
   private final float ys;
@@ -43,13 +45,12 @@ public final class CurveOptimizer {
   private final Bounds[] restricted;
   private final double safeDist;
   private final ConcurrentSkipListMap<Float, CubicCurve2D.Float> best = new ConcurrentSkipListMap<>();
-  private final ConcurrentHashMap<Key, Boolean> passed = new ConcurrentHashMap<>(128, 0.75f, 16);
   private final float minX;
   private final float minY;
   private final float maxX;
   private final float maxY;
 
-  private volatile boolean running = true;
+  private volatile int iterations;
 
   public CurveOptimizer(double xs, double ys, double xe, double ye, Bounds[] restricted, double safeDist) {
     this.xs = (float) xs;
@@ -77,16 +78,9 @@ public final class CurveOptimizer {
   }
 
   public Optional<CubicCurve2D.Float> bestFit() {
-    var w = (xe - xs) / 5f;
-    var primordialTask = new Task(xs + w, ys, xe - w, ye).fork();
-    while (!primordialTask.isDone()) {
-      if (best.size() > 1) {
-        running = false;
-        return Optional.of(best.firstEntry().getValue());
-      }
-      LockSupport.parkNanos(1000L);
-    }
-    return Optional.empty();
+    new Task(0L).fork().join();
+    var entry = best.pollFirstEntry();
+    return Optional.ofNullable(entry).map(Map.Entry::getValue);
   }
 
   private boolean notIntersects(CurveDivider divider) {
@@ -98,63 +92,38 @@ public final class CurveOptimizer {
     return true;
   }
 
-  private record Key(float cx1, float cy1, float cx2, float cy2) {
+  private float fitFunc(CurveDivider divider, float cx1, float cy1, float cx2, float cy2) {
+    return (float) (getFlatnessSq(xs, ys, cx1, cy1, cx2, cy2, xe, ye) + divider.length());
   }
 
   private final class Task extends RecursiveAction {
 
-    private final float cx1;
-    private final float cy1;
-    private final float cx2;
-    private final float cy2;
+    private final long seed;
+    private final Random random;
 
-    private Task(float cx1, float cy1, float cx2, float cy2) {
-      this.cx1 = cx1;
-      this.cy1 = cy1;
-      this.cx2 = cx2;
-      this.cy2 = cy2;
-    }
-
-    private float fitFunc(CurveDivider divider) {
-      return (float) (getFlatnessSq(xs, ys, cx1, cy1, cx2, cy2, xe, ye) + divider.length());
-    }
-
-    private ForkJoinTask<Void> tryFork() {
-      if (cx1 < minX || cx1 > maxX || cx2 < minX || cx2 > maxX || cy1 < minY || cy1 > maxY || cy2 < minY || cy2 > maxY) {
-        return null;
-      } else {
-        return fork();
-      }
+    private Task(long seed) {
+      this.seed = seed;
+      this.random = new Random(seed);
     }
 
     @Override
     protected void compute() {
-      if (passed.putIfAbsent(new Key(cx1, cy1, cx2, cy2), TRUE) != null) {
-        return;
-      }
       var divider = CurveDividers.curveDivider(5);
-      divider.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
-      if (notIntersects(divider)) {
-        best.put(fitFunc(divider), new CubicCurve2D.Float(xs, ys, cx1, cy1, cx2, cy2, xe, ye));
+      for (int i = 0; i < ITERATIONS_PER_TASK; i++) {
+        var cx1 = random.nextFloat(minX, maxX);
+        var cx2 = random.nextFloat(minX, maxX);
+        var cy1 = random.nextFloat(minY, maxY);
+        var cy2 = random.nextFloat(minY, maxY);
+        divider.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
+        if (notIntersects(divider)) {
+          best.put(fitFunc(divider, cx1, cy1, cx2, cy2), new CubicCurve2D.Float(xs, ys, cx1, cy1, cx2, cy2, xe, ye));
+        }
+        if (ITERATIONS.incrementAndGet(CurveOptimizer.this) > MAX_ITERATIONS) return;
       }
-      if (running) {
-        var f1 = new Task(cx1 + STEP, cy1, cx2, cy2).tryFork();
-        var f2 = new Task(cx1 - STEP, cy1, cx2, cy2).tryFork();
-        var f3 = new Task(cx1, cy1 + STEP, cx2, cy2).tryFork();
-        var f4 = new Task(cx1, cy1 - STEP, cx2, cy2).tryFork();
-        var f5 = new Task(cx1, cy1, cx2 + STEP, cy2).tryFork();
-        var f6 = new Task(cx1, cy1, cx2 - STEP, cy2).tryFork();
-        var f7 = new Task(cx1, cy1, cx2, cy2 + STEP).tryFork();
-        var f8 = new Task(cx1, cy1, cx2, cy2 - STEP).tryFork();
-        if (f1 != null) f1.join();
-        if (f2 != null) f2.join();
-        if (f3 != null) f3.join();
-        if (f4 != null) f4.join();
-        if (f5 != null) f5.join();
-        if (f6 != null) f6.join();
-        if (f7 != null) f7.join();
-        if (f8 != null) f8.join();
-      }
+      var f1 = new Task(1000L * seed + 1000L).fork();
+      var f2 = new Task(1000L * seed + 2000L).fork();
+      f1.join();
+      f2.join();
     }
   }
 }
