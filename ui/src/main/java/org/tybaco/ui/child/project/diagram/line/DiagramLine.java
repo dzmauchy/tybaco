@@ -23,11 +23,11 @@ package org.tybaco.ui.child.project.diagram.line;
 
 import javafx.beans.*;
 import javafx.geometry.Bounds;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import org.tybaco.ui.child.project.diagram.Diagram;
-import org.tybaco.ui.child.project.diagram.DiagramCalculations;
 import org.tybaco.ui.model.Link;
 import org.tybaco.ui.util.CurveDivider;
 
@@ -47,11 +47,9 @@ public class DiagramLine extends Group {
   private double ys;
   private double xe;
   private double ye;
-  private Bounds[] bounds;
 
   public DiagramLine(Diagram diagram, Link link) {
     this.diagram = diagram;
-    this.bounds = new Bounds[diagram.blocks.getChildren().size()];
     this.link = link;
     visibleProperty().bind(link.input.isNotNull().and(link.output.isNotNull()).and(link.inBounds.isNotNull()).and(link.outBounds.isNotNull()));
     getChildren().add(path);
@@ -86,7 +84,6 @@ public class DiagramLine extends Group {
     ys = ob.getCenterY();
     xe = ib.getMinX() - SAFE_DIST;
     ye = ib.getCenterY();
-    updateRestrictedAreas();
     if (new SimpleLine(this).tryApply(xs, ys, xe, ye)) {
       return;
     } else if (new InnerLine(this).tryApply(xs, ys, xe, ye)) {
@@ -121,22 +118,6 @@ public class DiagramLine extends Group {
   }
 
   private boolean checkConstraint(CurveDivider divider) {
-    for (var b : bounds) {
-      if (divider.intersects(b, SAFE_DIST)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private void updateRestrictedAreas() {
-    var blocksBase = diagram.blocks;
-    var children = blocksBase.getChildren();
-    var l = children.size();
-    var bounds = this.bounds.length == l ? this.bounds : new Bounds[l];
-    for (int i = 0; i < l; i++) {
-      bounds[i] = DiagramCalculations.boundsIn(blocksBase, children.get(i));
-    }
-    this.bounds = bounds;
+    return diagram.diagramBlockBoundsObserver.bounds().noneMatch(b -> divider.intersects(b, SAFE_DIST));
   }
 }

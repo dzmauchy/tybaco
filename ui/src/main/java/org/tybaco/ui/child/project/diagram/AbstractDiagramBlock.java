@@ -107,10 +107,10 @@ abstract class AbstractDiagramBlock extends BorderPane {
       if (node != this) {
         var b = node.getBoundsInParent();
         var bb = new BoundingBox(
-          b.getMinX() - 10d,
-          b.getMinY() - 10d,
-          b.getWidth() + 20d,
-          b.getHeight() + 20d
+          b.getMinX() - 35d,
+          b.getMinY() - 35d,
+          b.getWidth() + 70d,
+          b.getHeight() + 70d
         );
         if (bb.intersects(bounds)) {
           return false;

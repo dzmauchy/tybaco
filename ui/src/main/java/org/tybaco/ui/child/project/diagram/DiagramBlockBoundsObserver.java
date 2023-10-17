@@ -21,12 +21,41 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
+import javafx.collections.ListChangeListener;
+import javafx.geometry.Bounds;
+import javafx.scene.Node;
+import javafx.scene.layout.Pane;
 import org.tybaco.editors.util.InvalidationListeners;
+
+import java.util.IdentityHashMap;
+import java.util.stream.Stream;
 
 public final class DiagramBlockBoundsObserver extends InvalidationListeners {
 
-  @Override
-  public void fire() {
-    super.fire();
+  private final IdentityHashMap<Node, Bounds> bounds = new IdentityHashMap<>(128);
+
+  public DiagramBlockBoundsObserver(Pane pane) {
+    pane.getChildren().forEach(n -> bounds.put(n, n.getBoundsInParent()));
+    pane.getChildren().addListener((ListChangeListener<? super Node>) c -> {
+      while (c.next()) {
+        if (c.wasRemoved()) {
+          c.getRemoved().forEach(bounds::remove);
+        }
+        if (c.wasAdded()) {
+          for (var n : c.getAddedSubList()) {
+            bounds.put(n, n.getBoundsInParent());
+            n.boundsInParentProperty().addListener((o, ov, nv) -> {
+              bounds.put(n, nv);
+              fire();
+            });
+          }
+        }
+        fire();
+      }
+    });
+  }
+
+  public Stream<Bounds> bounds() {
+    return bounds.values().stream();
   }
 }

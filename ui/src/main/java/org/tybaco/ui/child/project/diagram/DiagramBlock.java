@@ -64,11 +64,6 @@ public final class DiagramBlock extends AbstractDiagramBlock {
       b.forEachInput((spot, i) -> inputs.getChildren().add(new DiagramBlockInput(this, i, spot, -1)));
       b.forEachOutput((spot, o) -> outputs.getChildren().add(new DiagramBlockOutput(this, o, spot)));
     });
-    this.boundsInParentProperty().addListener((o, ov, nv) -> {
-      if (nv != null) {
-        diagram.diagramBlockBoundsObserver.fire();
-      }
-    });
   }
 
   void onLink(Link e, boolean added) {

@@ -49,6 +49,7 @@ abstract class AbstractDiagram extends ScrollPane {
   final StackPane content = new StackPane(layers);
   final Affine transform = new Affine();
   final ToggleGroup outputToggleGroup = new ToggleGroup();
+  public final DiagramBlockBoundsObserver diagramBlockBoundsObserver = new DiagramBlockBoundsObserver(blocks);
 
   private double mx;
   private double my;

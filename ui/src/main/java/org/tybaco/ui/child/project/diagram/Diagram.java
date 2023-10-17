@@ -34,7 +34,6 @@ public class Diagram extends AbstractDiagram {
   private final SetChangeListener<Link> linkListener = this::onLinkChange;
   private final ListChangeListener<Block> blockListener = this::onBlockChange;
   public final Project project;
-  public final DiagramBlockBoundsObserver diagramBlockBoundsObserver = new DiagramBlockBoundsObserver();
   final BlockCache blockCache;
   final ProjectClasspath classpath;
 
