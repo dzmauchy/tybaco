@@ -28,6 +28,7 @@ import javafx.scene.layout.Pane;
 import org.tybaco.editors.util.InvalidationListeners;
 
 import java.util.IdentityHashMap;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public final class DiagramBlockBoundsObserver extends InvalidationListeners {
@@ -57,5 +58,14 @@ public final class DiagramBlockBoundsObserver extends InvalidationListeners {
 
   public Stream<Bounds> bounds() {
     return bounds.values().stream();
+  }
+
+  public boolean testNoBounds(Predicate<Bounds> predicate) {
+    for (var b : bounds.values()) {
+      if (predicate.test(b)) {
+        return false;
+      }
+    }
+    return true;
   }
 }

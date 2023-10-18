@@ -35,7 +35,8 @@ import java.awt.geom.Rectangle2D;
 public class DiagramLine extends Group {
 
   private static final CurveDivider D5 = new CurveDivider(5);
-  private static final float SAFE_DIST = 6f;
+  private static final double D = 6d;
+  private static final double H = 3d;
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
   public final Diagram diagram;
   public final Link link;
@@ -82,9 +83,9 @@ public class DiagramLine extends Group {
   }
 
   private void onUpdate(Bounds ib, Bounds ob) {
-    xs = ob.getMaxX() + SAFE_DIST;
+    xs = ob.getMaxX() + D;
     ys = ob.getCenterY();
-    xe = ib.getMinX() - SAFE_DIST;
+    xe = ib.getMinX() - D;
     ye = ib.getCenterY();
     if (new SimpleLine(this).tryApply(xs, ys, xe, ye)) {
       return;
@@ -99,7 +100,7 @@ public class DiagramLine extends Group {
   boolean tryApply(double cx1, double cy1, double cx2, double cy2) {
     D5.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
     if (checkConstraint()) {
-      startPoint.setX(xs - SAFE_DIST + 2d);
+      startPoint.setX(xs - D + 2d);
       startPoint.setY(ys);
       startConnector.setX(xs);
       startConnector.setY(ys);
@@ -109,7 +110,7 @@ public class DiagramLine extends Group {
       curve.setControlY2(cy2);
       curve.setX(xe);
       curve.setY(ye);
-      endConnector.setX(xe + SAFE_DIST - 2d);
+      endConnector.setX(xe + D - 2d);
       endConnector.setY(ye);
       path.setVisible(true);
       return true;
@@ -119,9 +120,9 @@ public class DiagramLine extends Group {
   }
 
   private boolean checkConstraint() {
-    var d = SAFE_DIST / 2d;
-    return diagram.diagramBlockBoundsObserver.bounds()
-      .map(b -> new Rectangle2D.Double(b.getMinX() - d, b.getMinY() - d, b.getWidth() + SAFE_DIST, b.getHeight() + SAFE_DIST))
-      .noneMatch(D5::intersects);
+    return diagram.diagramBlockBoundsObserver.testNoBounds(b -> {
+      var r = new Rectangle2D.Double(b.getMinX() - H, b.getMinY() - H, b.getWidth() + D, b.getHeight() + D);
+      return D5.intersects(r);
+    });
   }
 }
