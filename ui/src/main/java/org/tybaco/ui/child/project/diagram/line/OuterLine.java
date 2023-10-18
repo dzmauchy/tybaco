@@ -27,16 +27,11 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
-public final class OuterLine implements Line {
+final class OuterLine {
 
-  private final DiagramLine line;
+  private static final double STEP = 30d;
 
-  public OuterLine(DiagramLine line) {
-    this.line = line;
-  }
-
-  @Override
-  public boolean tryApply(double xs, double ys, double xe, double ye) {
+  static boolean tryApply(DiagramLine line, double xs, double ys, double xe, double ye) {
     var input = line.link.input.get();
     var output = line.link.output.get();
     if (input == null || output == null) return false;
@@ -44,13 +39,13 @@ public final class OuterLine implements Line {
     var ob = boundsIn(line.diagram.blocks, output.block);
     if (ib == null || ob == null) return false;
     if (ye > ys) {
-      return tryBottom(ys, ib, ob) || tryTop(ys, ib, ob);
+      return tryBottom(line, ys, ib, ob) || tryTop(line, ys, ib, ob);
     } else {
-      return tryTop(ys, ib, ob) || tryBottom(ys, ib, ob);
+      return tryTop(line, ys, ib, ob) || tryBottom(line, ys, ib, ob);
     }
   }
 
-  private boolean tryBottom(double ys, Bounds ib, Bounds ob) {
+  private static boolean tryBottom(DiagramLine line, double ys, Bounds ib, Bounds ob) {
     double maxX = max(ib.getMaxX(), ob.getMaxX()), minX = min(ib.getMinX(), ob.getMinX());
     double maxY = max(ib.getMaxY(), ob.getMaxY());
     for (int i = 10; i < 30; i++) {
@@ -63,7 +58,7 @@ public final class OuterLine implements Line {
     return false;
   }
 
-  private boolean tryTop(double ys, Bounds ib, Bounds ob) {
+  private static boolean tryTop(DiagramLine line, double ys, Bounds ib, Bounds ob) {
     double maxX = max(ib.getMaxX(), ob.getMaxX()), minX = min(ib.getMinX(), ob.getMinX());
     double minY = min(ib.getMinY(), ob.getMinY());
     for (int i = 10; i < 30; i++) {

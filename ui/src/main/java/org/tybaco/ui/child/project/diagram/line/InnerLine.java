@@ -21,16 +21,11 @@ package org.tybaco.ui.child.project.diagram.line;
  * #L%
  */
 
-public final class InnerLine implements Line {
+final class InnerLine {
 
-  private final DiagramLine line;
+  private static final double STEP = 31d;
 
-  public InnerLine(DiagramLine line) {
-    this.line = line;
-  }
-
-  @Override
-  public boolean tryApply(double xs, double ys, double xe, double ye) {
+  static boolean tryApply(DiagramLine line, double xs, double ys, double xe, double ye) {
     var vs = Math.signum(ye - ys) * STEP;
     for (int i = 7; i < 20; i++) {
       var cx1 = xs + i * STEP;

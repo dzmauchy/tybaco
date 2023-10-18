@@ -21,28 +21,23 @@ package org.tybaco.ui.child.project.diagram.line;
  * #L%
  */
 
-final class SimpleLine implements Line {
+final class SimpleLine {
 
-  private final DiagramLine line;
+  private static final double STEP = 33d;
 
-  SimpleLine(DiagramLine line) {
-    this.line = line;
-  }
-
-  @Override
-  public boolean tryApply(double xs, double ys, double xe, double ye) {
+  static boolean tryApply(DiagramLine line, double xs, double ys, double xe, double ye) {
     if (xe - xs <= 30d) return false;
     double vs = Math.signum(ye - ys) * STEP, w = (xe - xs) / 5d;
     for (double cx1 = xs + w, cx2 = xe - w, r = xe - w; cx1 <= r; cx1 += STEP) {
-      if (tryVertical(ys, ye, vs, cx1, cx2)) return true;
+      if (tryVertical(line, ys, ye, vs, cx1, cx2)) return true;
     }
     for (double cx1 = xs + w, cx2 = xe - w, l = xs + w; cx2 >= l; cx2 -= STEP) {
-      if (tryVertical(ys, ye, vs, cx1, cx2)) return true;
+      if (tryVertical(line, ys, ye, vs, cx1, cx2)) return true;
     }
     return false;
   }
 
-  private boolean tryVertical(double ys, double ye, double vs, double cx1, double cx2) {
+  private static boolean tryVertical(DiagramLine line, double ys, double ye, double vs, double cx1, double cx2) {
     for (int i = 0; i < 6; i++) {
       if (line.tryApply(cx1, ys + i * vs, cx2, ye - i * vs)) {
         return true;

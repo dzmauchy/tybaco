@@ -87,11 +87,11 @@ public class DiagramLine extends Group {
     ys = ob.getCenterY();
     xe = ib.getMinX() - D;
     ye = ib.getCenterY();
-    if (new SimpleLine(this).tryApply(xs, ys, xe, ye)) {
+    if (SimpleLine.tryApply(this, xs, ys, xe, ye)) {
       return;
-    } else if (new InnerLine(this).tryApply(xs, ys, xe, ye)) {
+    } else if (InnerLine.tryApply(this, xs, ys, xe, ye)) {
       return;
-    } else if (new OuterLine(this).tryApply(xs, ys, xe, ye)) {
+    } else if (OuterLine.tryApply(this, xs, ys, xe, ye)) {
       return;
     }
     path.setVisible(false);
