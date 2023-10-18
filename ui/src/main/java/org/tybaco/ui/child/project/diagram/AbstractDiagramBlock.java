@@ -21,10 +21,11 @@ package org.tybaco.ui.child.project.diagram;
  * #L%
  */
 
-import javafx.geometry.*;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
-import javafx.scene.input.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -63,7 +64,7 @@ abstract class AbstractDiagramBlock extends BorderPane {
     configureBlockName();
     configureTitle();
     addEventHandler(MouseEvent.MOUSE_DRAGGED, this::onMouseDragged);
-    addEventHandler(MouseEvent.DRAG_DETECTED, this::onMouseDragDetected);
+    addEventHandler(MouseEvent.MOUSE_MOVED, this::onMouseMoved);
   }
 
   private void configureTitle() {
@@ -98,37 +99,15 @@ abstract class AbstractDiagramBlock extends BorderPane {
     blockIdLabel.setAlignment(Pos.BASELINE_CENTER);
   }
 
-  protected void onMouseDragDetected(MouseEvent event) {
+  protected void onMouseMoved(MouseEvent event) {
+    event.consume();
     bx = event.getX();
     by = event.getY();
   }
 
   protected void onMouseDragged(MouseEvent event) {
     event.consume();
-    var bounds = getBoundsInParent();
-    var bb = new BoundingBox(
-      bounds.getMinX() + event.getX() - bx,
-      bounds.getMinY() + event.getY() - by,
-      bounds.getWidth(),
-      bounds.getHeight()
-    );
-    checkConstraints(bb);
     setLayoutX(getLayoutX() + event.getX() - bx);
     setLayoutY(getLayoutY() + event.getY() - by);
-  }
-
-  private void checkConstraints(Bounds bounds) {
-    for (var node : diagram.blocks.getChildren()) {
-      if (node == this) continue;
-      var b = node.getBoundsInParent();
-      var bb = new BoundingBox(
-        b.getMinX() - 35d,
-        b.getMinY() - 35d,
-        b.getWidth() + 70d,
-        b.getHeight() + 70d
-      );
-      if (bb.intersects(bounds)) {
-      }
-    }
   }
 }

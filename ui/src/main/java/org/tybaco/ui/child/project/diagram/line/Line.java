@@ -26,9 +26,7 @@ import org.tybaco.ui.util.CurveDivider;
 public sealed interface Line permits SimpleLine, InnerLine, OuterLine {
 
   double STEP = 30d;
-  CurveDivider D4 = new CurveDivider(4);
   CurveDivider D5 = new CurveDivider(5);
 
   boolean tryApply(double xs, double ys, double xe, double ye);
-  CurveDivider getDivider();
 }

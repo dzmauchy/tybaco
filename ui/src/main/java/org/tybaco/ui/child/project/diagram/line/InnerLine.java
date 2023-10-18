@@ -21,8 +21,6 @@ package org.tybaco.ui.child.project.diagram.line;
  * #L%
  */
 
-import org.tybaco.ui.util.CurveDivider;
-
 public final class InnerLine implements Line {
 
   private final DiagramLine line;
@@ -38,16 +36,11 @@ public final class InnerLine implements Line {
       var cx1 = xs + i * STEP;
       var cx2 = xe - i * STEP;
       for (int j = 10; j >= 1; j--) {
-        if (line.tryApply(this, cx1, ys + j * vs, cx2, ye - j * vs)) {
+        if (line.tryApply(cx1, ys + j * vs, cx2, ye - j * vs)) {
           return true;
         }
       }
     }
     return false;
-  }
-
-  @Override
-  public CurveDivider getDivider() {
-    return D5;
   }
 }

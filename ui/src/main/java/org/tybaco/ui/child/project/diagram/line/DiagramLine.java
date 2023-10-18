@@ -23,13 +23,14 @@ package org.tybaco.ui.child.project.diagram.line;
 
 import javafx.beans.*;
 import javafx.geometry.Bounds;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import org.tybaco.ui.child.project.diagram.Diagram;
 import org.tybaco.ui.model.Link;
 import org.tybaco.ui.util.CurveDivider;
+
+import static org.tybaco.ui.child.project.diagram.line.Line.D5;
 
 public class DiagramLine extends Group {
 
@@ -94,10 +95,9 @@ public class DiagramLine extends Group {
     path.setVisible(false);
   }
 
-  boolean tryApply(Line line, double cx1, double cy1, double cx2, double cy2) {
-    var divider = line.getDivider();
-    divider.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
-    if (checkConstraint(divider)) {
+  boolean tryApply(double cx1, double cy1, double cx2, double cy2) {
+    D5.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
+    if (checkConstraint(D5)) {
       startPoint.setX(xs - SAFE_DIST + 2d);
       startPoint.setY(ys);
       startConnector.setX(xs);

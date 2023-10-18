@@ -21,8 +21,6 @@ package org.tybaco.ui.child.project.diagram.line;
  * #L%
  */
 
-import org.tybaco.ui.util.CurveDivider;
-
 final class SimpleLine implements Line {
 
   private final DiagramLine line;
@@ -44,17 +42,12 @@ final class SimpleLine implements Line {
     return false;
   }
 
-  @Override
-  public CurveDivider getDivider() {
-    return D4;
-  }
-
   private boolean tryVertical(double ys, double ye, double vs, double cx1, double cx2) {
     for (int i = 0; i < 6; i++) {
-      if (line.tryApply(this, cx1, ys + i * vs, cx2, ye - i * vs)) {
+      if (line.tryApply(cx1, ys + i * vs, cx2, ye - i * vs)) {
         return true;
       }
-      if (line.tryApply(this, cx1, ys - i * vs, cx2, ye - i * vs)) {
+      if (line.tryApply(cx1, ys - i * vs, cx2, ye - i * vs)) {
         return true;
       }
     }

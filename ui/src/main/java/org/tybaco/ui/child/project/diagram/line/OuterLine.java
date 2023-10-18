@@ -22,7 +22,6 @@ package org.tybaco.ui.child.project.diagram.line;
  */
 
 import javafx.geometry.Bounds;
-import org.tybaco.ui.util.CurveDivider;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -51,20 +50,15 @@ public final class OuterLine implements Line {
     }
   }
 
-  @Override
-  public CurveDivider getDivider() {
-    return D5;
-  }
-
   private boolean tryBottom(double ys, Bounds ib, Bounds ob) {
     double maxX = max(ib.getMaxX(), ob.getMaxX()), minX = min(ib.getMinX(), ob.getMinX());
     double maxY = max(ib.getMaxY(), ob.getMaxY());
     for (int i = 10; i < 30; i++) {
       double cx1 = maxX + i * STEP, cx2 = minX - i * STEP;
       for (int j = 0; j < 20; j++) {
-        if (line.tryApply(this, cx1, ys + j * STEP, cx2, maxY + j * STEP))
+        if (line.tryApply(cx1, ys + j * STEP, cx2, maxY + j * STEP))
           return true;
-        if (line.tryApply(this, cx1, ys - j * STEP, cx2, maxY - j * STEP))
+        if (line.tryApply(cx1, ys - j * STEP, cx2, maxY - j * STEP))
           return true;
       }
     }
@@ -77,9 +71,9 @@ public final class OuterLine implements Line {
     for (int i = 10; i < 30; i++) {
       double cx1 = maxX + i * STEP, cx2 = minX - i * STEP;
       for (int j = 0; j < 20; j++) {
-        if (line.tryApply(this, cx1, ys - j * STEP, cx2, minY - j * STEP))
+        if (line.tryApply(cx1, ys - j * STEP, cx2, minY - j * STEP))
           return true;
-        if (line.tryApply(this, cx1, ys + j * STEP, cx2, minY + j * STEP))
+        if (line.tryApply(cx1, ys + j * STEP, cx2, minY + j * STEP))
           return true;
       }
     }
