@@ -30,10 +30,11 @@ import org.tybaco.ui.child.project.diagram.Diagram;
 import org.tybaco.ui.model.Link;
 import org.tybaco.ui.util.CurveDivider;
 
-import static org.tybaco.ui.child.project.diagram.line.Line.D5;
+import java.awt.geom.Rectangle2D;
 
 public class DiagramLine extends Group {
 
+  private static final CurveDivider D5 = new CurveDivider(5);
   private static final float SAFE_DIST = 6f;
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
   public final Diagram diagram;
@@ -97,7 +98,7 @@ public class DiagramLine extends Group {
 
   boolean tryApply(double cx1, double cy1, double cx2, double cy2) {
     D5.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
-    if (checkConstraint(D5)) {
+    if (checkConstraint()) {
       startPoint.setX(xs - SAFE_DIST + 2d);
       startPoint.setY(ys);
       startConnector.setX(xs);
@@ -117,7 +118,10 @@ public class DiagramLine extends Group {
     }
   }
 
-  private boolean checkConstraint(CurveDivider divider) {
-    return diagram.diagramBlockBoundsObserver.bounds().noneMatch(b -> divider.intersects(b, SAFE_DIST));
+  private boolean checkConstraint() {
+    var d = SAFE_DIST / 2d;
+    return diagram.diagramBlockBoundsObserver.bounds()
+      .map(b -> new Rectangle2D.Double(b.getMinX() - d, b.getMinY() - d, b.getWidth() + SAFE_DIST, b.getHeight() + SAFE_DIST))
+      .noneMatch(D5::intersects);
   }
 }
