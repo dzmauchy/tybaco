@@ -51,15 +51,13 @@ public class DiagramLine extends Group {
   private double xe;
   private double ye;
 
-  static Color color = Color.RED;
-
   public DiagramLine(Diagram diagram, Link link) {
     this.diagram = diagram;
     this.link = link;
     visibleProperty().bind(link.input.isNotNull().and(link.output.isNotNull()).and(link.inBounds.isNotNull()).and(link.outBounds.isNotNull()));
     getChildren().add(path);
     path.setStrokeWidth(2d);
-    path.setStroke(Color.WHITE);
+    path.setStroke(Color.FLORALWHITE);
     path.setStrokeLineJoin(StrokeLineJoin.ROUND);
     path.setFill(null);
     initialize();
@@ -114,7 +112,6 @@ public class DiagramLine extends Group {
       curve.setY(ye);
       endConnector.setX(xe + D - 2d);
       endConnector.setY(ye);
-      path.setStroke(color);
       path.setVisible(true);
       return true;
     } else {

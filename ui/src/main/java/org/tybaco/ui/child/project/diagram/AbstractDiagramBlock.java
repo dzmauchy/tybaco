@@ -33,8 +33,10 @@ import javafx.scene.text.FontWeight;
 import org.tybaco.ui.model.Block;
 
 import static javafx.geometry.Orientation.VERTICAL;
+import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
+import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.layout.BorderStrokeStyle.SOLID;
-import static javafx.scene.paint.Color.WHITE;
+import static javafx.scene.paint.Color.LIGHTGREY;
 
 abstract class AbstractDiagramBlock extends BorderPane {
 
@@ -54,7 +56,7 @@ abstract class AbstractDiagramBlock extends BorderPane {
     this.diagram = diagram;
     this.block = block;
     setBackground(new Background(new BackgroundFill(Color.gray(0.2), new CornerRadii(5), Insets.EMPTY)));
-    setBorder(new Border(new BorderStroke(WHITE, SOLID, new CornerRadii(5d), new BorderWidths(2d))));
+    setBorder(new Border(new BorderStroke(LIGHTGREY, SOLID, new CornerRadii(5d), new BorderWidths(2d))));
     setLayoutX(block.x.get());
     setLayoutY(block.y.get());
     block.x.bind(layoutXProperty());
@@ -63,13 +65,13 @@ abstract class AbstractDiagramBlock extends BorderPane {
     configureInputsAndOutputs();
     configureBlockName();
     configureTitle();
-    addEventHandler(MouseEvent.MOUSE_DRAGGED, this::onMouseDragged);
-    addEventHandler(MouseEvent.MOUSE_MOVED, this::onMouseMoved);
+    addEventHandler(MOUSE_DRAGGED, this::onMouseDragged);
+    addEventHandler(MOUSE_MOVED, this::onMouseMoved);
   }
 
   private void configureTitle() {
     setTop(title);
-    title.setBorder(new Border(new BorderStroke(WHITE, SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 2, 0))));
+    title.setBorder(new Border(new BorderStroke(LIGHTGREY, SOLID, CornerRadii.EMPTY, new BorderWidths(0, 0, 2, 0))));
     title.setPadding(new Insets(5d));
     title.setFillHeight(true);
     title.setStyle("-fx-background-color: linear-gradient(to top, black, transparent);");

@@ -21,15 +21,12 @@ package org.tybaco.ui.child.project.diagram.line;
  * #L%
  */
 
-import javafx.scene.paint.Color;
-
 public final class InnerLine implements Line {
 
   private final DiagramLine line;
 
   public InnerLine(DiagramLine line) {
     this.line = line;
-    DiagramLine.color = Color.ORANGE;
   }
 
   @Override
