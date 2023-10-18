@@ -22,6 +22,7 @@ package org.tybaco.ui.child.project.diagram.line;
  */
 
 import javafx.geometry.Bounds;
+import javafx.scene.paint.Color;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -33,6 +34,7 @@ public final class OuterLine implements Line {
 
   public OuterLine(DiagramLine line) {
     this.line = line;
+    DiagramLine.color = Color.GREEN;
   }
 
   @Override

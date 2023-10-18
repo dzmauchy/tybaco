@@ -21,12 +21,15 @@ package org.tybaco.ui.child.project.diagram.line;
  * #L%
  */
 
+import javafx.scene.paint.Color;
+
 final class SimpleLine implements Line {
 
   private final DiagramLine line;
 
   SimpleLine(DiagramLine line) {
     this.line = line;
+    DiagramLine.color = Color.LIGHTBLUE;
   }
 
   @Override

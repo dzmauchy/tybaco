@@ -51,6 +51,8 @@ public class DiagramLine extends Group {
   private double xe;
   private double ye;
 
+  static Color color = Color.RED;
+
   public DiagramLine(Diagram diagram, Link link) {
     this.diagram = diagram;
     this.link = link;
@@ -112,6 +114,7 @@ public class DiagramLine extends Group {
       curve.setY(ye);
       endConnector.setX(xe + D - 2d);
       endConnector.setY(ye);
+      path.setStroke(color);
       path.setVisible(true);
       return true;
     } else {
