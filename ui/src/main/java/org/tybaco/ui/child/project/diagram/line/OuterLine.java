@@ -34,7 +34,7 @@ public final class OuterLine implements Line {
 
   public OuterLine(DiagramLine line) {
     this.line = line;
-    DiagramLine.color = Color.GREEN;
+    DiagramLine.color = Color.LIGHTGREEN;
   }
 
   @Override
@@ -57,10 +57,8 @@ public final class OuterLine implements Line {
     double maxY = max(ib.getMaxY(), ob.getMaxY());
     for (int i = 10; i < 30; i++) {
       double cx1 = maxX + i * STEP, cx2 = minX - i * STEP;
-      for (int j = 0; j < 20; j++) {
+      for (int j = 0; j < 30; j++) {
         if (line.tryApply(cx1, ys + j * STEP, cx2, maxY + j * STEP))
-          return true;
-        if (line.tryApply(cx1, ys - j * STEP, cx2, maxY - j * STEP))
           return true;
       }
     }
@@ -72,10 +70,8 @@ public final class OuterLine implements Line {
     double minY = min(ib.getMinY(), ob.getMinY());
     for (int i = 10; i < 30; i++) {
       double cx1 = maxX + i * STEP, cx2 = minX - i * STEP;
-      for (int j = 0; j < 20; j++) {
+      for (int j = 0; j < 30; j++) {
         if (line.tryApply(cx1, ys - j * STEP, cx2, minY - j * STEP))
-          return true;
-        if (line.tryApply(cx1, ys + j * STEP, cx2, minY + j * STEP))
           return true;
       }
     }
