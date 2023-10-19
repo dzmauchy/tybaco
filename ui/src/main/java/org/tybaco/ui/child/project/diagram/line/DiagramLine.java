@@ -36,7 +36,7 @@ import static org.tybaco.ui.child.project.diagram.line.InnerLine.il;
 import static org.tybaco.ui.child.project.diagram.line.OuterLine.ol;
 import static org.tybaco.ui.child.project.diagram.line.SimpleLine.sl;
 
-public class DiagramLine extends Group {
+public final class DiagramLine extends Group {
 
   public static final CurveDivider D5 = new CurveDivider(5);
   private static final double D = 6d;
