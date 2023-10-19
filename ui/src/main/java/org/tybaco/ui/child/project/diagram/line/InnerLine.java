@@ -25,17 +25,17 @@ final class InnerLine {
 
   private static final double STEP = 31d;
 
-  static boolean tryApply(DiagramLine line, double xs, double ys, double xe, double ye) {
+  static boolean il(DiagramLine line, double xs, double ys, double xe, double ye) {
     var vs = Math.signum(ye - ys) * STEP;
     for (int i = 7; i < 20; i++) {
       var cx1 = xs + i * STEP;
       var cx2 = xe - i * STEP;
       for (int j = 10; j >= 1; j--) {
         if (line.tryApply(cx1, ys + j * vs, cx2, ye - j * vs)) {
-          return true;
+          return false;
         }
       }
     }
-    return false;
+    return true;
   }
 }

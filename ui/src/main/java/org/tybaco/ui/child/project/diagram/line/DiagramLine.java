@@ -32,6 +32,10 @@ import org.tybaco.ui.util.CurveDivider;
 
 import java.awt.geom.Rectangle2D;
 
+import static org.tybaco.ui.child.project.diagram.line.InnerLine.il;
+import static org.tybaco.ui.child.project.diagram.line.OuterLine.ol;
+import static org.tybaco.ui.child.project.diagram.line.SimpleLine.sl;
+
 public class DiagramLine extends Group {
 
   public static final CurveDivider D5 = new CurveDivider(5);
@@ -87,32 +91,29 @@ public class DiagramLine extends Group {
     ys = ob.getCenterY();
     xe = ib.getMinX() - D;
     ye = ib.getCenterY();
-    if (SimpleLine.tryApply(this, xs, ys, xe, ye)) {
-      return;
-    } else if (InnerLine.tryApply(this, xs, ys, xe, ye)) {
-      return;
-    } else if (OuterLine.tryApply(this, xs, ys, xe, ye)) {
-      return;
+    startPoint.setX(xs - D + 2d);
+    startPoint.setY(ys);
+    startConnector.setX(xs);
+    startConnector.setY(ys);
+    curve.setX(xe);
+    curve.setY(ye);
+    endConnector.setX(xe + D - 2d);
+    endConnector.setY(ye);
+    if (sl(this, xs, ys, xe, ye) && il(this, xs, ys, xe, ye) && ol(this, xs, ys, xe, ye)) {
+      curve.setControlX1(xs + D);
+      curve.setControlY1(ys);
+      curve.setControlX2(xe - D);
+      curve.setControlY2(ye);
     }
-    path.setVisible(false);
   }
 
   boolean tryApply(double cx1, double cy1, double cx2, double cy2) {
     D5.divide(xs, ys, cx1, cy1, cx2, cy2, xe, ye);
     if (checkConstraint()) {
-      startPoint.setX(xs - D + 2d);
-      startPoint.setY(ys);
-      startConnector.setX(xs);
-      startConnector.setY(ys);
       curve.setControlX1(cx1);
       curve.setControlY1(cy1);
       curve.setControlX2(cx2);
       curve.setControlY2(cy2);
-      curve.setX(xe);
-      curve.setY(ye);
-      endConnector.setX(xe + D - 2d);
-      endConnector.setY(ye);
-      path.setVisible(true);
       return true;
     } else {
       return false;

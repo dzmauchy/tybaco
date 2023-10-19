@@ -31,43 +31,43 @@ final class OuterLine {
 
   private static final double STEP = 30d;
 
-  static boolean tryApply(DiagramLine line, double xs, double ys, double xe, double ye) {
+  static boolean ol(DiagramLine line, double xs, double ys, double xe, double ye) {
     var input = line.link.input.get();
     var output = line.link.output.get();
-    if (input == null || output == null) return false;
+    if (input == null || output == null) return true;
     var ib = boundsIn(line.diagram.blocks, input.block);
     var ob = boundsIn(line.diagram.blocks, output.block);
-    if (ib == null || ob == null) return false;
+    if (ib == null || ob == null) return true;
     if (ye > ys) {
-      return tryBottom(line, ys, ib, ob) || tryTop(line, ys, ib, ob);
+      return bottom(line, ys, ib, ob) || top(line, ys, ib, ob);
     } else {
-      return tryTop(line, ys, ib, ob) || tryBottom(line, ys, ib, ob);
+      return top(line, ys, ib, ob) || bottom(line, ys, ib, ob);
     }
   }
 
-  private static boolean tryBottom(DiagramLine line, double ys, Bounds ib, Bounds ob) {
+  private static boolean bottom(DiagramLine line, double ys, Bounds ib, Bounds ob) {
     double maxX = max(ib.getMaxX(), ob.getMaxX()), minX = min(ib.getMinX(), ob.getMinX());
     double maxY = max(ib.getMaxY(), ob.getMaxY());
     for (int i = 10; i < 30; i++) {
       double cx1 = maxX + i * STEP, cx2 = minX - i * STEP;
       for (int j = 0; j < 30; j++) {
         if (line.tryApply(cx1, ys + j * STEP, cx2, maxY + j * STEP))
-          return true;
+          return false;
       }
     }
-    return false;
+    return true;
   }
 
-  private static boolean tryTop(DiagramLine line, double ys, Bounds ib, Bounds ob) {
+  private static boolean top(DiagramLine line, double ys, Bounds ib, Bounds ob) {
     double maxX = max(ib.getMaxX(), ob.getMaxX()), minX = min(ib.getMinX(), ob.getMinX());
     double minY = min(ib.getMinY(), ob.getMinY());
     for (int i = 10; i < 30; i++) {
       double cx1 = maxX + i * STEP, cx2 = minX - i * STEP;
       for (int j = 0; j < 30; j++) {
         if (line.tryApply(cx1, ys - j * STEP, cx2, minY - j * STEP))
-          return true;
+          return false;
       }
     }
-    return false;
+    return true;
   }
 }

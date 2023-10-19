@@ -23,18 +23,18 @@ package org.tybaco.ui.child.project.diagram.line;
 
 final class SimpleLine {
 
-  private static final double STEP = 33d;
+  private static final double STEP = 29d;
 
-  static boolean tryApply(DiagramLine line, double xs, double ys, double xe, double ye) {
-    if (xe - xs <= 30d) return false;
-    double vs = Math.signum(ye - ys) * STEP, w = (xe - xs) / 5d;
-    for (double cx1 = xs + w, cx2 = xe - w, r = xe - w; cx1 <= r; cx1 += STEP) {
-      if (tryVertical(line, ys, ye, vs, cx1, cx2)) return true;
+  static boolean sl(DiagramLine line, double xs, double ys, double xe, double ye) {
+    if (xe - xs <= 30d) return true;
+    double vs = Math.signum(ye - ys) * STEP;
+    for (double cx1 = xs + STEP, cx2 = xe - STEP; cx1 <= cx2; cx1 += STEP) {
+      if (tryVertical(line, ys, ye, vs, cx1, cx2)) return false;
     }
-    for (double cx1 = xs + w, cx2 = xe - w, l = xs + w; cx2 >= l; cx2 -= STEP) {
-      if (tryVertical(line, ys, ye, vs, cx1, cx2)) return true;
+    for (double cx1 = xs + STEP, cx2 = xe - STEP; cx2 >= cx1; cx2 -= STEP) {
+      if (tryVertical(line, ys, ye, vs, cx1, cx2)) return false;
     }
-    return false;
+    return true;
   }
 
   private static boolean tryVertical(DiagramLine line, double ys, double ye, double vs, double cx1, double cx2) {
