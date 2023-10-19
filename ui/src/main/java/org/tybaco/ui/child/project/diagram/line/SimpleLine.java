@@ -38,13 +38,13 @@ final class SimpleLine {
   }
 
   private static boolean tryVertical(DiagramLine line, double ys, double ye, double vs, double cx1, double cx2) {
-    for (int i = 0; i < 6; i++) {
-      if (line.tryApply(cx1, ys + i * vs, cx2, ye - i * vs)) {
-        return true;
-      }
-      if (line.tryApply(cx1, ys - i * vs, cx2, ye - i * vs)) {
-        return true;
-      }
+    for (int i = 0; i < 10; i++) {
+      var dy = i * vs;
+      if (line.tryApply(cx1, ys + dy, cx2, ye + dy)) return true;
+    }
+    for (int i = 1; i < 10; i++) {
+      var dy = i * vs;
+      if (line.tryApply(cx1, ys - dy, cx2, ye - dy)) return true;
     }
     return false;
   }
