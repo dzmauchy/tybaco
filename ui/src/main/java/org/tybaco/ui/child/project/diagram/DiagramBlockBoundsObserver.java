@@ -40,16 +40,19 @@ public final class DiagramBlockBoundsObserver extends InvalidationListeners {
     pane.getChildren().addListener((ListChangeListener<? super Node>) c -> {
       while (c.next()) {
         if (c.wasRemoved()) {
-          c.getRemoved().forEach(bounds::remove);
+          c.getRemoved().forEach(n -> {
+            bounds.remove(n);
+            fire();
+          });
         }
         if (c.wasAdded()) {
-          for (var n : c.getAddedSubList()) {
+          c.getAddedSubList().forEach(n -> {
             bounds.put(n, n.getBoundsInParent());
             n.boundsInParentProperty().addListener((o, ov, nv) -> {
               bounds.put(n, nv);
               fire();
             });
-          }
+          });
         }
         fire();
       }
@@ -67,5 +70,31 @@ public final class DiagramBlockBoundsObserver extends InvalidationListeners {
       }
     }
     return true;
+  }
+
+  public boolean isFreePoint(double x, double y, double safeDist) {
+    for (var b : bounds.values()) {
+      var minX = b.getMinX() - safeDist;
+      var maxX = b.getMaxX() + safeDist;
+      var minY = b.getMinY() - safeDist;
+      var maxY = b.getMaxY() + safeDist;
+      if (x >= minX && x <= maxX && y >= minY && y <= maxY) return false;
+    }
+    return true;
+  }
+
+  public boolean isNonFreePoint(double x, double y, double safeDist) {
+    for (var b : bounds.values()) {
+      var minX = b.getMinX() - safeDist;
+      var maxX = b.getMaxX() + safeDist;
+      var minY = b.getMinY() - safeDist;
+      var maxY = b.getMaxY() + safeDist;
+      if (x >= minX && x <= maxX && y >= minY && y <= maxY) return true;
+    }
+    return false;
+  }
+
+  public Bounds get(Node node) {
+    return bounds.get(node);
   }
 }

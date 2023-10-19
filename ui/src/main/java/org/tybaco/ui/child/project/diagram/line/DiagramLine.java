@@ -34,7 +34,7 @@ import java.awt.geom.Rectangle2D;
 
 public class DiagramLine extends Group {
 
-  private static final CurveDivider D5 = new CurveDivider(5);
+  public static final CurveDivider D5 = new CurveDivider(5);
   private static final double D = 6d;
   private static final double H = 3d;
   private final InvalidationListener boundsInvalidationListener = this::onUpdate;
