@@ -76,13 +76,12 @@ public class DiagramLine extends Group {
   }
 
   private void onUpdate(Observable o) {
-    if (!isVisible()) {
-      return;
-    }
-    var ib = link.inBounds.get();
-    var ob = link.outBounds.get();
-    if (ib != null && ob != null) {
-      onUpdate(ib, ob);
+    if (isVisible()) {
+      var ib = link.inBounds.get();
+      var ob = link.outBounds.get();
+      if (ib != null && ob != null) {
+        onUpdate(ib, ob);
+      }
     }
   }
 
@@ -99,7 +98,7 @@ public class DiagramLine extends Group {
     curve.setY(ye);
     endConnector.setX(xe + D - 2d);
     endConnector.setY(ye);
-    if (sl(this, xs, ys, xe, ye) && il(this, xs, ys, xe, ye) && ol(this, xs, ys, xe, ye)) {
+    if (sl(this, xs, ys, xe, ye) && il(this, xs, ys, xe, ye) && ol(this, ys, ye)) {
       curve.setControlX1(xs + D);
       curve.setControlY1(ys);
       curve.setControlX2(xe - D);

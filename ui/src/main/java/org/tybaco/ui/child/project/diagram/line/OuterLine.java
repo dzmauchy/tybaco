@@ -25,19 +25,16 @@ import javafx.geometry.Bounds;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.tybaco.ui.child.project.diagram.DiagramCalculations.boundsIn;
 
 final class OuterLine {
 
   private static final double STEP = 30d;
 
-  static boolean ol(DiagramLine line, double xs, double ys, double xe, double ye) {
+  static boolean ol(DiagramLine line, double ys, double ye) {
     var input = line.link.input.get();
     var output = line.link.output.get();
-    if (input == null || output == null) return true;
-    var ib = boundsIn(line.diagram.blocks, input.block);
-    var ob = boundsIn(line.diagram.blocks, output.block);
-    if (ib == null || ob == null) return true;
+    var ib = line.diagram.diagramBlockBoundsObserver.get(input.block);
+    var ob = line.diagram.diagramBlockBoundsObserver.get(output.block);
     if (ye > ys) {
       return bottom(line, ys, ib, ob) || top(line, ys, ib, ob);
     } else {
