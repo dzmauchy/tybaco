@@ -28,7 +28,7 @@ import static java.lang.Math.min;
 
 final class OuterLine {
 
-  private static final double STEP = 30d;
+  private static final int STEP = 30;
 
   static boolean ol(DiagramLine line, double ys, double ye) {
     var input = line.link.input.get();
