@@ -21,10 +21,48 @@ package org.tybaco.runtime.basic.consumer;
  * #L%
  */
 
-import java.util.function.Consumer;
-import java.util.function.DoubleConsumer;
+import java.util.concurrent.Executor;
+import java.util.function.*;
 
 public interface DoubleConsumers {
+
+  static DoubleConsumer forked(DoubleConsumer c1, DoubleConsumer c2) {
+    return e -> {
+      c1.accept(e);
+      c2.accept(e);
+    };
+  }
+
+  static DoubleConsumer forked(DoubleConsumer... consumers) {
+    return e -> {
+      for (var c : consumers) {
+        c.accept(e);
+      }
+    };
+  }
+
+  static DoubleConsumer parallel(Executor executor, DoubleConsumer consumer) {
+    return e -> executor.execute(() -> consumer.accept(e));
+  }
+
+  static DoubleConsumer forkParallel(Executor e1, DoubleConsumer c1, Executor e2, DoubleConsumer c2) {
+    return e -> {
+      e1.execute(() -> c1.accept(e));
+      e2.execute(() -> c2.accept(e));
+    };
+  }
+
+  static <T> DoubleConsumer toObject(Consumer<? super T> consumer, DoubleFunction<? extends T> func) {
+    return e -> consumer.accept(func.apply(e));
+  }
+
+  static DoubleConsumer toLong(LongConsumer consumer, DoubleToLongFunction func) {
+    return e -> consumer.accept(func.applyAsLong(e));
+  }
+
+  static DoubleConsumer toInt(IntConsumer consumer, DoubleToIntFunction func) {
+    return e -> consumer.accept(func.applyAsInt(e));
+  }
 
   static <T> Consumer<T> clockSourceMillis(DoubleConsumer consumer) {
     return v -> consumer.accept(System.currentTimeMillis() / 1e3d);

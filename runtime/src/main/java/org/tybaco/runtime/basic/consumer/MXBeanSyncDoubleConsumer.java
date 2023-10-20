@@ -21,6 +21,8 @@ package org.tybaco.runtime.basic.consumer;
  * #L%
  */
 
+import org.tybaco.runtime.basic.mx.DoubleConsumerBean;
+
 import javax.management.*;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.*;
@@ -57,11 +59,6 @@ public final class MXBeanSyncDoubleConsumer implements DoubleConsumer, AutoClose
     bean.running = false;
     var server = ManagementFactory.getPlatformMBeanServer();
     server.unregisterMBean(instance.getObjectName());
-  }
-
-  @MXBean
-  public interface DoubleConsumerBean {
-    double getValue() throws InterruptedException;
   }
 
   public final class DoubleConsumerBeanImpl implements DoubleConsumerBean {
