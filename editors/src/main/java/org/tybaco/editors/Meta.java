@@ -66,7 +66,7 @@ public interface Meta extends Comparable<Meta> {
     return name().compareTo(o.name());
   }
 
-  static Meta meta(Package p) {
+  static Meta meta(AnnotatedElement p) {
     return new Meta() {
       @Override
       public AnnotatedElement metaAnnotatedElement() {

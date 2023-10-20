@@ -371,6 +371,7 @@
             </manifest>
             <manifestEntries>
               <Automatic-Module-Name>${project.groupId}.${project.name}</Automatic-Module-Name>
+              <Sealed>true</Sealed>
             </manifestEntries>
           </archive>
         </configuration>
