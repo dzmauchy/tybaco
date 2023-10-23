@@ -1,4 +1,4 @@
-package org.tybaco.types.calc;
+package org.tybloco.types.calc;
 
 /*-
  * #%L
@@ -21,7 +21,6 @@ package org.tybaco.types.calc;
  * #L%
  */
 
-import com.google.common.collect.Iterables;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -37,8 +36,8 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.tybaco.types.calc.TypeCalculator.isCompatible;
-import static org.tybaco.types.calc.Types.*;
+import static org.tybloco.types.calc.TypeCalculator.isCompatible;
+import static org.tybloco.types.calc.Types.*;
 
 class TypeCalculatorTest {
 
@@ -52,31 +51,31 @@ class TypeCalculatorTest {
     return Stream.of(
       arguments(int.class, long.class, false),
       arguments(long.class, int.class, true),
-      arguments(p(List.class, String.class), p(List.class, String.class), true),
-      arguments(p(List.class, CharSequence.class), p(List.class, String.class), false),
-      arguments(p(List.class, wu(CharSequence.class)), p(List.class, String.class), true),
-      arguments(p(List.class, wl(CharSequence.class)), p(List.class, String.class), false),
-      arguments(p(List.class, wl(CharSequence.class)), p(List.class, Object.class), true),
-      arguments(p(List.class, v(List.class, 0)), p(List.class, Object.class), true),
-      arguments(v(C1.class.getMethod("m", CharSequence.class), 0), String.class, true),
-      arguments(v(C1.class.getMethod("m", CharSequence.class), 0), CharSequence.class, true),
-      arguments(v(C1.class.getMethod("m", CharSequence.class), 0), Integer.class, false),
-      arguments(p(List.class, wu(CharSequence.class, Serializable.class)), p(List.class, String.class), true),
-      arguments(p(List.class, wu(CharSequence.class, Serializable.class)), p(List.class, CharBuffer.class), false),
-      arguments(p(List.class, wl(CharSequence.class, Serializable.class)), p(List.class, String.class), false),
-      arguments(p(List.class, wl(CharSequence.class, Serializable.class)), p(List.class, Object.class), true),
-      arguments(p(List.class, wl(CharBuffer.class)), p(List.class, CharSequence.class), true),
-      arguments(p(List.class, wl(CharBuffer.class)), p(List.class, Buffer.class), true),
-      arguments(p(List.class, wl(wu(CharBuffer.class))), p(List.class, CharSequence.class), true),
-      arguments(p(List.class, wl(wu(CharSequence.class, Serializable.class))), p(List.class, Object.class), true),
-      arguments(p(List.class, wu(CharSequence.class)), p(List.class, u(CharBuffer.class, String.class)), true),
-      arguments(p(List.class, wu(CharSequence.class)), p(List.class, u(CharBuffer.class, Object.class)), false),
-      arguments(p(List.class, String.class), p(ArrayList.class, String.class), true),
-      arguments(p(List.class, p(List.class, String.class)), p(List.class, p(ArrayList.class, String.class)), false),
-      arguments(p(List.class, wu(p(List.class, String.class))), p(List.class, p(ArrayList.class, String.class)), true),
-      arguments(p(List.class, wl(p(ArrayList.class, String.class))), p(List.class, p(AbstractList.class, String.class)), true),
-      arguments(p(List.class, wl(p(ArrayList.class, String.class))), p(List.class, p(List.class, String.class)), true),
-      arguments(p(List.class, wl(p(ArrayList.class, String.class))), p(List.class, Serializable.class), true)
+      arguments(Types.p(List.class, String.class), Types.p(List.class, String.class), true),
+      arguments(Types.p(List.class, CharSequence.class), Types.p(List.class, String.class), false),
+      arguments(Types.p(List.class, Types.wu(CharSequence.class)), Types.p(List.class, String.class), true),
+      arguments(Types.p(List.class, Types.wl(CharSequence.class)), Types.p(List.class, String.class), false),
+      arguments(Types.p(List.class, Types.wl(CharSequence.class)), Types.p(List.class, Object.class), true),
+      arguments(Types.p(List.class, Types.v(List.class, 0)), Types.p(List.class, Object.class), true),
+      arguments(Types.v(C1.class.getMethod("m", CharSequence.class), 0), String.class, true),
+      arguments(Types.v(C1.class.getMethod("m", CharSequence.class), 0), CharSequence.class, true),
+      arguments(Types.v(C1.class.getMethod("m", CharSequence.class), 0), Integer.class, false),
+      arguments(Types.p(List.class, Types.wu(CharSequence.class, Serializable.class)), Types.p(List.class, String.class), true),
+      arguments(Types.p(List.class, Types.wu(CharSequence.class, Serializable.class)), Types.p(List.class, CharBuffer.class), false),
+      arguments(Types.p(List.class, Types.wl(CharSequence.class, Serializable.class)), Types.p(List.class, String.class), false),
+      arguments(Types.p(List.class, Types.wl(CharSequence.class, Serializable.class)), Types.p(List.class, Object.class), true),
+      arguments(Types.p(List.class, Types.wl(CharBuffer.class)), Types.p(List.class, CharSequence.class), true),
+      arguments(Types.p(List.class, Types.wl(CharBuffer.class)), Types.p(List.class, Buffer.class), true),
+      arguments(Types.p(List.class, Types.wl(Types.wu(CharBuffer.class))), Types.p(List.class, CharSequence.class), true),
+      arguments(Types.p(List.class, Types.wl(Types.wu(CharSequence.class, Serializable.class))), Types.p(List.class, Object.class), true),
+      arguments(Types.p(List.class, Types.wu(CharSequence.class)), p(List.class, Types.u(CharBuffer.class, String.class)), true),
+      arguments(Types.p(List.class, Types.wu(CharSequence.class)), p(List.class, Types.u(CharBuffer.class, Object.class)), false),
+      arguments(Types.p(List.class, String.class), Types.p(ArrayList.class, String.class), true),
+      arguments(Types.p(List.class, Types.p(List.class, String.class)), Types.p(List.class, Types.p(ArrayList.class, String.class)), false),
+      arguments(Types.p(List.class, Types.wu(Types.p(List.class, String.class))), Types.p(List.class, Types.p(ArrayList.class, String.class)), true),
+      arguments(Types.p(List.class, Types.wl(Types.p(ArrayList.class, String.class))), Types.p(List.class, Types.p(AbstractList.class, String.class)), true),
+      arguments(Types.p(List.class, Types.wl(Types.p(ArrayList.class, String.class))), Types.p(List.class, Types.p(List.class, String.class)), true),
+      arguments(Types.p(List.class, Types.wl(Types.p(ArrayList.class, String.class))), Types.p(List.class, Serializable.class), true)
     );
   }
 
@@ -103,55 +102,55 @@ class TypeCalculatorTest {
       arguments(
         C1.class.getMethod("m", CharSequence.class),
         Map.of("arg", Object.class),
-        wu(CharSequence.class),
+        Types.wu(CharSequence.class),
         Map.of("arg", false)
       ),
       arguments(
         C1.class.getMethod("m", CharSequence.class),
-        Map.of("arg", u(String.class, CharBuffer.class)),
-        u(String.class, CharBuffer.class),
+        Map.of("arg", Types.u(String.class, CharBuffer.class)),
+        Types.u(String.class, CharBuffer.class),
         Map.of("arg", true)
       ),
       arguments(
         C1.class.getMethod("m2", Object.class),
         Map.of("x", Integer.class),
-        po(TypeCalculatorTest.class, C1.class, p(List.class, wu(Integer.class))),
+        Types.po(TypeCalculatorTest.class, C1.class, Types.p(List.class, Types.wu(Integer.class))),
         Map.of("x", true)
       ),
       arguments(
         C1.class.getMethod("m3", CharSequence[].class),
         Map.of("args", String.class),
-        po(TypeCalculatorTest.class, C1.class, p(List.class, String.class)),
+        Types.po(TypeCalculatorTest.class, C1.class, Types.p(List.class, String.class)),
         Map.of("args", true)
       ),
       arguments(
         C1.class.getMethod("m3", CharSequence[].class),
-        Map.of("args", va(String.class, CharBuffer.class)),
-        po(TypeCalculatorTest.class, C1.class, p(List.class, u(String.class, CharBuffer.class))),
+        Map.of("args", Types.va(String.class, CharBuffer.class)),
+        Types.po(TypeCalculatorTest.class, C1.class, p(List.class, Types.u(String.class, CharBuffer.class))),
         Map.of("args", true)
       ),
       arguments(
         C2.class.getMethod("cons", Consumer.class),
-        Map.of("consumer", p(Consumer.class, Integer.class)),
+        Map.of("consumer", Types.p(Consumer.class, Integer.class)),
         Integer.class,
         Map.of("consumer", true)
       ),
       arguments(
         C2.class.getMethod("cons2", Consumer.class),
-        Map.of("v", p(Consumer.class, p(List.class, Object.class))),
+        Map.of("v", Types.p(Consumer.class, Types.p(List.class, Object.class))),
         Object.class,
         Map.of("v", true)
       ),
       arguments(
         C2.class.getMethod("cons2", Consumer.class),
-        Map.of("v", p(Consumer.class, p(Collection.class, Object.class))),
+        Map.of("v", Types.p(Consumer.class, Types.p(Collection.class, Object.class))),
         Object.class,
         Map.of("v", true)
       ),
       arguments(
         C2.class.getMethod("cons2", Consumer.class),
-        Map.of("v", p(Consumer.class, p(ArrayList.class, Object.class))),
-        wu(),
+        Map.of("v", Types.p(Consumer.class, Types.p(ArrayList.class, Object.class))),
+        Types.wu(),
         Map.of("v", false)
       )
     );
@@ -171,7 +170,7 @@ class TypeCalculatorTest {
         C1.class.getMethod("m2", Object.class),
         Map.of("x", Void.class),
         "x",
-        p(List.class, wu(Void.class))
+        Types.p(List.class, Types.wu(Void.class))
       ),
       arguments(
         C2.class.getMethod("h", Object.class),
@@ -228,9 +227,9 @@ class TypeCalculatorTest {
       ),
       arguments(
         C2.class.getMethod("cons3", Object.class),
-        Map.of("value", p(List.class, String.class)),
+        Map.of("value", Types.p(List.class, String.class)),
         "accept",
-        p(ArrayList.class, String.class),
+        Types.p(ArrayList.class, String.class),
         true
       )
     );

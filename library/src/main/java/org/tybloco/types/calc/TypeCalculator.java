@@ -1,4 +1,4 @@
-package org.tybaco.types.calc;
+package org.tybloco.types.calc;
 
 /*-
  * #%L
@@ -27,16 +27,14 @@ import com.google.common.reflect.TypeToken;
 
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.stream;
-import static org.tybaco.types.calc.Types.*;
-import static org.tybaco.util.ArrayOps.all;
-import static org.tybaco.util.MiscOps.cast;
+import static org.tybloco.util.ArrayOps.all;
+import static org.tybloco.util.MiscOps.cast;
 
 public final class TypeCalculator {
 
@@ -126,14 +124,14 @@ public final class TypeCalculator {
       .map(i -> {
         var resolver = prepareResolver();
         var t = resolver.resolveType(i.getReturnType().getType());
-        return ground(t);
+        return Types.ground(t);
       });
   }
 
   public Type outputType() {
     var resolver = prepareResolver();
     var t = resolver.resolveType(method.getGenericReturnType());
-    return ground(t);
+    return Types.ground(t);
   }
 
   public Stream<String> outputNames() {
@@ -156,7 +154,7 @@ public final class TypeCalculator {
     if (formal instanceof WildcardType w) {
       var lb = w.getLowerBounds();
       if (lb.length != 0) {
-        formal = wu(lb);
+        formal = Types.wu(lb);
       }
     }
     return visit(formal, actual, null, TRUE, consumer);

@@ -1,4 +1,4 @@
-package org.tybaco.util;
+package org.tybloco.util;
 
 /*-
  * #%L
@@ -21,34 +21,18 @@ package org.tybaco.util;
  * #L%
  */
 
-import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+import java.util.function.Consumer;
 
-public final class FastLatch extends AbstractQueuedSynchronizer {
+public interface MiscOps {
 
-  public FastLatch(int state) {
-    setState(state);
+  @SuppressWarnings("unchecked")
+  static <T> T cast(Object v) {
+    return (T) v;
   }
 
-  @Override
-  protected int tryAcquireShared(int acquires) {
-    return (getState() == 0) ? 1 : -1;
-  }
-
-  @Override
-  protected boolean tryReleaseShared(int releases) {
-    for (;;) {
-      int c = getState();
-      if (c == 0) return false;
-      int nc = c - 1;
-      if (compareAndSetState(c, nc)) return nc == 0;
-    }
-  }
-
-  public void await() {
-    acquireShared(1);
-  }
-
-  public void countDown() {
-    releaseShared(1);
+  @SafeVarargs
+  static <T> T build(T obj, Consumer<? super T>... consumers) {
+    for (var c : consumers) c.accept(obj);
+    return obj;
   }
 }

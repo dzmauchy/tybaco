@@ -1,4 +1,4 @@
-package org.tybaco.types.calc;
+package org.tybloco.types.calc;
 
 /*-
  * #%L
@@ -25,11 +25,9 @@ import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 
-import static org.tybaco.types.calc.Types.EMPTY_TYPES;
-
 record WildcardTypeImpl(Type[] lb, Type[] ub) implements WildcardType {
 
-  public static final WildcardTypeImpl ANY = new WildcardTypeImpl(EMPTY_TYPES, new Type[]{Object.class});
+  public static final WildcardTypeImpl ANY = new WildcardTypeImpl(Types.EMPTY_TYPES, new Type[]{Object.class});
 
   @Override
   public Type[] getUpperBounds() {

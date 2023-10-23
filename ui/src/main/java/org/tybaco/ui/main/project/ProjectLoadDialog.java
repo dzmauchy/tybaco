@@ -27,15 +27,15 @@ import org.springframework.stereotype.Component;
 import org.tybloco.editors.text.Texts;
 import org.tybaco.ui.main.MainStage;
 import org.tybaco.ui.model.Project;
-import org.tybaco.xml.Xml;
+import org.tybloco.xml.Xml;
 
 import java.io.File;
 import java.util.List;
 import java.util.prefs.Preferences;
 
 import static java.util.Objects.requireNonNullElse;
-import static org.tybaco.logging.Log.info;
-import static org.tybaco.logging.Log.warn;
+import static org.tybloco.logging.Log.info;
+import static org.tybloco.logging.Log.warn;
 
 @Component
 public final class ProjectLoadDialog {

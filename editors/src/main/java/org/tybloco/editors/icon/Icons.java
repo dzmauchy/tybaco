@@ -35,7 +35,7 @@ import java.io.UncheckedIOException;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.tybaco.logging.Log.warn;
+import static org.tybloco.logging.Log.warn;
 
 public final class Icons {
 

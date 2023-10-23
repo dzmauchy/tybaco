@@ -31,7 +31,7 @@ import org.tybaco.ui.lib.context.Propagated;
 import org.tybaco.ui.lib.logging.LogBeanPostProcessor;
 import org.tybaco.ui.splash.SplashBeanPostProcessor;
 
-import static org.tybaco.logging.Log.info;
+import static org.tybloco.logging.Log.info;
 
 public final class MainApplicationContext extends AnnotationConfigApplicationContext {
 

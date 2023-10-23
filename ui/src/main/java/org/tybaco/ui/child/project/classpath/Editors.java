@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.jar.JarInputStream;
 
-import static org.tybaco.logging.Log.error;
+import static org.tybloco.logging.Log.error;
 
 @Component
 public final class Editors {

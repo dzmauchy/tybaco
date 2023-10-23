@@ -1,4 +1,4 @@
-package org.tybaco.util;
+package org.tybloco.util;
 
 /*-
  * #%L

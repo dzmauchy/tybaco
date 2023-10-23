@@ -32,7 +32,7 @@ import org.tybaco.ui.main.project.Projects;
 import org.tybaco.ui.model.Dependency;
 import org.tybaco.ui.model.Project;
 
-import static org.tybaco.logging.Log.info;
+import static org.tybloco.logging.Log.info;
 
 @Lazy(false)
 @Component

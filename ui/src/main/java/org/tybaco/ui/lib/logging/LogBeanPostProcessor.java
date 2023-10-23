@@ -22,7 +22,7 @@ package org.tybaco.ui.lib.logging;
  */
 
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
-import org.tybaco.logging.Log;
+import org.tybloco.logging.Log;
 
 import java.util.logging.Level;
 

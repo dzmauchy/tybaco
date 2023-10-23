@@ -42,8 +42,8 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.locks.LockSupport.parkNanos;
-import static org.tybaco.logging.Log.error;
-import static org.tybaco.logging.Log.warn;
+import static org.tybloco.logging.Log.error;
+import static org.tybloco.logging.Log.warn;
 
 @Component
 public final class ProjectClasspath extends InvalidationListeners {

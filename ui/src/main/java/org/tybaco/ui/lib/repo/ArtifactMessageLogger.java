@@ -22,7 +22,7 @@ package org.tybaco.ui.lib.repo;
  */
 
 import org.apache.ivy.util.AbstractMessageLogger;
-import org.tybaco.logging.Log;
+import org.tybloco.logging.Log;
 
 import static java.util.logging.Level.*;
 import static org.apache.ivy.util.Message.*;

@@ -33,7 +33,7 @@ import org.tybaco.ui.child.project.blocks.LibraryBlocksWindow;
 import org.tybaco.ui.child.project.classpath.Editors;
 import org.tybaco.ui.child.project.constants.LibraryConstantsWindow;
 import org.tybaco.ui.model.Project;
-import org.tybaco.xml.Xml;
+import org.tybloco.xml.Xml;
 
 @Component
 public class ProjectActions {

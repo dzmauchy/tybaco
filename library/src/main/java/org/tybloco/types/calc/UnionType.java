@@ -1,4 +1,4 @@
-package org.tybaco.io;
+package org.tybloco.types.calc;
 
 /*-
  * #%L
@@ -21,22 +21,10 @@ package org.tybaco.io;
  * #L%
  */
 
-import java.io.IOException;
-import java.nio.file.*;
+import java.lang.reflect.Type;
+import java.util.Set;
 
-public interface Paths {
-
-  static void deleteRecursively(Path path) throws IOException {
-    if (Files.isDirectory(path)) {
-      try {
-        try (var ds = Files.newDirectoryStream(path)) {
-          for (var file : ds) {
-            deleteRecursively(file);
-          }
-        }
-      } catch (NoSuchFileException | NotDirectoryException ignore) {
-      }
-    }
-    Files.deleteIfExists(path);
-  }
+public interface UnionType extends Type {
+  Type[] getTypes();
+  Set<? extends Type> types();
 }

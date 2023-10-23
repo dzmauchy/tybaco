@@ -28,7 +28,7 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import org.tybaco.logging.Log;
+import org.tybloco.logging.Log;
 import org.tybaco.ui.Main;
 import org.tybaco.ui.lib.logging.UILogHandler;
 import org.tybaco.ui.lib.stage.StageLinuxBugListener;

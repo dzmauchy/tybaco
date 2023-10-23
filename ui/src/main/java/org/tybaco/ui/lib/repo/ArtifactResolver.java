@@ -35,7 +35,7 @@ import org.apache.ivy.plugins.lock.NoLockStrategy;
 import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.apache.ivy.util.Message;
-import org.tybaco.io.CancellablePathCloseable;
+import org.tybloco.io.CancellablePathCloseable;
 import org.tybaco.ui.model.Dependency;
 
 import java.io.IOException;

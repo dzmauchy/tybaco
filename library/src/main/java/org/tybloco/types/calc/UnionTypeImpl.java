@@ -1,4 +1,4 @@
-package org.tybaco.util;
+package org.tybloco.types.calc;
 
 /*-
  * #%L
@@ -21,18 +21,34 @@ package org.tybaco.util;
  * #L%
  */
 
-import java.util.function.Consumer;
+import java.lang.reflect.Type;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-public interface MiscOps {
+record UnionTypeImpl(Set<? extends Type> types) implements UnionType {
 
-  @SuppressWarnings("unchecked")
-  static <T> T cast(Object v) {
-    return (T) v;
+  @Override
+  public int hashCode() {
+    return types.hashCode();
   }
 
-  @SafeVarargs
-  static <T> T build(T obj, Consumer<? super T>... consumers) {
-    for (var c : consumers) c.accept(obj);
-    return obj;
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof UnionType u && types.equals(u.types());
+  }
+
+  @Override
+  public Type[] getTypes() {
+    return types.toArray(Type[]::new);
+  }
+
+  @Override
+  public String getTypeName() {
+    return types.stream().map(Type::getTypeName).collect(Collectors.joining(" | "));
+  }
+
+  @Override
+  public String toString() {
+    return getTypeName();
   }
 }

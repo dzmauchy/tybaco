@@ -27,7 +27,7 @@ import javafx.event.EventHandler;
 import javafx.scene.input.MouseButton;
 import javafx.scene.robot.Robot;
 import javafx.stage.*;
-import org.tybaco.util.FastLatch;
+import org.tybloco.util.FastLatch;
 
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;

@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static javafx.beans.binding.Bindings.createStringBinding;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.layout.Priority.NEVER;
-import static org.tybaco.util.MiscOps.build;
+import static org.tybloco.util.MiscOps.build;
 
 public interface GridPanes {
 

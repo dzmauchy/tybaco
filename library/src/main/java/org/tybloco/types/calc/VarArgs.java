@@ -1,4 +1,4 @@
-package org.tybaco.types.calc;
+package org.tybloco.types.calc;
 
 /*-
  * #%L
@@ -23,32 +23,6 @@ package org.tybaco.types.calc;
 
 import java.lang.reflect.Type;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-record UnionTypeImpl(Set<? extends Type> types) implements UnionType {
-
-  @Override
-  public int hashCode() {
-    return types.hashCode();
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return obj instanceof UnionType u && types.equals(u.types());
-  }
-
-  @Override
-  public Type[] getTypes() {
-    return types.toArray(Type[]::new);
-  }
-
-  @Override
-  public String getTypeName() {
-    return types.stream().map(Type::getTypeName).collect(Collectors.joining(" | "));
-  }
-
-  @Override
-  public String toString() {
-    return getTypeName();
-  }
+public record VarArgs(Set<? extends Type> types) implements Type {
 }

@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toUnmodifiableMap;
-import static org.tybaco.logging.Log.warn;
+import static org.tybloco.logging.Log.warn;
 
 @Component
 public final class BlockCache extends InvalidationListeners {

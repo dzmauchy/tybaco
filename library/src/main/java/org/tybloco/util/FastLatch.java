@@ -1,4 +1,4 @@
-package org.tybaco.types.calc;
+package org.tybloco.util;
 
 /*-
  * #%L
@@ -21,8 +21,34 @@ package org.tybaco.types.calc;
  * #L%
  */
 
-import java.lang.reflect.Type;
-import java.util.Set;
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
-public record VarArgs(Set<? extends Type> types) implements Type {
+public final class FastLatch extends AbstractQueuedSynchronizer {
+
+  public FastLatch(int state) {
+    setState(state);
+  }
+
+  @Override
+  protected int tryAcquireShared(int acquires) {
+    return (getState() == 0) ? 1 : -1;
+  }
+
+  @Override
+  protected boolean tryReleaseShared(int releases) {
+    for (;;) {
+      int c = getState();
+      if (c == 0) return false;
+      int nc = c - 1;
+      if (compareAndSetState(c, nc)) return nc == 0;
+    }
+  }
+
+  public void await() {
+    acquireShared(1);
+  }
+
+  public void countDown() {
+    releaseShared(1);
+  }
 }

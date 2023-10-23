@@ -1,4 +1,4 @@
-package org.tybaco.types.calc;
+package org.tybloco.types.calc;
 
 /*-
  * #%L
@@ -24,7 +24,7 @@ package org.tybaco.types.calc;
 import java.lang.reflect.*;
 import java.util.*;
 
-import static org.tybaco.util.ArrayOps.all;
+import static org.tybloco.util.ArrayOps.all;
 
 public final class Types {
 

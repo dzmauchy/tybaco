@@ -21,7 +21,7 @@ package org.tybaco.ui.lib.repo;
  * #L%
  */
 
-import org.tybaco.io.Paths;
+import org.tybloco.io.Paths;
 
 import java.io.*;
 import java.net.URL;
@@ -29,7 +29,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.tybaco.logging.Log.info;
+import static org.tybloco.logging.Log.info;
 
 public class ArtifactClassPath implements Closeable {
 

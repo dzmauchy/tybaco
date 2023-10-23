@@ -38,8 +38,8 @@ import java.util.stream.Stream;
 import static java.util.Arrays.stream;
 import static java.util.stream.Stream.concat;
 import static javafx.beans.binding.Bindings.createStringBinding;
-import static org.tybaco.logging.Log.warn;
-import static org.tybaco.xml.Xml.*;
+import static org.tybloco.logging.Log.warn;
+import static org.tybloco.xml.Xml.*;
 
 public final class Texts {
 

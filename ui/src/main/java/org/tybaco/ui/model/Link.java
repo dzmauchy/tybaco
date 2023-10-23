@@ -21,10 +21,7 @@ package org.tybaco.ui.model;
  * #L%
  */
 
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import org.tybaco.ui.child.project.diagram.DiagramBlockInput;
 import org.tybaco.ui.child.project.diagram.DiagramBlockOutput;
@@ -32,8 +29,8 @@ import org.w3c.dom.Element;
 
 import java.util.NoSuchElementException;
 
-import static org.tybaco.xml.Xml.elementByTag;
-import static org.tybaco.xml.Xml.withChild;
+import static org.tybloco.xml.Xml.elementByTag;
+import static org.tybloco.xml.Xml.withChild;
 
 public final class Link {
 

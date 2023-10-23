@@ -22,8 +22,8 @@ package org.tybaco.ui;
  */
 
 import javafx.application.Application;
-import org.tybaco.logging.FastConsoleHandler;
-import org.tybaco.logging.LoggingManager;
+import org.tybloco.logging.FastConsoleHandler;
+import org.tybloco.logging.LoggingManager;
 import org.tybaco.ui.lib.logging.UILogHandler;
 import org.tybaco.ui.main.MainApplication;
 

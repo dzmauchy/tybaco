@@ -23,8 +23,8 @@ package org.tybloco.ide;
 
 import org.tybloco.ide.splash.SplashPreloader;
 import org.tybloco.ide.splash.SplashStatus;
-import org.tybaco.logging.FastConsoleHandler;
-import org.tybaco.logging.LoggingManager;
+import org.tybloco.logging.FastConsoleHandler;
+import org.tybloco.logging.LoggingManager;
 import org.tybaco.ui.Main;
 import org.tybaco.ui.splash.SplashBeanPostProcessor;
 

@@ -1,4 +1,4 @@
-package org.tybaco.types.calc;
+package org.tybloco.types.calc;
 
 /*-
  * #%L
@@ -21,10 +21,33 @@ package org.tybaco.types.calc;
  * #L%
  */
 
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Type;
-import java.util.Set;
 
-public interface UnionType extends Type {
-  Type[] getTypes();
-  Set<? extends Type> types();
+record GenericArrayTypeImpl(Type componentType) implements GenericArrayType {
+
+  @Override
+  public Type getGenericComponentType() {
+    return componentType;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof GenericArrayType a && componentType.equals(a.getGenericComponentType());
+  }
+
+  @Override
+  public int hashCode() {
+    return componentType.hashCode();
+  }
+
+  @Override
+  public String getTypeName() {
+    return componentType.getTypeName() + "[]";
+  }
+
+  @Override
+  public String toString() {
+    return getTypeName();
+  }
 }

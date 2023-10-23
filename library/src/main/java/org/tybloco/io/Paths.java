@@ -1,4 +1,4 @@
-package org.tybaco.types.calc;
+package org.tybloco.io;
 
 /*-
  * #%L
@@ -21,33 +21,22 @@ package org.tybaco.types.calc;
  * #L%
  */
 
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.Type;
+import java.io.IOException;
+import java.nio.file.*;
 
-record GenericArrayTypeImpl(Type componentType) implements GenericArrayType {
+public interface Paths {
 
-  @Override
-  public Type getGenericComponentType() {
-    return componentType;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return obj instanceof GenericArrayType a && componentType.equals(a.getGenericComponentType());
-  }
-
-  @Override
-  public int hashCode() {
-    return componentType.hashCode();
-  }
-
-  @Override
-  public String getTypeName() {
-    return componentType.getTypeName() + "[]";
-  }
-
-  @Override
-  public String toString() {
-    return getTypeName();
+  static void deleteRecursively(Path path) throws IOException {
+    if (Files.isDirectory(path)) {
+      try {
+        try (var ds = Files.newDirectoryStream(path)) {
+          for (var file : ds) {
+            deleteRecursively(file);
+          }
+        }
+      } catch (NoSuchFileException | NotDirectoryException ignore) {
+      }
+    }
+    Files.deleteIfExists(path);
   }
 }
