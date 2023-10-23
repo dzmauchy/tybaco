@@ -23,10 +23,10 @@ package org.tybaco.ui.child.project.classpath;
 
 import javafx.beans.property.SimpleObjectProperty;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.Meta;
-import org.tybaco.editors.model.BlockLib;
-import org.tybaco.editors.model.LibBlock;
-import org.tybaco.editors.util.InvalidationListeners;
+import org.tybloco.editors.Meta;
+import org.tybloco.editors.model.BlockLib;
+import org.tybloco.editors.model.LibBlock;
+import org.tybloco.editors.util.InvalidationListeners;
 
 import java.util.*;
 import java.util.stream.Stream;

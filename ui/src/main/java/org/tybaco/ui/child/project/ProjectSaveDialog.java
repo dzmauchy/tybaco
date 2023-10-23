@@ -23,7 +23,7 @@ package org.tybaco.ui.child.project;
 
 import javafx.stage.FileChooser;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.text.Texts;
+import org.tybloco.editors.text.Texts;
 import org.tybaco.ui.main.MainStage;
 import org.tybaco.ui.model.Project;
 

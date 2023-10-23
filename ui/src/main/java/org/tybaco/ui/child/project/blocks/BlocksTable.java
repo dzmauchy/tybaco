@@ -25,8 +25,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.control.Tables;
-import org.tybaco.editors.text.Texts;
+import org.tybloco.editors.control.Tables;
+import org.tybloco.editors.text.Texts;
 import org.tybaco.ui.model.Block;
 import org.tybaco.ui.model.Project;
 

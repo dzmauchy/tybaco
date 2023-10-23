@@ -22,9 +22,9 @@ package org.tybaco.ui.child.project.diagram;
  */
 
 import javafx.scene.control.ToggleButton;
-import org.tybaco.editors.base.ObservableBounds;
-import org.tybaco.editors.icon.Icons;
-import org.tybaco.editors.model.LibOutput;
+import org.tybloco.editors.base.ObservableBounds;
+import org.tybloco.editors.icon.Icons;
+import org.tybloco.editors.model.LibOutput;
 import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 

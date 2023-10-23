@@ -28,9 +28,9 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import org.tybaco.editors.Meta;
-import org.tybaco.editors.icon.Icons;
-import org.tybaco.editors.text.Texts;
+import org.tybloco.editors.Meta;
+import org.tybloco.editors.icon.Icons;
+import org.tybloco.editors.text.Texts;
 
 import static javafx.geometry.Orientation.HORIZONTAL;
 

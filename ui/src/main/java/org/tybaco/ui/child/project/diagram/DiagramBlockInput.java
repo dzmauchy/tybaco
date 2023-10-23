@@ -25,9 +25,9 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-import org.tybaco.editors.base.ObservableBounds;
-import org.tybaco.editors.icon.Icons;
-import org.tybaco.editors.model.LibInput;
+import org.tybloco.editors.base.ObservableBounds;
+import org.tybloco.editors.icon.Icons;
+import org.tybloco.editors.model.LibInput;
 import org.tybaco.ui.model.Connector;
 import org.tybaco.ui.model.Link;
 

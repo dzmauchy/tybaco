@@ -27,7 +27,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.SimpleObjectProperty;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.util.InvalidationListeners;
+import org.tybloco.editors.util.InvalidationListeners;
 import org.tybaco.ui.lib.repo.ArtifactClassPath;
 import org.tybaco.ui.lib.repo.ArtifactResolver;
 import org.tybaco.ui.model.Dependency;

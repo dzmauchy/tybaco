@@ -25,7 +25,7 @@ import javafx.collections.ListChangeListener;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
-import org.tybaco.editors.util.InvalidationListeners;
+import org.tybloco.editors.util.InvalidationListeners;
 
 import java.util.IdentityHashMap;
 import java.util.function.Predicate;

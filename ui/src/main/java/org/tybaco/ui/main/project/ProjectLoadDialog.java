@@ -24,7 +24,7 @@ package org.tybaco.ui.main.project;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.text.Texts;
+import org.tybloco.editors.text.Texts;
 import org.tybaco.ui.main.MainStage;
 import org.tybaco.ui.model.Project;
 import org.tybaco.xml.Xml;

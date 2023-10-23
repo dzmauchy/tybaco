@@ -21,8 +21,8 @@ package org.tybaco.ui.child.project.classpath;
  * #L%
  */
 
-import org.tybaco.editors.model.BlockLib;
-import org.tybaco.editors.model.LibBlock;
+import org.tybloco.editors.model.BlockLib;
+import org.tybloco.editors.model.LibBlock;
 
 import java.lang.annotation.Annotation;
 import java.util.concurrent.ConcurrentSkipListMap;

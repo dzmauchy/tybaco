@@ -23,8 +23,8 @@ package org.tybaco.ui.child.project.constants;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.model.ConstLib;
-import org.tybaco.editors.model.LibConst;
+import org.tybloco.editors.model.ConstLib;
+import org.tybloco.editors.model.LibConst;
 import org.tybaco.ui.child.project.classpath.Editors;
 import org.tybaco.ui.child.project.classpath.ProjectClasspath;
 import org.tybaco.ui.child.project.meta.MetaTree;

@@ -23,7 +23,7 @@ package org.tybaco.ui.child.project.diagram;
 
 import javafx.collections.ListChangeListener;
 import javafx.scene.Node;
-import org.tybaco.editors.icon.Icons;
+import org.tybloco.editors.icon.Icons;
 import org.tybaco.ui.model.Block;
 import org.tybaco.ui.model.Link;
 

@@ -25,12 +25,12 @@ import javafx.scene.layout.BorderPane;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.tybaco.editors.action.Action;
+import org.tybloco.editors.action.Action;
 
 import java.util.List;
 
 import static javafx.geometry.Orientation.VERTICAL;
-import static org.tybaco.editors.control.Toolbars.toolbar;
+import static org.tybloco.editors.control.Toolbars.toolbar;
 
 @Configuration(proxyBeanMethods = false)
 @ComponentScan(lazyInit = true)

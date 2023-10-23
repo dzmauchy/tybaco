@@ -23,7 +23,8 @@ package org.tybaco.ui.child.project.classpath;
 
 import javafx.beans.property.SimpleObjectProperty;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.model.*;
+import org.tybloco.editors.model.BlockLib;
+import org.tybloco.editors.model.ConstLib;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;

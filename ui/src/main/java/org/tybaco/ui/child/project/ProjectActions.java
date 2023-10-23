@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.action.Action;
+import org.tybloco.editors.action.Action;
 import org.tybaco.ui.child.project.blocks.LibraryBlocksWindow;
 import org.tybaco.ui.child.project.classpath.Editors;
 import org.tybaco.ui.child.project.constants.LibraryConstantsWindow;

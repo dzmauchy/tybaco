@@ -26,8 +26,8 @@ import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.serialization.JavaParserJsonDeserializer;
-import org.tybaco.editors.model.*;
-import org.tybaco.editors.util.SeqMap;
+import org.tybloco.editors.model.*;
+import org.tybloco.editors.util.SeqMap;
 
 import javax.json.Json;
 import java.io.StringReader;

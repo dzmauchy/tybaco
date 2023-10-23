@@ -26,7 +26,7 @@ import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.text.Texts;
+import org.tybloco.editors.text.Texts;
 
 import java.util.List;
 

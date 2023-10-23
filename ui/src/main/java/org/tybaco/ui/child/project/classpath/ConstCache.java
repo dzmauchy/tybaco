@@ -23,9 +23,9 @@ package org.tybaco.ui.child.project.classpath;
 
 import javafx.beans.property.SimpleObjectProperty;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.Meta;
-import org.tybaco.editors.model.ConstLib;
-import org.tybaco.editors.model.LibConst;
+import org.tybloco.editors.Meta;
+import org.tybloco.editors.model.ConstLib;
+import org.tybloco.editors.model.LibConst;
 
 import java.util.*;
 import java.util.stream.Stream;

@@ -23,8 +23,8 @@ package org.tybaco.ui.child.project.blocks;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.model.BlockLib;
-import org.tybaco.editors.model.LibBlock;
+import org.tybloco.editors.model.BlockLib;
+import org.tybloco.editors.model.LibBlock;
 import org.tybaco.ui.child.project.classpath.Editors;
 import org.tybaco.ui.child.project.classpath.ProjectClasspath;
 import org.tybaco.ui.child.project.meta.MetaTree;

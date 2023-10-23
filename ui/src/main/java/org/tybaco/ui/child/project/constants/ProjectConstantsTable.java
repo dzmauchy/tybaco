@@ -33,17 +33,17 @@ import org.kordamp.ikonli.antdesignicons.AntDesignIconsFilled;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.action.Action;
-import org.tybaco.editors.control.Tables;
-import org.tybaco.editors.java.Expressions;
-import org.tybaco.editors.text.Texts;
+import org.tybloco.editors.action.Action;
+import org.tybloco.editors.control.Tables;
+import org.tybloco.editors.java.Expressions;
+import org.tybloco.editors.text.Texts;
 import org.tybaco.ui.child.project.classpath.ConstCache;
 import org.tybaco.ui.model.Constant;
 import org.tybaco.ui.model.Project;
 
 import java.util.List;
 
-import static org.tybaco.editors.java.Expressions.fromText;
+import static org.tybloco.editors.java.Expressions.fromText;
 
 @Component
 public class ProjectConstantsTable extends TableView<Constant> {

@@ -25,7 +25,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.action.Action;
+import org.tybloco.editors.action.Action;
 
 import java.util.List;
 

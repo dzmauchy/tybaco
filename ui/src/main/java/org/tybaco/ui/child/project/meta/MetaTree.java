@@ -26,11 +26,11 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import org.tybaco.editors.Meta;
-import org.tybaco.editors.control.Tables;
-import org.tybaco.editors.model.MetaLib;
-import org.tybaco.editors.text.TextSupport;
-import org.tybaco.editors.text.Texts;
+import org.tybloco.editors.Meta;
+import org.tybloco.editors.control.Tables;
+import org.tybloco.editors.model.MetaLib;
+import org.tybloco.editors.text.TextSupport;
+import org.tybloco.editors.text.Texts;
 import org.tybaco.ui.child.project.classpath.ProjectClasspath;
 
 import java.util.List;
@@ -38,7 +38,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static org.tybaco.editors.icon.Icons.icon;
+import static org.tybloco.editors.icon.Icons.icon;
 
 public abstract class MetaTree<L extends MetaLib> extends TreeTableView<Meta> implements TextSupport {
 
