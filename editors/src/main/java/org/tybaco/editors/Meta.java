@@ -22,56 +22,15 @@ package org.tybaco.editors;
  */
 
 import org.jetbrains.annotations.NotNull;
-import org.kordamp.ikonli.materialdesign2.MaterialDesignU;
-import org.tybaco.editors.model.Descriptor;
-
-import java.lang.reflect.AnnotatedElement;
 
 public interface Meta extends Comparable<Meta> {
-
-  default String id() {
-    var descriptor = metaAnnotatedElement().getAnnotation(Descriptor.class);
-    return descriptor != null ? descriptor.id() : defaultName();
-  }
-
-  default String name() {
-    var descriptor = metaAnnotatedElement().getAnnotation(Descriptor.class);
-    return descriptor != null ? descriptor.name() : defaultName();
-  }
-
-  default String icon() {
-    var descriptor = metaAnnotatedElement().getAnnotation(Descriptor.class);
-    return descriptor != null ? descriptor.icon() : MaterialDesignU.UFO.getDescription();
-  }
-
-  default String description() {
-    var description = metaAnnotatedElement().getAnnotation(Descriptor.class);
-    return description != null ? description.description() : "";
-  }
-
-  default AnnotatedElement metaAnnotatedElement() {
-    return getClass();
-  }
-
-  private String defaultName() {
-    return switch (metaAnnotatedElement()) {
-      case Class<?> c -> c.getSimpleName();
-      case Package p -> p.getName();
-      default -> throw new IllegalArgumentException(metaAnnotatedElement().getClass().getName());
-    };
-  }
+  String id();
+  String name();
+  String icon();
+  String description();
 
   @Override
   default int compareTo(@NotNull Meta o) {
     return name().compareTo(o.name());
-  }
-
-  static Meta meta(AnnotatedElement p) {
-    return new Meta() {
-      @Override
-      public AnnotatedElement metaAnnotatedElement() {
-        return p;
-      }
-    };
   }
 }

@@ -1,8 +1,9 @@
-package org.tybaco.editors.model;
+@Lib(name = "Consumers", icon = "嗜", description = "Library of consumers of different types")
+package org.tybaco.runtime.basic.consumer;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,14 +22,4 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-import java.lang.annotation.*;
-
-@Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.MODULE})
-@Retention(RetentionPolicy.RUNTIME)
-@Inherited
-public @interface Descriptor {
-  String id();
-  String name();
-  String icon();
-  String description();
-}
+import org.tybaco.runtime.meta.Lib;

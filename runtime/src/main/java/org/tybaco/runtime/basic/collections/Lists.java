@@ -1,9 +1,8 @@
-@Descriptor(id = "network", name = "Network", icon = "eli-network", description = "Network-oriented constants")
-package org.tybaco.editors.basic.constant.network;
+package org.tybaco.runtime.basic.collections;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -22,4 +21,19 @@ package org.tybaco.editors.basic.constant.network;
  * #L%
  */
 
-import org.tybaco.editors.model.Descriptor;
+import org.tybaco.runtime.meta.*;
+
+import java.util.List;
+
+@Blocks(name = "Lists", icon = "順", description = "Lists")
+public interface Lists {
+
+  @SafeVarargs
+  @Block(name = "Immutable list", icon = "順", description = "Immutable list of elements")
+  static <E> List<E> immutableList(
+    @Input(name = "Elements", icon = "単", description = "Elements")
+    E... elements
+  ) {
+    return List.of(elements);
+  }
+}

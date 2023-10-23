@@ -23,5 +23,5 @@ package org.tybaco.editors.model;
 
 import org.tybaco.editors.Meta;
 
-public record LibOutput(String name, String icon, String description) implements Meta {
+public record LibOutput(String id, String name, String icon, String description, String type) implements Meta {
 }

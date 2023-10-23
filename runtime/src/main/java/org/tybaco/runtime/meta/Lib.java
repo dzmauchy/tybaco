@@ -1,8 +1,8 @@
-package org.tybaco.editors.annotation;
+package org.tybaco.runtime.meta;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -23,11 +23,9 @@ package org.tybaco.editors.annotation;
 
 import java.lang.annotation.*;
 
-@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(Outputs.class)
-public @interface Output {
-  String id();
+@Target({ElementType.PACKAGE})
+public @interface Lib {
   String name();
   String icon();
   String description();

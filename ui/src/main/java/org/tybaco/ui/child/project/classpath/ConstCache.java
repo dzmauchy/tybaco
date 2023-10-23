@@ -23,9 +23,16 @@ package org.tybaco.ui.child.project.classpath;
 
 import javafx.beans.property.SimpleObjectProperty;
 import org.springframework.stereotype.Component;
+import org.tybaco.editors.Meta;
+import org.tybaco.editors.model.ConstLib;
 import org.tybaco.editors.model.LibConst;
 
 import java.util.*;
+import java.util.stream.Stream;
+
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toUnmodifiableMap;
+import static org.tybaco.logging.Log.warn;
 
 @Component
 public final class ConstCache {
@@ -33,16 +40,14 @@ public final class ConstCache {
   public final SimpleObjectProperty<Map<String, LibConst>> cache = new SimpleObjectProperty<>(this, "cache", Map.of());
 
   public ConstCache(Editors editors) {
-    editors.constLibs.addListener((o, ov, nv) -> {
-      if (nv == null || nv.isEmpty()) {
-        cache.set(Map.of());
-        return;
-      }
-      var count = nv.stream().mapToInt(l -> l.children().size()).sum();
-      var map = HashMap.<String, LibConst>newHashMap(count);
-      nv.forEach(l -> l.children().forEach(c -> map.put(c.id(), c)));
-      cache.set(Map.copyOf(map));
-    });
+    editors.constLibs.addListener((o, ov, nv) -> cache.set(Stream.ofNullable(nv)
+      .flatMap(Collection::stream)
+      .flatMap(ConstLib::allConstants)
+      .collect(toUnmodifiableMap(Meta::id, identity(), (c1, c2) -> {
+        warn(ConstCache.class, "Duplicated constant {0}: {1}, {2}", c1.id(), c1, c2);
+        return c2;
+      }))
+    ));
   }
 
   public Optional<LibConst> constById(String id) {

@@ -24,6 +24,7 @@ package org.tybaco.runtime.basic.sink;
 import org.tybaco.runtime.application.ApplicationContext;
 import org.tybaco.runtime.basic.Break;
 import org.tybaco.runtime.basic.source.BiSource;
+import org.tybaco.runtime.meta.*;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.function.BiConsumer;
@@ -35,11 +36,23 @@ public final class SequentialBiSink<K, V> extends AbstractSink {
   private final BiConsumer<? super K, ? super V> consumer;
   private final Consumer<? super Throwable> onError;
 
+  @Block(name = "Sequential sink of key-value pairs", icon = "的", description = "Sequential sink of key-value pairs")
   public SequentialBiSink(
+    @InternalInput("$applicationContext")
     ApplicationContext context,
+
+    @InternalInput("$defaultThreadFactory")
+    @Input(name = "Thread factory", icon = "縺", description = "Thread factory used to create a consumer thread")
     ThreadFactory tf,
+
+    @Input(name = "Source", icon = "源", description = "A key-value source")
     BiSource<K, V> source,
+
+    @Input(name = "Consumer", icon = "讀", description = "Key-value consumer")
     BiConsumer<? super K, ? super V> consumer,
+
+    @InternalInput("$defaultErrorHandler")
+    @Input(name = "Error handler", icon = "訥", description = "Error handler")
     Consumer<? super Throwable> onError
   ) {
     super(context, tf);

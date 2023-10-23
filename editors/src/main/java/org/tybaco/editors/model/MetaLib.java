@@ -23,8 +23,9 @@ package org.tybaco.editors.model;
 
 import org.tybaco.editors.Meta;
 
-import java.util.List;
+import java.util.stream.Stream;
 
 public interface MetaLib extends Meta {
-  List<? extends Meta> children();
+  Stream<? extends Meta> children();
+  Stream<? extends MetaLib> childLibs();
 }

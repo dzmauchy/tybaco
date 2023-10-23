@@ -34,20 +34,18 @@ import org.tybaco.editors.text.Texts;
 import org.tybaco.ui.child.project.classpath.ProjectClasspath;
 
 import java.util.List;
-import java.util.TreeMap;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
 import static org.tybaco.editors.icon.Icons.icon;
 
 public abstract class MetaTree<L extends MetaLib> extends TreeTableView<Meta> implements TextSupport {
 
-  private final SimpleObjectProperty<List<L>> libs;
   private final ClassLoader classLoader;
   public final BooleanBinding nonLeafSelected;
 
-  protected MetaTree(SimpleObjectProperty<List<L>> libs, ProjectClasspath classpath, Predicate<? super Meta> isLeaf) {
+  protected MetaTree(SimpleObjectProperty<List<? extends L>> libs, ProjectClasspath classpath, Predicate<? super Meta> isLeaf) {
     super(new TreeItem<>());
     this.nonLeafSelected = Bindings.createBooleanBinding(
       () -> {
@@ -57,31 +55,23 @@ public abstract class MetaTree<L extends MetaLib> extends TreeTableView<Meta> im
       getSelectionModel().selectedItemProperty()
     );
     this.classLoader = classpath.getClassLoader();
-    this.libs = libs;
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     setPadding(Insets.EMPTY);
     setShowRoot(false);
     getColumns().addAll(List.of(nameColumn(), descriptionColumn()));
     Tables.initColumnWidths(this, 300, 500);
-    fill();
+    fill(getRoot(), libs.get()::stream);
   }
 
-  private void fill() {
-    libs.get().stream().sorted().forEach(lib -> {
-      var libElem = new TreeItem<Meta>(lib);
-      getRoot().getChildren().add(libElem);
-      lib.children().stream()
-        .sorted()
-        .collect(groupingBy(c -> Meta.meta(c.getClass().getPackage()), TreeMap::new, toList()))
-        .forEach((g, cs) -> {
-          var pkgElem = new TreeItem<>(g);
-          libElem.getChildren().add(pkgElem);
-          cs.forEach(c -> {
-            var elem = new TreeItem<Meta>(c);
-            pkgElem.getChildren().add(elem);
-          });
-        });
-      libElem.setExpanded(true);
+  private void fill(TreeItem<Meta> item, Supplier<Stream<? extends MetaLib>> libs) {
+    libs.get().forEach(lib -> {
+      var libItem = new TreeItem<Meta>(lib);
+      item.getChildren().add(libItem);
+      fill(libItem, lib::childLibs);
+      lib.children().forEach(elem -> {
+        var elemItem = new TreeItem<Meta>(elem);
+        libItem.getChildren().add(elemItem);
+      });
     });
   }
 

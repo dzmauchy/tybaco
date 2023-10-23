@@ -21,20 +21,34 @@ package org.tybaco.runtime.basic.consumer;
  * #L%
  */
 
+import org.tybaco.runtime.meta.*;
+
 import java.util.concurrent.Executor;
 import java.util.function.*;
 
+@Blocks(name = "Generic consumers", icon = "嚀", description = "Generic consumers")
 public interface Consumers {
 
-  static <T> Consumer<T> forked(Consumer<? super T> c1, Consumer<? super T> c2) {
+  @Block(name = "A forked consumer", icon = "叉", description = "Two consumers consuming the same elements")
+  static <T> Consumer<T> forked(
+    @Input(name = "First consumer", icon = "友", description = "First output consumer")
+    Consumer<? super T> c1,
+    @Input(name = "Second consumer", icon = "友", description = "Second output consumer")
+    Consumer<? super T> c2
+  ) {
     return e -> {
       c1.accept(e);
       c2.accept(e);
     };
   }
 
+
+  @Block(name = "A forked consumer", icon = "叉", description = "Multiple consumers consuming the same elements")
   @SafeVarargs
-  static <T> Consumer<T> forked(Consumer<? super T>... consumers) {
+  static <T> Consumer<T> forked(
+    @Input(name = "Consumers", icon = "口", description = "Output consumers")
+    Consumer<? super T>... consumers
+  ) {
     return e -> {
       for (var c : consumers) {
         c.accept(e);
@@ -42,7 +56,13 @@ public interface Consumers {
     };
   }
 
-  static <T> Consumer<T> parallel(Executor executor, Consumer<? super T> consumer) {
+  @Block(name = "Parallel consumer", icon = "倍", description = "Consumers elements in parallel")
+  static <T> Consumer<T> parallel(
+    @Input(name = "Executor", icon = "施", description = "An executor to perform tasks")
+    Executor executor,
+    @Input(name = "Consumer", icon = "嚀", description = "Output consumer")
+    Consumer<? super T> consumer
+  ) {
     return e -> executor.execute(() -> consumer.accept(e));
   }
 

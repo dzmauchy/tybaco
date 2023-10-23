@@ -1,9 +1,8 @@
-@Descriptor(id = "sinks", name = "Sinks", icon = "eva-cloud-download-outline", description = "Sinks")
-package org.tybaco.editors.basic.block.sink;
+package org.tybaco.runtime.meta;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -22,4 +21,12 @@ package org.tybaco.editors.basic.block.sink;
  * #L%
  */
 
-import org.tybaco.editors.model.Descriptor;
+import java.lang.annotation.*;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
+public @interface Block {
+  String name();
+  String icon();
+  String description();
+}

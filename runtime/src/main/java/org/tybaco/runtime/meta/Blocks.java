@@ -1,8 +1,8 @@
-package org.tybaco.editors.annotation;
+package org.tybaco.runtime.meta;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -25,6 +25,8 @@ import java.lang.annotation.*;
 
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Outputs {
-  Output[] value() default {};
+public @interface Blocks {
+  String name();
+  String icon();
+  String description();
 }

@@ -10,12 +10,12 @@ package org.tybaco.ui.child.project.classpath;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -82,7 +82,11 @@ public final class ProjectClasspath extends InvalidationListeners {
   private void update() {
     try {
       var cp = requireNonNull(artifactResolver.resolve(project.id, deps));
+      var oldClassPath = currentClassPath;
       currentClassPath = cp;
+      if (oldClassPath != null) {
+        oldClassPath.close();
+      }
       Platform.runLater(() -> classPath.set(cp));
     } catch (Throwable e) {
       warn(getClass(), "Unable to set classpath", e);

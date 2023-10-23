@@ -1,8 +1,8 @@
-package org.tybaco.editors.basic;
+package org.tybaco.runtime.meta;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,24 +21,13 @@ package org.tybaco.editors.basic;
  * #L%
  */
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import org.tybaco.editors.model.*;
+import java.lang.annotation.*;
 
-import java.util.List;
-
-@Component
-@Descriptor(id = "basic", name = "Basic constants", icon = "ion4-ios-baseball", description = "Basic constants")
-public final class BasicConstants implements ConstLib {
-
-  private final List<? extends LibConst> constants;
-
-  public BasicConstants(@Qualifier("basic") List<? extends LibConst> constants) {
-    this.constants = constants;
-  }
-
-  @Override
-  public List<? extends LibConst> children() {
-    return constants;
-  }
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD})
+public @interface Input {
+  String name();
+  String icon();
+  String description();
+  String value() default "";
 }

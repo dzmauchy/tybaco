@@ -1,9 +1,8 @@
-@Descriptor(id = "collections", name = "Collections", icon = "eva-list", description = "Collections")
-package org.tybaco.editors.basic.block.collection;
+package org.tybaco.runtime.meta;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -22,4 +21,12 @@ package org.tybaco.editors.basic.block.collection;
  * #L%
  */
 
-import org.tybaco.editors.model.Descriptor;
+import java.lang.annotation.*;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD, ElementType.FIELD})
+public @interface Output {
+  String name();
+  String icon();
+  String description();
+}

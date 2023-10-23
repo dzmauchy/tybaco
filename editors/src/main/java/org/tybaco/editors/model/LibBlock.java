@@ -23,30 +23,13 @@ package org.tybaco.editors.model;
 
 import com.github.javaparser.ast.expr.Expression;
 import org.tybaco.editors.Meta;
-import org.tybaco.editors.annotation.Input;
-import org.tybaco.editors.annotation.Output;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
 public interface LibBlock extends Meta {
-
-  default void forEachInput(BiConsumer<String, LibInput> consumer) {
-    var annotations = getClass().getAnnotationsByType(Input.class);
-    for (var a : annotations) {
-      var input = new LibInput(a.name(), a.icon(), a.description(), a.vector(), a.defaultValue(), a.type());
-      consumer.accept(a.id(), input);
-    }
-  }
-
-  default void forEachOutput(BiConsumer<String, LibOutput> consumer) {
-    var annotations = getClass().getAnnotationsByType(Output.class);
-    for (var a : annotations) {
-      var output = new LibOutput(a.name(), a.icon(), a.description());
-      consumer.accept(a.id(), output);
-    }
-  }
-
-  BlockResult build(String var, Map<String, List<Expression>> inputs);
+  void forEachInput(BiConsumer<String, LibInput> consumer);
+  void forEachOutput(BiConsumer<String, LibOutput> consumer);
+  BlockResult build(String var, Map<String, List<Expression>> inputs, boolean safeCast);
 }

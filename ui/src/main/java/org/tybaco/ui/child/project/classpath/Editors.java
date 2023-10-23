@@ -21,43 +21,127 @@ package org.tybaco.ui.child.project.classpath;
  * #L%
  */
 
-import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.stereotype.Component;
-import org.tybaco.editors.model.BlockLib;
-import org.tybaco.editors.model.ConstLib;
+import org.tybaco.editors.model.*;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.jar.JarInputStream;
 
-import static java.lang.Thread.startVirtualThread;
+import static org.tybaco.logging.Log.error;
 
 @Component
 public final class Editors {
 
-  public final SimpleObjectProperty<List<ConstLib>> constLibs = new SimpleObjectProperty<>(this, "constLibs");
-  public final SimpleObjectProperty<List<BlockLib>> blockLibs = new SimpleObjectProperty<>(this, "blockLibs");
+  public final SimpleObjectProperty<List<? extends ConstLib>> constLibs = new SimpleObjectProperty<>(this, "constLibs");
+  public final SimpleObjectProperty<List<? extends BlockLib>> blockLibs = new SimpleObjectProperty<>(this, "blockLibs");
 
   public Editors(ProjectClasspath classpath) {
     classpath.addListener(o -> {
-      constLibs.set(null);
-      blockLibs.set(null);
-      startVirtualThread(() -> update(classpath.getClassLoader()));
+      if (classpath.getClassLoader() instanceof URLClassLoader c) {
+        constLibs.set(null);
+        blockLibs.set(null);
+        update(c);
+      }
     });
   }
 
-  private void update(ClassLoader classLoader) {
-    try (var ctx = new GenericXmlApplicationContext()) {
-      ctx.load("classpath*:tybaco/editors/config.xml");
-      ctx.setClassLoader(classLoader);
-      ctx.setAllowBeanDefinitionOverriding(false);
-      ctx.setAllowCircularReferences(false);
-      ctx.refresh();
-      var constList = ctx.getBeanProvider(ConstLib.class).stream().toList();
-      Platform.runLater(() -> constLibs.set(FXCollections.observableList(constList)));
-      var blockLibList = ctx.getBeanProvider(BlockLib.class).stream().toList();
-      Platform.runLater(() -> blockLibs.set(FXCollections.observableList(blockLibList)));
+  private void update(URLClassLoader classLoader) {
+    var result = new LoadResult();
+    result.process(classLoader.getURLs(), classLoader);
+    blockLibs.set(result.blockLibs.values().stream().toList());
+    constLibs.set(List.of());
+  }
+
+  private static final class LoadResult {
+
+    private final ConcurrentSkipListMap<String, ReflectionBlockLib> blockLibs = new ConcurrentSkipListMap<>();
+
+    private void process(URL[] urls, URLClassLoader classLoader) {
+      Arrays.stream(urls).parallel().forEach(url -> {
+        try {
+          process(url, classLoader);
+        } catch (Exception e) {
+          error(Editors.class, "{0} processing error", e, url);
+        }
+      });
+    }
+
+    private void process(URL url, URLClassLoader classLoader) throws Exception {
+      try (var is = new JarInputStream(url.openStream(), false)) {
+        ENTRY_LOOP:
+        for (var e = is.getNextJarEntry(); e != null; e = is.getNextJarEntry()) {
+          var name = e.getName();
+          if (name.endsWith(".class") && !name.endsWith("/package-info.class") && !name.contains("$")) {
+            var className = name.substring(0, name.length() - ".class".length()).replace('/', '.');
+            try {
+              var t = Class.forName(className, false, classLoader);
+              var pa = Arrays.stream(t.getPackage().getAnnotations())
+                .filter(a -> a.annotationType().getName().equals("org.tybaco.runtime.meta.Lib"))
+                .findFirst()
+                .orElse(null);
+              if (pa == null) continue;
+              for (var ann : t.getAnnotations()) {
+                switch (ann.annotationType().getName()) {
+                  case "org.tybaco.runtime.meta.Constants" -> {
+                    processConstants(t, ann, pa);
+                    continue ENTRY_LOOP;
+                  }
+                  case "org.tybaco.runtime.meta.Blocks" -> {
+                    processBlocks(t, ann, pa);
+                    continue ENTRY_LOOP;
+                  }
+                }
+              }
+              for (var c : t.getConstructors()) {
+                for (var ann : c.getAnnotations()) {
+                  if (ann.annotationType().getName().equals("org.tybaco.runtime.meta.Block")) {
+                    processBlock(c, ann, null, pa);
+                    continue ENTRY_LOOP;
+                  }
+                }
+              }
+            } catch (Throwable throwable) {
+              error(Editors.class, "Unable to load {0}", throwable, className);
+            }
+          }
+        }
+      }
+    }
+
+    private void processBlocks(Class<?> type, Annotation ta, Annotation pa) {
+      for (var m : type.getMethods()) {
+        if (!Modifier.isStatic(m.getModifiers())) continue;
+        for (var a : m.getAnnotations()) {
+          if (a.annotationType().getName().equals("org.tybaco.runtime.meta.Block")) {
+            processBlock(m, a, ta, pa);
+            break;
+          }
+        }
+      }
+    }
+
+    private void processBlock(Executable executable, Annotation ea, Annotation ta, Annotation pa) {
+      var pl = blockLibs.computeIfAbsent(executable.getDeclaringClass().getPackage().getName(), p -> new ReflectionBlockLib(p, pa));
+      var id = executable instanceof Method m ? m.getDeclaringClass().getName() + "." + m.getName() : executable.getDeclaringClass().getName();
+      if (ta == null) {
+        pl.blocks.computeIfAbsent(id, i -> new ReflectionLibBlock(i, executable, ea));
+      } else {
+        pl.libs
+          .computeIfAbsent(pl.id() + "_" + executable.getDeclaringClass().getName(), k -> new ReflectionBlockLib(k, ta))
+          .blocks
+          .computeIfAbsent(id, i -> new ReflectionLibBlock(i, executable, ea));
+      }
+    }
+
+    private void processConstants(Class<?> type, Annotation ta, Annotation pa) {
+
     }
   }
 }

@@ -1,8 +1,8 @@
-package org.tybaco.editors.basic;
+package org.tybaco.runtime.meta;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,24 +21,12 @@ package org.tybaco.editors.basic;
  * #L%
  */
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import org.tybaco.editors.model.*;
+import java.lang.annotation.*;
 
-import java.util.List;
-
-@Component
-@Descriptor(id = "basic", name = "Basic blocks", icon = "mdi2b-baby", description = "Basic blocks library")
-public final class BasicBlocks implements BlockLib {
-
-  private final List<? extends LibBlock> blocks;
-
-  public BasicBlocks(@Qualifier("basic") List<? extends LibBlock> blocks) {
-    this.blocks = blocks;
-  }
-
-  @Override
-  public List<? extends LibBlock> children() {
-    return blocks;
-  }
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Constants {
+  String name();
+  String icon();
+  String description();
 }

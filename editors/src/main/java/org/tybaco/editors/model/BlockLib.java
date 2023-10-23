@@ -21,9 +21,17 @@ package org.tybaco.editors.model;
  * #L%
  */
 
-import java.util.List;
+import java.util.stream.Stream;
 
 public interface BlockLib extends MetaLib {
+
   @Override
-  List<? extends LibBlock> children();
+  Stream<? extends LibBlock> children();
+
+  @Override
+  Stream<? extends BlockLib> childLibs();
+
+  default Stream<? extends LibBlock> allBlocks() {
+    return Stream.concat(childLibs().flatMap(BlockLib::allBlocks), children());
+  }
 }

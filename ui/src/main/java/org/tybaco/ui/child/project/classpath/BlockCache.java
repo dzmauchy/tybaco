@@ -23,10 +23,17 @@ package org.tybaco.ui.child.project.classpath;
 
 import javafx.beans.property.SimpleObjectProperty;
 import org.springframework.stereotype.Component;
+import org.tybaco.editors.Meta;
+import org.tybaco.editors.model.BlockLib;
 import org.tybaco.editors.model.LibBlock;
 import org.tybaco.editors.util.InvalidationListeners;
 
 import java.util.*;
+import java.util.stream.Stream;
+
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toUnmodifiableMap;
+import static org.tybaco.logging.Log.warn;
 
 @Component
 public final class BlockCache extends InvalidationListeners {
@@ -34,16 +41,14 @@ public final class BlockCache extends InvalidationListeners {
   private final SimpleObjectProperty<Map<String, LibBlock>> cache = new SimpleObjectProperty<>(this, "cache", Map.of());
 
   public BlockCache(Editors editors) {
-    editors.blockLibs.addListener((o, ov, nv) -> {
-      if (nv == null || nv.isEmpty()) {
-        cache.set(Map.of());
-        return;
-      }
-      var count = nv.stream().mapToInt(l -> l.children().size()).sum();
-      var map = HashMap.<String, LibBlock>newHashMap(count);
-      nv.forEach(l -> l.children().forEach(c -> map.put(c.id(), c)));
-      cache.set(Map.copyOf(map));
-    });
+    editors.blockLibs.addListener((o, ov, nv) -> cache.set(Stream.ofNullable(nv)
+      .flatMap(Collection::stream)
+      .flatMap(BlockLib::allBlocks)
+      .collect(toUnmodifiableMap(Meta::id, identity(), (b1, b2) -> {
+        warn(BlockCache.class, "Duplicated block id {0}: {1}, {2}", b1.id(), b1, b2);
+        return b2;
+      }))
+    ));
     cache.addListener(o -> fire());
   }
 

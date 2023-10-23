@@ -1,8 +1,8 @@
-package org.tybaco.editors.annotation;
+package org.tybaco.runtime.meta;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -24,7 +24,7 @@ package org.tybaco.editors.annotation;
 import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Inputs {
-  Input[] value() default {};
+@Target({ElementType.PARAMETER, ElementType.FIELD, ElementType.METHOD})
+public @interface InternalInput {
+  String value();
 }

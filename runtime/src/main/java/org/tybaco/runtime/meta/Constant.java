@@ -1,8 +1,8 @@
-package org.tybaco.editors.annotation;
+package org.tybaco.runtime.meta;
 
 /*-
  * #%L
- * editors
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -23,15 +23,11 @@ package org.tybaco.editors.annotation;
 
 import java.lang.annotation.*;
 
-@Target({ElementType.TYPE})
+@Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(Inputs.class)
-public @interface Input {
-  String id();
+public @interface Constant {
   String name();
   String icon();
   String description();
-  boolean vector() default false;
-  String defaultValue() default "";
-  String type() default "";
+  String validator() default "";
 }
