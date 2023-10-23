@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.montoni</groupId>
-  <artifactId>tybaco</artifactId>
+  <artifactId>tybloco</artifactId>
   <version>0.1.15-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -29,10 +29,9 @@
   </developers>
 
   <scm>
-    <url>https://github.com/dzmauchy/tybaco.git</url>
-    <connection>scm:git:https://github.com/dzmauchy/tybaco.git</connection>
-    <developerConnection>scm:git:https://github.com/dzmauchy/tybaco.git</developerConnection>
-    <tag>tybaco-0.1.4</tag>
+    <url>https://github.com/dzmauchy/tybloco.git</url>
+    <connection>scm:git:https://github.com/dzmauchy/tybloco.git</connection>
+    <developerConnection>scm:git:https://github.com/dzmauchy/tybloco.git</developerConnection>
   </scm>
 
   <properties>
@@ -58,7 +57,7 @@
     <repository>
       <id>github</id>
       <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/dzmauchy/tybaco</url>
+      <url>https://maven.pkg.github.com/dzmauchy/tybloco</url>
     </repository>
   </distributionManagement>
 
@@ -428,7 +427,7 @@
         <configuration>
           <releaseProfiles>release</releaseProfiles>
           <preparationProfiles>release</preparationProfiles>
-          <arguments>-Dtybaco.release=true</arguments>
+          <arguments>-Dtybloco.release=true</arguments>
         </configuration>
       </plugin>
 
@@ -496,7 +495,7 @@
       <id>stats</id>
       <activation>
         <property>
-          <name>tybaco.release</name>
+          <name>tybloco.release</name>
           <value>true</value>
         </property>
       </activation>
@@ -530,7 +529,7 @@
       <id>release</id>
       <activation>
         <property>
-          <name>tybaco.release</name>
+          <name>tybloco.release</name>
           <value>true</value>
         </property>
       </activation>

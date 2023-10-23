@@ -51,8 +51,8 @@ public final class ProjectBeanInitializer {
     var version = environment.getProperty("ui.version");
     info(getClass(), "Init dependencies for {0}", version);
     Platform.runLater(() -> {
-      project.dependencies.removeIf(d -> "org.montoni".equals(d.group()) && "tybaco-runtime".equals(d.artifact()));
-      project.dependencies.add(new Dependency("org.montoni", "tybaco-runtime", version));
+      project.dependencies.removeIf(d -> "org.montoni".equals(d.group()) && "tybloco-runtime".equals(d.artifact()));
+      project.dependencies.add(new Dependency("org.montoni", "tybloco-runtime", version));
     });
   }
 

@@ -3,15 +3,15 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.montoni</groupId>
-    <artifactId>tybaco</artifactId>
+    <artifactId>tybloco</artifactId>
     <version>0.1.15-SNAPSHOT</version>
   </parent>
 
   <name>ide</name>
-  <artifactId>tybaco-ide</artifactId>
+  <artifactId>tybloco-ide</artifactId>
 
   <properties>
-    <main.class>org.tybaco.ide.Ide</main.class>
+    <main.class>org.tybloco.ide.Ide</main.class>
     <javafx.base>javafx-base-${javafx.version}</javafx.base>
     <javafx.media>javafx-media-${javafx.version}</javafx.media>
     <javafx.graphics>javafx-graphics-${javafx.version}</javafx.graphics>
@@ -46,13 +46,13 @@
   <dependencies>
     <dependency>
       <groupId>org.montoni</groupId>
-      <artifactId>tybaco-library</artifactId>
+      <artifactId>tybloco-library</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.montoni</groupId>
-      <artifactId>tybaco-ui</artifactId>
+      <artifactId>tybloco-ui</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>

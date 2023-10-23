@@ -54,7 +54,7 @@ public final class ArtifactResolver {
 
   public ArtifactClassPath resolve(String name, Iterable<? extends Dependency> deps) throws IOException {
     var ivySettings = new IvySettings();
-    var tempDirectory = Files.createTempDirectory("tybaco-repo-");
+    var tempDirectory = Files.createTempDirectory("tybloco-repo-");
     var cacheDir = tempDirectory.resolve("cache");
     try (var tempDirWrapper = new CancellablePathCloseable(tempDirectory)) {
       ivySettings.setBaseDir(tempDirectory.toFile());
@@ -70,7 +70,7 @@ public final class ArtifactResolver {
       var ivy = Ivy.newInstance(ivySettings);
       ivy.pushContext();
       try {
-        var pmr = ModuleRevisionId.newInstance("org.montoni", "tybaco-project", "working");
+        var pmr = ModuleRevisionId.newInstance("org.montoni", "tybloco-project", "working");
         var md = DefaultModuleDescriptor.newDefaultInstance(pmr);
         md.setDefaultConf("default");
         deps.forEach(dep -> {

@@ -70,7 +70,7 @@ public class MainApplication extends Application {
     try {
       updateSplash();
       UILogHandler.getInstance().flush();
-      stage.setTitle("Tybaco IDE");
+      stage.setTitle("Tybloco IDE");
       stage.setUserData("primary");
       updateSplash();
       context.getDefaultListableBeanFactory().registerSingleton("primaryStage", stage);

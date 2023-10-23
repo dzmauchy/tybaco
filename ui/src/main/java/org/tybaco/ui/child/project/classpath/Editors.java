@@ -78,7 +78,7 @@ public final class Editors {
         ENTRY_LOOP:
         for (var e = is.getNextJarEntry(); e != null; e = is.getNextJarEntry()) {
           var name = e.getName();
-          if (name.endsWith(".class") && !name.endsWith("/package-info.class") && !name.contains("$")) {
+          if (name.endsWith(".class") && !name.contains("-") && !name.contains("$")) {
             var className = name.substring(0, name.length() - ".class".length()).replace('/', '.');
             try {
               var t = Class.forName(className, false, classLoader);

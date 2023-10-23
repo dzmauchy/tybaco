@@ -40,7 +40,7 @@ public final class Directories {
   public Directories() throws IOException {
     userHome = Path.of(System.getProperty("user.home"));
     userDir = Path.of(System.getProperty("user.dir"));
-    appRoot = userHome.resolve(".tybaco");
+    appRoot = userHome.resolve(".tybloco");
     webRoot = appRoot.resolve("web");
     Files.createDirectories(webRoot);
   }

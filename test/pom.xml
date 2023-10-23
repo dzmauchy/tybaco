@@ -5,12 +5,12 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.montoni</groupId>
-    <artifactId>tybaco</artifactId>
+    <artifactId>tybloco</artifactId>
     <version>0.1.15-SNAPSHOT</version>
   </parent>
 
   <name>test</name>
-  <artifactId>tybaco-test</artifactId>
+  <artifactId>tybloco-test</artifactId>
 
   <dependencies>
     <dependency>

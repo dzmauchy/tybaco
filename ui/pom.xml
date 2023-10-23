@@ -3,15 +3,15 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.montoni</groupId>
-    <artifactId>tybaco</artifactId>
+    <artifactId>tybloco</artifactId>
     <version>0.1.15-SNAPSHOT</version>
   </parent>
 
   <name>ui</name>
-  <artifactId>tybaco-ui</artifactId>
+  <artifactId>tybloco-ui</artifactId>
 
   <properties>
-    <main.class>org.tybaco.ui.Main</main.class>
+    <main.class>org.tybloco.ui.Main</main.class>
     <ui.version>${project.version}</ui.version>
   </properties>
 
@@ -29,13 +29,13 @@
 
     <dependency>
       <groupId>org.montoni</groupId>
-      <artifactId>tybaco-editors</artifactId>
+      <artifactId>tybloco-editors</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.montoni</groupId>
-      <artifactId>tybaco-test</artifactId>
+      <artifactId>tybloco-test</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -54,7 +54,7 @@
               <goal>write-project-properties</goal>
             </goals>
             <configuration>
-              <outputFile>${project.build.outputDirectory}/tybaco/ui.properties</outputFile>
+              <outputFile>${project.build.outputDirectory}/tybloco/ui.properties</outputFile>
             </configuration>
           </execution>
         </executions>
