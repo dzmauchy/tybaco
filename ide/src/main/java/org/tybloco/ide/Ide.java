@@ -1,4 +1,4 @@
-package org.tybaco.ide;
+package org.tybloco.ide;
 
 /*-
  * #%L
@@ -21,8 +21,8 @@ package org.tybaco.ide;
  * #L%
  */
 
-import org.tybaco.ide.splash.SplashPreloader;
-import org.tybaco.ide.splash.SplashStatus;
+import org.tybloco.ide.splash.SplashPreloader;
+import org.tybloco.ide.splash.SplashStatus;
 import org.tybaco.logging.FastConsoleHandler;
 import org.tybaco.logging.LoggingManager;
 import org.tybaco.ui.Main;

@@ -1,4 +1,4 @@
-package org.tybaco.ide.splash;
+package org.tybloco.ide.splash;
 
 /*-
  * #%L
