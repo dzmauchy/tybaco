@@ -32,6 +32,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.jar.JarInputStream;
 
@@ -76,38 +77,43 @@ public final class Editors {
 
     private void process(URL url, URLClassLoader classLoader) throws Exception {
       try (var is = new JarInputStream(url.openStream(), false)) {
-        ENTRY_LOOP:
+        var types = new ConcurrentLinkedQueue<Class<?>>();
         for (var e = is.getNextJarEntry(); e != null; e = is.getNextJarEntry()) {
           var name = e.getName();
           if (name.endsWith(".class") && !name.contains("-") && !name.contains("$")) {
             var className = name.substring(0, name.length() - ".class".length()).replace('/', '.');
             try {
               var t = Class.forName(className, false, classLoader);
-              for (var ann : t.getAnnotations()) {
-                switch (ann.annotationType().getName()) {
-                  case "org.tybloco.runtime.meta.Constants" -> {
-                    processConstants(t, ann, classLoader);
-                    continue ENTRY_LOOP;
-                  }
-                  case "org.tybloco.runtime.meta.Blocks" -> {
-                    processBlocks(t, ann, classLoader);
-                    continue ENTRY_LOOP;
-                  }
-                }
-              }
-              for (var c : t.getConstructors()) {
-                for (var ann : c.getAnnotations()) {
-                  if (ann.annotationType().getName().equals("org.tybloco.runtime.meta.Block")) {
-                    processBlock(c, ann, null, classLoader);
-                    continue ENTRY_LOOP;
-                  }
-                }
+              if (t.getPackage() != null) {
+                types.add(t);
               }
             } catch (Throwable throwable) {
               error(Editors.class, "Unable to load {0}", throwable, className);
             }
           }
         }
+        types.forEach(t -> {
+          for (var ann : t.getAnnotations()) {
+            switch (ann.annotationType().getName()) {
+              case "org.tybloco.runtime.meta.Constants" -> {
+                processConstants(t, ann, classLoader);
+                return;
+              }
+              case "org.tybloco.runtime.meta.Blocks" -> {
+                processBlocks(t, ann, classLoader);
+                return;
+              }
+            }
+          }
+          for (var c : t.getConstructors()) {
+            for (var ann : c.getAnnotations()) {
+              if (ann.annotationType().getName().equals("org.tybloco.runtime.meta.Block")) {
+                processBlock(c, ann, null, classLoader);
+                return;
+              }
+            }
+          }
+        });
       }
     }
 
