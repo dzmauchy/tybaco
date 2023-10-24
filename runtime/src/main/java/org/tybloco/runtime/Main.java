@@ -67,10 +67,10 @@ public final class Main {
   private static void watch(CountDownLatch latch) {
     try {
       latch.await();
-      if (!Settings.booleanSetting("TYBACO_EXIT_ENABLED").orElse(false)) {
+      if (!Settings.booleanSetting("TYBLOCO_EXIT_ENABLED").orElse(false)) {
         return;
       }
-      parkNanos(Settings.longSetting("TYBACO_EXIT_WAIT_TIMEOUT").orElse(1L) * 1_000_000_000L);
+      parkNanos(Settings.longSetting("TYBLOCO_EXIT_WAIT_TIMEOUT").orElse(1L) * 1_000_000_000L);
       System.exit(0);
     } catch (Throwable e) {
       e.printStackTrace(System.err);

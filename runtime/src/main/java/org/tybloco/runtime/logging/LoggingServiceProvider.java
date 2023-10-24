@@ -185,7 +185,7 @@ public final class LoggingServiceProvider implements SLF4JServiceProvider, AutoC
       System.setErr(new LoggingStream(queue, mdcAdapter));
     }
     var classLoader = Thread.currentThread().getContextClassLoader();
-    classLoader.resources("tybaco/logging.properties").forEach(url -> {
+    classLoader.resources("tybloco/logging.properties").forEach(url -> {
       var properties = IO.loadProperties(url);
       properties.forEach((ko, vo) -> {
         if (ko instanceof String k && vo instanceof String v) {

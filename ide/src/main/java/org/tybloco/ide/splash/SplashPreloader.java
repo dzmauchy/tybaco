@@ -56,7 +56,7 @@ public class SplashPreloader extends Preloader {
     }
     gc.setStroke(Color.WHITE);
     gc.setLineWidth(2d);
-    gc.fillText("Tybaco IDE", 20, 100);
+    gc.fillText("Tybloco IDE", 20, 100);
     gc.strokeLine(20, 130, 700, 130);
     gc.setFont(new Font(gc.getFont().getName(), 48));
     gc.fillText("A visual microservice IDE", 20, 200);

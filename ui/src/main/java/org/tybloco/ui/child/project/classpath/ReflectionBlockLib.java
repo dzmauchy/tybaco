@@ -37,13 +37,6 @@ final class ReflectionBlockLib implements BlockLib {
   final ConcurrentSkipListMap<String, ReflectionLibBlock> blocks = new ConcurrentSkipListMap<>();
   final ConcurrentSkipListMap<String, ReflectionBlockLib> libs = new ConcurrentSkipListMap<>();
 
-  ReflectionBlockLib(String id, String name, String icon, String description) {
-    this.id = id;
-    this.name = name;
-    this.icon = icon;
-    this.description = description;
-  }
-
   ReflectionBlockLib(String id, Annotation annotation) {
     try {
       this.id = id;

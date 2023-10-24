@@ -37,7 +37,7 @@ public final class MainApplicationContext extends AnnotationConfigApplicationCon
 
   public MainApplicationContext() {
     setId("root");
-    setDisplayName("TybacoIDE");
+    setDisplayName("Tybloco IDE");
     setClassLoader(Thread.currentThread().getContextClassLoader());
     setAllowCircularReferences(false);
     setAllowBeanDefinitionOverriding(false);

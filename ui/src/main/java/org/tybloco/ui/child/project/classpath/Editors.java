@@ -83,19 +83,14 @@ public final class Editors {
             var className = name.substring(0, name.length() - ".class".length()).replace('/', '.');
             try {
               var t = Class.forName(className, false, classLoader);
-              var pa = Arrays.stream(t.getPackage().getAnnotations())
-                .filter(a -> a.annotationType().getName().equals("org.tybloco.runtime.meta.Lib"))
-                .findFirst()
-                .orElse(null);
-              if (pa == null) continue;
               for (var ann : t.getAnnotations()) {
                 switch (ann.annotationType().getName()) {
                   case "org.tybloco.runtime.meta.Constants" -> {
-                    processConstants(t, ann, pa);
+                    processConstants(t, ann, classLoader);
                     continue ENTRY_LOOP;
                   }
                   case "org.tybloco.runtime.meta.Blocks" -> {
-                    processBlocks(t, ann, pa);
+                    processBlocks(t, ann, classLoader);
                     continue ENTRY_LOOP;
                   }
                 }
@@ -103,7 +98,7 @@ public final class Editors {
               for (var c : t.getConstructors()) {
                 for (var ann : c.getAnnotations()) {
                   if (ann.annotationType().getName().equals("org.tybloco.runtime.meta.Block")) {
-                    processBlock(c, ann, null, pa);
+                    processBlock(c, ann, null, classLoader);
                     continue ENTRY_LOOP;
                   }
                 }
@@ -116,20 +111,42 @@ public final class Editors {
       }
     }
 
-    private void processBlocks(Class<?> type, Annotation ta, Annotation pa) {
+    private void processBlocks(Class<?> type, Annotation ta, ClassLoader classLoader) {
       for (var m : type.getMethods()) {
         if (!Modifier.isStatic(m.getModifiers())) continue;
         for (var a : m.getAnnotations()) {
           if (a.annotationType().getName().equals("org.tybloco.runtime.meta.Block")) {
-            processBlock(m, a, ta, pa);
+            processBlock(m, a, ta, classLoader);
             break;
           }
         }
       }
     }
 
-    private void processBlock(Executable executable, Annotation ea, Annotation ta, Annotation pa) {
-      var pl = blockLibs.computeIfAbsent(executable.getDeclaringClass().getPackage().getName(), p -> new ReflectionBlockLib(p, pa));
+    private ReflectionBlockLib libForPkg(Package pkg, ClassLoader classLoader, ConcurrentSkipListMap<String, ReflectionBlockLib> libs) {
+      if (pkg == null) return null;
+      var index = pkg.getName().lastIndexOf('.');
+      final ReflectionBlockLib parentLib;
+      if (index >= 0) {
+        var parentPackageName = pkg.getName().substring(0, index);
+        var parentPkg = classLoader.getDefinedPackage(parentPackageName);
+        parentLib = libForPkg(parentPkg, classLoader, libs);
+      } else {
+        parentLib = null;
+      }
+      for (var a : pkg.getAnnotations()) {
+        if (a.annotationType().getName().equals("org.tybloco.runtime.meta.Lib")) {
+          return parentLib == null
+            ? libs.computeIfAbsent(pkg.getName(), p -> new ReflectionBlockLib(p, a))
+            : parentLib.libs.computeIfAbsent(pkg.getName(), p -> new ReflectionBlockLib(p, a));
+        }
+      }
+      return parentLib;
+    }
+
+    private void processBlock(Executable executable, Annotation ea, Annotation ta, ClassLoader classLoader) {
+      var pl = libForPkg(executable.getDeclaringClass().getPackage(), classLoader, blockLibs);
+      if (pl == null) return;
       var id = executable instanceof Method m ? m.getDeclaringClass().getName() + "." + m.getName() : executable.getDeclaringClass().getName();
       if (ta == null) {
         pl.blocks.computeIfAbsent(id, i -> new ReflectionLibBlock(i, executable, ea));
@@ -141,7 +158,7 @@ public final class Editors {
       }
     }
 
-    private void processConstants(Class<?> type, Annotation ta, Annotation pa) {
+    private void processConstants(Class<?> type, Annotation ta, ClassLoader classLoader) {
 
     }
   }

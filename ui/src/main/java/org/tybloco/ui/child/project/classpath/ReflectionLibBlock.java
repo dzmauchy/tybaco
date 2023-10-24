@@ -180,8 +180,8 @@ public final class ReflectionLibBlock implements LibBlock {
     Annotation ia = null, iia = null;
     for (var a : parameter.getAnnotations()) {
       switch (a.annotationType().getName()) {
-        case "org.tybaco.runtime.meta.Input" -> ia = a;
-        case "org.tybaco.runtime.meta.InternalInput" -> iia = a;
+        case "org.tybloco.runtime.meta.Input" -> ia = a;
+        case "org.tybloco.runtime.meta.InternalInput" -> iia = a;
       }
     }
     var vararg = parameter.isVarArgs();
@@ -217,7 +217,7 @@ public final class ReflectionLibBlock implements LibBlock {
     if (Modifier.isStatic(method.getModifiers())) return Optional.empty();
     if (method.getReturnType() == void.class) return Optional.empty();
     for (var a : method.getAnnotations()) {
-      if (a.annotationType().getName().equals("org.tybaco.runtime.meta.Output")) {
+      if (a.annotationType().getName().equals("org.tybloco.runtime.meta.Output")) {
         return Optional.of(a);
       }
     }
@@ -227,7 +227,7 @@ public final class ReflectionLibBlock implements LibBlock {
   private static Optional<Annotation> out(Field field) {
     if (Modifier.isStatic(field.getModifiers())) return Optional.empty();
     for (var a : field.getAnnotations()) {
-      if (a.annotationType().getName().equals("org.tybaco.runtime.meta.Output")) {
+      if (a.annotationType().getName().equals("org.tybloco.runtime.meta.Output")) {
         return Optional.of(a);
       }
     }
