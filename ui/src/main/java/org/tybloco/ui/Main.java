@@ -1,8 +1,8 @@
-package org.tybloco.ide;
+package org.tybloco.ui;
 
 /*-
  * #%L
- * ide
+ * ui
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,30 +21,36 @@ package org.tybloco.ide;
  * #L%
  */
 
-import org.tybloco.ide.splash.SplashPreloader;
-import org.tybloco.ide.splash.SplashStatus;
+import javafx.application.Application;
 import org.tybloco.logging.FastConsoleHandler;
 import org.tybloco.logging.LoggingManager;
-import org.tybloco.ui.Main;
-import org.tybloco.ui.splash.SplashBeanPostProcessor;
+import org.tybloco.ui.lib.logging.UILogHandler;
+import org.tybloco.ui.main.MainApplication;
 
 import static java.lang.System.setProperty;
+import static java.util.Arrays.stream;
 import static java.util.logging.LogManager.getLogManager;
 
-public class Ide {
+public final class Main {
+
+  public static volatile Runnable updateSplash = () -> {};
+  public static volatile Runnable updateSplashStatus = () -> {};
 
   public static void main(String... args) {
+    System.setProperty("com.sun.javafx.gestures.scroll", "true");
+    updateSplash.run();
     initLogging();
-    System.setProperty("javafx.preloader", SplashPreloader.class.getName());
-    Main.updateSplash = SplashStatus::incrementStep;
-    Main.updateSplashStatus = SplashStatus::updateSplashStatus;
-    SplashBeanPostProcessor.incrementStep = SplashStatus::incrementStep;
-    Main.main(args);
+    updateSplash.run();
+    Application.launch(MainApplication.class, args);
   }
 
-  private static void initLogging() {
+  public static void initLogging() {
     setProperty("java.util.logging.manager", LoggingManager.class.getName());
     var rootLogger = getLogManager().getLogger("");
-    rootLogger.addHandler(new FastConsoleHandler());
+    if (stream(rootLogger.getHandlers()).noneMatch(FastConsoleHandler.class::isInstance)) {
+      rootLogger.addHandler(new FastConsoleHandler());
+    }
+    rootLogger.addHandler(new UILogHandler());
+    rootLogger.info("Logging initialized");
   }
 }
