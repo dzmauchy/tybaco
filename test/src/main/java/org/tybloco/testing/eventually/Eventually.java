@@ -1,4 +1,4 @@
-package org.tybaco.testing.eventually;
+package org.tybloco.testing.eventually;
 
 /*-
  * #%L

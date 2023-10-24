@@ -1,4 +1,4 @@
-package org.tybaco.testing.json;
+package org.tybloco.testing.json;
 
 /*-
  * #%L

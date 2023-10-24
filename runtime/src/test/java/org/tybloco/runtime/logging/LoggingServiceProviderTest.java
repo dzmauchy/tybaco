@@ -22,12 +22,12 @@ package org.tybloco.runtime.logging;
  */
 
 import org.junit.jupiter.api.*;
-import org.tybaco.testing.eventually.Eventually;
+import org.tybloco.testing.eventually.Eventually;
 
 import java.io.ByteArrayOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.tybaco.testing.json.JsonStream.objectList;
+import static org.tybloco.testing.json.JsonStream.objectList;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.MethodName.class)

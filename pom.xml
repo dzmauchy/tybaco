@@ -281,8 +281,8 @@
             <runOrder>alphabetical</runOrder>
             <excludedGroups>slow,manual</excludedGroups>
             <systemPropertyVariables>
-              <java.util.logging.manager>org.tybaco.testing.logging.LoggingManager</java.util.logging.manager>
-              <java.util.logging.config.class>org.tybaco.testing.logging.LoggingInitializer</java.util.logging.config.class>
+              <java.util.logging.manager>org.tybloco.testing.logging.LoggingManager</java.util.logging.manager>
+              <java.util.logging.config.class>org.tybloco.testing.logging.LoggingInitializer</java.util.logging.config.class>
             </systemPropertyVariables>
           </configuration>
           <dependencies>
@@ -304,8 +304,8 @@
             <parallel>none</parallel>
             <runOrder>alphabetical</runOrder>
             <systemPropertyVariables>
-              <java.util.logging.manager>org.tybaco.testing.logging.LoggingManager</java.util.logging.manager>
-              <java.util.logging.config.class>org.tybaco.testing.logging.LoggingInitializer</java.util.logging.config.class>
+              <java.util.logging.manager>org.tybloco.testing.logging.LoggingManager</java.util.logging.manager>
+              <java.util.logging.config.class>org.tybloco.testing.logging.LoggingInitializer</java.util.logging.config.class>
             </systemPropertyVariables>
           </configuration>
           <dependencies>

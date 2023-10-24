@@ -84,17 +84,17 @@ public final class Editors {
             try {
               var t = Class.forName(className, false, classLoader);
               var pa = Arrays.stream(t.getPackage().getAnnotations())
-                .filter(a -> a.annotationType().getName().equals("org.tybaco.runtime.meta.Lib"))
+                .filter(a -> a.annotationType().getName().equals("org.tybloco.runtime.meta.Lib"))
                 .findFirst()
                 .orElse(null);
               if (pa == null) continue;
               for (var ann : t.getAnnotations()) {
                 switch (ann.annotationType().getName()) {
-                  case "org.tybaco.runtime.meta.Constants" -> {
+                  case "org.tybloco.runtime.meta.Constants" -> {
                     processConstants(t, ann, pa);
                     continue ENTRY_LOOP;
                   }
-                  case "org.tybaco.runtime.meta.Blocks" -> {
+                  case "org.tybloco.runtime.meta.Blocks" -> {
                     processBlocks(t, ann, pa);
                     continue ENTRY_LOOP;
                   }
@@ -102,7 +102,7 @@ public final class Editors {
               }
               for (var c : t.getConstructors()) {
                 for (var ann : c.getAnnotations()) {
-                  if (ann.annotationType().getName().equals("org.tybaco.runtime.meta.Block")) {
+                  if (ann.annotationType().getName().equals("org.tybloco.runtime.meta.Block")) {
                     processBlock(c, ann, null, pa);
                     continue ENTRY_LOOP;
                   }
@@ -120,7 +120,7 @@ public final class Editors {
       for (var m : type.getMethods()) {
         if (!Modifier.isStatic(m.getModifiers())) continue;
         for (var a : m.getAnnotations()) {
-          if (a.annotationType().getName().equals("org.tybaco.runtime.meta.Block")) {
+          if (a.annotationType().getName().equals("org.tybloco.runtime.meta.Block")) {
             processBlock(m, a, ta, pa);
             break;
           }

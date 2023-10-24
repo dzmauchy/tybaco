@@ -1,8 +1,9 @@
-package org.tybaco.testing.logging;
+@Lib(name = "Collections", icon = "収", description = "Library of collections")
+package org.tybloco.runtime.basic.collections;
 
 /*-
  * #%L
- * test
+ * runtime
  * %%
  * Copyright (C) 2023 Montoni
  * %%
@@ -21,11 +22,4 @@ package org.tybaco.testing.logging;
  * #L%
  */
 
-import java.util.logging.LogManager;
-
-public final class LoggingInitializer {
-
-  public LoggingInitializer() {
-    LogManager.getLogManager().getLogger("").addHandler(new FastConsoleHandler());
-  }
-}
+import org.tybloco.runtime.meta.Lib;
