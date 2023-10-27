@@ -21,6 +21,8 @@ package org.tybloco.ui.child.project.classpath;
  * #L%
  */
 
+import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import javafx.beans.property.SimpleObjectProperty;
 import org.springframework.stereotype.Component;
 import org.tybloco.editors.model.BlockLib;
@@ -34,9 +36,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.function.BiFunction;
 import java.util.jar.JarInputStream;
 
 import static org.tybloco.logging.Log.error;
+import static org.tybloco.ui.child.project.classpath.ConstantEditors.libConst;
 
 @Component
 public final class Editors {
@@ -64,6 +68,7 @@ public final class Editors {
   private static final class LoadResult {
 
     private final ConcurrentSkipListMap<String, ReflectionBlockLib> blockLibs = new ConcurrentSkipListMap<>();
+    private final ConcurrentSkipListMap<String, ReflectionConstLib> constLibs = new ConcurrentSkipListMap<>();
 
     private void process(URL[] urls, URLClassLoader classLoader) {
       Arrays.stream(urls).parallel().forEach(url -> {
@@ -129,43 +134,81 @@ public final class Editors {
       }
     }
 
-    private ReflectionBlockLib libForPkg(Package pkg, ClassLoader classLoader, ConcurrentSkipListMap<String, ReflectionBlockLib> libs) {
-      if (pkg == null) return null;
-      var index = pkg.getName().lastIndexOf('.');
-      final ReflectionBlockLib parentLib;
+    private <L extends ReflectionMetaLib<?, L>> L lib(Package p, ClassLoader cl, ConcurrentSkipListMap<String, L> libs, BiFunction<String, Annotation, L> lc) {
+      if (p == null) return null;
+      var index = p.getName().lastIndexOf('.');
+      final L parentLib;
       if (index >= 0) {
-        var parentPackageName = pkg.getName().substring(0, index);
-        var parentPkg = classLoader.getDefinedPackage(parentPackageName);
-        parentLib = libForPkg(parentPkg, classLoader, libs);
+        var parentPackageName = p.getName().substring(0, index);
+        var parentPkg = cl.getDefinedPackage(parentPackageName);
+        parentLib = lib(parentPkg, cl, libs, lc);
       } else {
         parentLib = null;
       }
-      for (var a : pkg.getAnnotations()) {
+      for (var a : p.getAnnotations()) {
         if (a.annotationType().getName().equals("org.tybloco.runtime.meta.Lib")) {
           return parentLib == null
-            ? libs.computeIfAbsent(pkg.getName(), p -> new ReflectionBlockLib(p, a))
-            : parentLib.libs.computeIfAbsent(pkg.getName(), p -> new ReflectionBlockLib(p, a));
+            ? libs.computeIfAbsent(p.getName(), id -> lc.apply(id, a))
+            : parentLib.libs.computeIfAbsent(p.getName(), id -> lc.apply(id, a));
         }
       }
       return parentLib;
     }
 
     private void processBlock(Executable executable, Annotation ea, Annotation ta, ClassLoader classLoader) {
-      var pl = libForPkg(executable.getDeclaringClass().getPackage(), classLoader, blockLibs);
+      var pl = lib(executable.getDeclaringClass().getPackage(), classLoader, blockLibs, ReflectionBlockLib::new);
       if (pl == null) return;
       var id = executable instanceof Method m ? m.getDeclaringClass().getName() + "." + m.getName() : executable.getDeclaringClass().getName();
       if (ta == null) {
-        pl.blocks.computeIfAbsent(id, i -> new ReflectionLibBlock(i, executable, ea));
+        pl.children.computeIfAbsent(id, i -> new ReflectionLibBlock(i, executable, ea));
       } else {
         pl.libs
           .computeIfAbsent(pl.id() + "_" + executable.getDeclaringClass().getName(), k -> new ReflectionBlockLib(k, ta))
-          .blocks
+          .children
           .computeIfAbsent(id, i -> new ReflectionLibBlock(i, executable, ea));
       }
     }
 
     private void processConstants(Class<?> type, Annotation ta, ClassLoader classLoader) {
-
+      for (var m : type.getMethods()) {
+        if (!Modifier.isStatic(m.getModifiers())) continue;
+        if (m.getParameterCount() != 1 && m.getParameterCount() != 0) continue;
+        for (var a : m.getAnnotations()) {
+          if (a.annotationType().getName().equals("org.tybloco.runtime.meta.Constant")) {
+            var id = m.getDeclaringClass().getName() + "." + m.getName();
+            var pl = lib(m.getDeclaringClass().getPackage(), classLoader, constLibs, ReflectionConstLib::new);
+            if (pl != null) {
+              var children = pl.libs
+                .computeIfAbsent(pl.id() + "_" + m.getDeclaringClass().getName(), k -> new ReflectionConstLib(k, ta))
+                .children;
+              if (m.getParameterCount() == 1) {
+                children.computeIfAbsent(id, i -> libConst(i, m));
+              } else {
+                var t = m.getReturnType().getName();
+                var e = new MethodCallExpr(new TypeExpr(new ClassOrInterfaceType(null, type.getName())), m.getName());
+                children.computeIfAbsent(id, i -> new ReflectionNonEditableConst(i, a, t, e));
+              }
+            }
+            break;
+          }
+        }
+      }
+      for (var f : type.getFields()) {
+        if (!Modifier.isStatic(f.getModifiers())) continue;
+        for (var a : f.getAnnotations()) {
+          if (a.annotationType().getName().equals("org.tybloco.runtime.meta.Constant")) {
+            var id = f.getDeclaringClass().getName() + "." + f.getName();
+            var pl = lib(f.getDeclaringClass().getPackage(), classLoader, constLibs, ReflectionConstLib::new);
+            var t = f.getType().getName();
+            var e = new FieldAccessExpr(new TypeExpr(new ClassOrInterfaceType(null, type.getName())), f.getName());
+            pl.libs
+              .computeIfAbsent(pl.id() + "_" + f.getDeclaringClass().getName(), k -> new ReflectionConstLib(k, ta))
+              .children
+              .computeIfAbsent(id, i -> new ReflectionNonEditableConst(i, a, t, e));
+            break;
+          }
+        }
+      }
     }
   }
 }

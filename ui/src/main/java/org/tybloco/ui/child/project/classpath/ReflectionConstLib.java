@@ -21,13 +21,14 @@ package org.tybloco.ui.child.project.classpath;
  * #L%
  */
 
-import org.tybloco.editors.model.BlockLib;
+import org.tybloco.editors.model.ConstLib;
+import org.tybloco.editors.model.LibConst;
 
 import java.lang.annotation.Annotation;
 
-final class ReflectionBlockLib extends ReflectionMetaLib<ReflectionLibBlock, ReflectionBlockLib> implements BlockLib {
+final class ReflectionConstLib extends ReflectionMetaLib<LibConst, ReflectionConstLib> implements ConstLib {
 
-  ReflectionBlockLib(String id, Annotation annotation) {
+  ReflectionConstLib(String id, Annotation annotation) {
     super(id, annotation);
   }
 }
