@@ -29,7 +29,9 @@ import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
+import java.math.BigInteger;
 import java.util.*;
+import java.util.function.Function;
 
 import static java.nio.ByteBuffer.allocate;
 import static java.util.Base64.getUrlEncoder;
@@ -87,10 +89,6 @@ public final class Project {
     return observables;
   }
 
-  public static ObservableList<Project> newList(Collection<Project> projects) {
-    return FXCollections.observableList(new ArrayList<>(projects), Project::observables);
-  }
-
   public static ObservableList<Project> newList() {
     return FXCollections.observableArrayList(Project::observables);
   }
@@ -119,6 +117,24 @@ public final class Project {
     var time = System.currentTimeMillis() - 1_600_000_000_000L;
     var longId = (time << 32) | ((long) hash & 0xFFFF_FFFFL);
     return getUrlEncoder().withoutPadding().encodeToString(allocate(8).putLong(0, longId).array());
+  }
+
+  public String guessConstantName() {
+    return guessName(constants, c -> c.name.get(), "c");
+  }
+
+  public String guessBlockName() {
+    return guessName(blocks, b -> b.name.get(), "b");
+  }
+
+  private static <E> String guessName(Collection<E> collection, Function<E, String> nameExtractor, String prefix) {
+    return prefix + (collection.stream()
+      .map(nameExtractor)
+      .filter(s -> s.startsWith(prefix) && s.chars().skip(prefix.length()).allMatch(Character::isDigit))
+      .map(v -> new BigInteger(v.substring(prefix.length())))
+      .mapToInt(BigInteger::intValue)
+      .max()
+      .orElse(0) + 1);
   }
 
   @Override

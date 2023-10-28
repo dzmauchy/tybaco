@@ -43,7 +43,7 @@ public final class LibraryBlocksWindow extends ModalDialog<Block> {
     withDefaultButton(b -> b.disableProperty().bind(tree.nonLeafSelected));
     setResultConverter(() -> {
       var c = (LibBlock) tree.getSelectedValue();
-      return project.newBlock(c.id(), c.id(), 0d, 0d);
+      return project.newBlock(project.guessBlockName(), c.id(), 0d, 0d);
     });
   }
 }

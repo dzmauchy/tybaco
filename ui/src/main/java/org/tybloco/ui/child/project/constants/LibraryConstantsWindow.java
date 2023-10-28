@@ -44,7 +44,7 @@ public final class LibraryConstantsWindow extends ModalDialog<Constant> {
     withDefaultButton(b -> b.disableProperty().bind(tree.nonLeafSelected));
     setResultConverter(() -> {
       var c = (LibConst) tree.getSelectionModel().getSelectedItem().getValue();
-      return project.newConstant(c.id(), c.id(), Expressions.toText(c.defaultValue()));
+      return project.newConstant(project.guessConstantName(), c.id(), Expressions.toText(c.defaultValue()));
     });
   }
 }
