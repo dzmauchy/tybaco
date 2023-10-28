@@ -51,8 +51,8 @@ public final class Editors {
   public Editors(ProjectClasspath classpath) {
     classpath.addListener(o -> {
       if (classpath.getClassLoader() instanceof URLClassLoader c) {
-        constLibs.set(null);
-        blockLibs.set(null);
+        constLibs.set(List.of());
+        blockLibs.set(List.of());
         update(c);
       }
     });
@@ -62,7 +62,7 @@ public final class Editors {
     var result = new LoadResult();
     result.process(classLoader.getURLs(), classLoader);
     blockLibs.set(result.blockLibs.values().stream().toList());
-    constLibs.set(List.of());
+    constLibs.set(result.constLibs.values().stream().toList());
   }
 
   private static final class LoadResult {
@@ -182,11 +182,11 @@ public final class Editors {
                 .computeIfAbsent(pl.id() + "_" + m.getDeclaringClass().getName(), k -> new ReflectionConstLib(k, ta))
                 .children;
               if (m.getParameterCount() == 1) {
-                children.computeIfAbsent(id, i -> libConst(i, m));
+                children.computeIfAbsent(id, i -> libConst(i, m, a));
               } else {
                 var t = m.getReturnType().getName();
                 var e = new MethodCallExpr(new TypeExpr(new ClassOrInterfaceType(null, type.getName())), m.getName());
-                children.computeIfAbsent(id, i -> new ReflectionNonEditableConst(i, a, t, e));
+                children.computeIfAbsent(id, i -> new ReflectionConst(i, a, t, e));
               }
             }
             break;
@@ -204,7 +204,7 @@ public final class Editors {
             pl.libs
               .computeIfAbsent(pl.id() + "_" + f.getDeclaringClass().getName(), k -> new ReflectionConstLib(k, ta))
               .children
-              .computeIfAbsent(id, i -> new ReflectionNonEditableConst(i, a, t, e));
+              .computeIfAbsent(id, i -> new ReflectionConst(i, a, t, e));
             break;
           }
         }

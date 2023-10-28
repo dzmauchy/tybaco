@@ -32,6 +32,7 @@ import org.tybloco.editors.model.LibConst;
 import org.tybloco.editors.util.SeqMap;
 import org.tybloco.ui.util.Validation;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -41,43 +42,29 @@ import static org.tybloco.editors.control.GridPanes.twoColumnPane;
 
 public interface ConstantEditors {
 
-  static LibConst libConst(String id, Method method) {
-    var argType = method.getParameterTypes()[0];
-    var className = method.getDeclaringClass().getName();
-    var methodName = method.getName();
-    var type = method.getReturnType().getName();
-    return switch (argType.getName()) {
-      case "int" -> new LC(className, methodName, id, type,
-        "Integer number", "敘", "32-bit signed integer number",
-        "0",
+  static LibConst libConst(String id, Method method, Annotation a) {
+    return switch (method.getParameterTypes()[0].getName()) {
+      case "int" -> new LC(method, a, id, "0",
         IntegerLiteralExpr::new,
         e -> e instanceof IntegerLiteralExpr expr ? expr.getValue() : "0",
         validate(v -> () -> new IntegerLiteralExpr(v).asNumber() instanceof Integer ? null : "not an integer")
       );
-      case "long" -> new LC(className, methodName, id, type,
-        "Long number", "数", "64-bit signed integer number",
-        "0",
+      case "long" -> new LC(method, a, id, "0",
         LongLiteralExpr::new,
         e -> e instanceof LongLiteralExpr expr ? expr.getValue() : "0L",
         validate(v -> () -> new LongLiteralExpr(v).asNumber() instanceof Long ? null : "not a long")
       );
-      case "byte" -> new LC(className, methodName, id, type,
-        "A byte", "寡", "8-bit signed integer number",
-        "0",
+      case "byte" -> new LC(method, a, id, "0",
         v -> new CastExpr(PrimitiveType.byteType(), new IntegerLiteralExpr(v)),
         e -> (e instanceof CastExpr ce) && (ce.getExpression() instanceof IntegerLiteralExpr le) ? le.getValue() : "0",
         validate(v -> () -> between(new IntegerLiteralExpr(v).asNumber(), Byte.MIN_VALUE, Byte.MAX_VALUE) ? null : "not a byte")
       );
-      case "short" -> new LC(className, methodName, id, type,
-        "A short number", "短", "16-bit signed integer number",
-        "0",
+      case "short" -> new LC(method, a, id, "0",
         v -> new CastExpr(PrimitiveType.shortType(), new IntegerLiteralExpr(v)),
         e -> (e instanceof CastExpr ce) && (ce.getExpression() instanceof IntegerLiteralExpr le) ? le.getValue() : "0",
         validate(v -> () -> between(new IntegerLiteralExpr(v).asNumber(), Short.MIN_VALUE, Short.MAX_VALUE) ? null : "not a short number")
       );
-      case "char" -> new LC(className, methodName, id, type,
-        "A character", "じ", "16-bit unsigned number (a character)",
-        "0",
+      case "char" -> new LC(method, a, id, "0",
         CharLiteralExpr::new,
         e -> e instanceof CharLiteralExpr le ? le.getValue() : "\\u0000",
         validate(v -> () -> {
@@ -85,16 +72,12 @@ public interface ConstantEditors {
           return null;
         })
       );
-      case "float" -> new LC(className, methodName, id, type,
-        "A floating-point number", "浮", "A floating point number",
-        "0",
+      case "float" -> new LC(method, a, id, "0",
         DoubleLiteralExpr::new,
         e -> e instanceof DoubleLiteralExpr le ? le.getValue() : "0",
         validate(v -> () -> between(new DoubleLiteralExpr(v).asDouble(), Float.MIN_VALUE, Float.MAX_VALUE) ? null : "not a float")
       );
-      case "double" -> new LC(className, methodName, id, type,
-        "A double-precision number", "倍", "A double-precision floating point number",
-        "0",
+      case "double" -> new LC(method, a, id, "0",
         DoubleLiteralExpr::new,
         e -> e instanceof DoubleLiteralExpr le ? le.getValue() : "0",
         validate(v -> () -> {
@@ -102,16 +85,12 @@ public interface ConstantEditors {
           return null;
         })
       );
-      case "boolean" -> new LC(className, methodName, id, type,
-        "A boolean", "壱", "A boolean value",
-        "false",
+      case "boolean" -> new LC(method, a, id, "false",
         v -> new BooleanLiteralExpr("true".equals(v) || "1".equals(v)),
         e -> e instanceof BooleanLiteralExpr le ? Boolean.toString(le.getValue()) : "false",
         validate(v -> () -> "true".equals(v) || "false".equals(v) || "1".equals(v) || "0".equals(v) ? null : "not a boolean")
       );
-      case "java.lang.String" -> new LC(className, methodName, id, type,
-        "A string", "紐", "A string",
-        "",
+      case "java.lang.String" -> new LC(method, a, id, "",
         StringLiteralExpr::new,
         e -> e instanceof StringLiteralExpr le ? le.getValue() : "",
         Validation.OK::new
@@ -133,6 +112,22 @@ public interface ConstantEditors {
     Function<Expression, String> rf,
     Function<String, Validation<String>> validator
   ) implements LibConst {
+
+    LC(Method m, Annotation a, String id, String v, Function<String, Expression> ff, Function<Expression, String> rf, Function<String, Validation<String>> validator) {
+      this(
+        m.getDeclaringClass().getName(),
+        m.getName(),
+        m.getReturnType().getName(),
+        id,
+        ReflectionConst.value(a, "name"),
+        ReflectionConst.value(a, "icon"),
+        ReflectionConst.value(a, "description"),
+        v,
+        ff,
+        rf,
+        validator
+      );
+    }
 
     @Override
     public Optional<? extends Expression> edit(Node node, Expression oldValue) {

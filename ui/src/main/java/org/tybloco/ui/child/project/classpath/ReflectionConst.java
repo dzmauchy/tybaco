@@ -28,9 +28,9 @@ import org.tybloco.editors.model.LibConst;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
 
-record ReflectionNonEditableConst(String id, String name, String icon, String description, String type, Expression expression) implements LibConst {
+record ReflectionConst(String id, String name, String icon, String description, String type, Expression expression) implements LibConst {
 
-  ReflectionNonEditableConst(String id, Annotation annotation, String type, Expression expression) {
+  ReflectionConst(String id, Annotation annotation, String type, Expression expression) {
     this(id, value(annotation, "name"), value(annotation, "icon"), value(annotation, "description"), type, expression);
   }
 
@@ -49,7 +49,7 @@ record ReflectionNonEditableConst(String id, String name, String icon, String de
     return expression;
   }
 
-  private static String value(Annotation a, String method) {
+  static String value(Annotation a, String method) {
     try {
       return a.annotationType().getMethod(method).invoke(a).toString();
     } catch (ReflectiveOperationException e) {
