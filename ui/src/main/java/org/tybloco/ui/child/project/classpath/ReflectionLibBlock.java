@@ -86,7 +86,6 @@ public final class ReflectionLibBlock implements LibBlock {
       }
       for (var p : executable.getParameters()) {
         inputs.put(p.getName(), input(p));
-
       }
     } catch (ReflectiveOperationException e) {
       throw new IllegalArgumentException(annotation.toString(), e);

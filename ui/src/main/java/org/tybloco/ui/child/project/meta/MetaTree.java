@@ -72,6 +72,9 @@ public abstract class MetaTree<L extends MetaLib> extends TreeTableView<Meta> im
         var elemItem = new TreeItem<Meta>(elem);
         libItem.getChildren().add(elemItem);
       });
+      if (libItem.getParent() == getRoot()) {
+        libItem.setExpanded(true);
+      }
     });
   }
 

@@ -106,12 +106,9 @@ public final class DiagramBlockInput extends Button {
       var out = new Connector(co.block.block.id, co.spot);
       if (input.vector() && index < 0) {
         var m = block.inputMap.get(spot);
-        var nextIndex = m.lastKey();
-        var entry = m.floorEntry(nextIndex);
-        var insertionIndex = block.inputs.getChildren().indexOf(entry.getValue()) + 1;
-        var b = new DiagramBlockInput(block, input, spot, nextIndex);
-        block.inputs.getChildren().add(insertionIndex, b);
-        block.diagram.project.links.add(new Link(out, inp, nextIndex));
+        var b = new DiagramBlockInput(block, input, spot, m.lastKey() + 1);
+        block.inputs.getChildren().add(b);
+        block.diagram.project.links.add(new Link(out, inp, b.index));
       } else {
         block.diagram.project.links.removeIf(l -> l.in.equals(inp) && l.index == index);
         block.diagram.project.links.add(new Link(out, inp, index));
