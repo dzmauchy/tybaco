@@ -45,7 +45,7 @@ public interface Consumers {
 
   @Block(name = "A forked consumer", icon = "叉", description = "Multiple consumers consuming the same elements")
   @SafeVarargs
-  static <T> Consumer<T> forked(
+  static <T> Consumer<T> forkedMultiple(
     @Input(name = "Consumers", icon = "口", description = "Output consumers")
     Consumer<? super T>... consumers
   ) {
@@ -66,7 +66,15 @@ public interface Consumers {
     return e -> executor.execute(() -> consumer.accept(e));
   }
 
-  static <T> Consumer<T> forkParallel(Executor e1, Consumer<? super T> c1, Executor e2, Consumer<? super T> c2) {
+  @Block(name = "Parallel forked consumer", icon = "枝", description = "Each consumer consumes each element with the given executor")
+  static <T> Consumer<T> forkParallel(
+    @Input(name = "First executor", icon = "初", description = "First executor")
+    Executor e1,
+    @Input(name = "First consumer", icon = "初", description = "First consumer")
+    Consumer<? super T> c1,
+    @Input(name = "Second executor", icon = "初", description = "First consumer")
+    Executor e2,
+    Consumer<? super T> c2) {
     return e -> {
       e1.execute(() -> c1.accept(e));
       e2.execute(() -> c2.accept(e));
