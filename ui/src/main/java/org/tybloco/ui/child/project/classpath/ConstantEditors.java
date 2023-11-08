@@ -147,7 +147,7 @@ public interface ConstantEditors {
 
     @Override
     public Expression defaultValue() {
-      return ff.apply(defaultVal);
+      return wrapExpression(ff.apply(defaultVal));
     }
 
     private Expression unwrapExpression(Expression expression) {

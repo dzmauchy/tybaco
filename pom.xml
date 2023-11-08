@@ -47,7 +47,7 @@
     <slf4j.version>2.0.9</slf4j.version>
     <junit.version>5.10.0</junit.version>
 
-    <maven.version>3.9.4</maven.version>
+    <maven.version>3.9.5</maven.version>
 
     <lineLength>160</lineLength>
     <indentSize>2</indentSize>

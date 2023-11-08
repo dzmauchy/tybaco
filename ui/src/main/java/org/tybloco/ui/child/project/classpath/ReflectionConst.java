@@ -30,8 +30,8 @@ import java.util.Optional;
 
 record ReflectionConst(String id, String name, String icon, String description, String type, Expression expression) implements LibConst {
 
-  ReflectionConst(String id, Annotation annotation, String type, Expression expression) {
-    this(id, value(annotation, "name"), value(annotation, "icon"), value(annotation, "description"), type, expression);
+  ReflectionConst(String id, Annotation a, String type, Expression expression) {
+    this(id, value(a, "name"), value(a, "icon"), value(a, "description"), type, expression);
   }
 
   @Override
@@ -41,7 +41,7 @@ record ReflectionConst(String id, String name, String icon, String description, 
 
   @Override
   public String type() {
-    return null;
+    return type;
   }
 
   @Override
