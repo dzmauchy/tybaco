@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.montoni</groupId>
     <artifactId>tybloco</artifactId>
-    <version>0.1.17-SNAPSHOT</version>
+    <version>0.1.17</version>
   </parent>
 
   <name>runtime</name>

@@ -4,7 +4,7 @@
 
   <groupId>org.montoni</groupId>
   <artifactId>tybloco</artifactId>
-  <version>0.1.17-SNAPSHOT</version>
+  <version>0.1.17</version>
   <packaging>pom</packaging>
 
   <inceptionYear>2023</inceptionYear>
@@ -33,7 +33,7 @@
     <url>https://github.com/dzmauchy/tybloco.git</url>
     <connection>scm:git:https://github.com/dzmauchy/tybloco.git</connection>
     <developerConnection>scm:git:https://github.com/dzmauchy/tybloco.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>tybloco-0.1.17</tag>
   </scm>
 
   <properties>
