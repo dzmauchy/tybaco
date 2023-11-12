@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.montoni</groupId>
     <artifactId>tybloco</artifactId>
-    <version>0.1.15-SNAPSHOT</version>
+    <version>0.1.15</version>
   </parent>
 
   <name>ui</name>
@@ -79,8 +79,8 @@
             <configuration>
               <target>
                 <java sourcefile="${project.basedir}/src/scripts/SortL10n.java" fork="true">
-                  <arg value="${project.basedir}/src/main/resources/l10n/texts.xml"/>
-                  <arg value="${project.basedir}/src/main/resources/l10n/messages.xml"/>
+                  <arg value="${project.basedir}/src/main/resources/l10n/texts.xml" />
+                  <arg value="${project.basedir}/src/main/resources/l10n/messages.xml" />
                 </java>
               </target>
             </configuration>

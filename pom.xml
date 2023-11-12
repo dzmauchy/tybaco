@@ -4,7 +4,7 @@
 
   <groupId>org.montoni</groupId>
   <artifactId>tybloco</artifactId>
-  <version>0.1.15-SNAPSHOT</version>
+  <version>0.1.15</version>
   <packaging>pom</packaging>
 
   <inceptionYear>2023</inceptionYear>
@@ -33,6 +33,7 @@
     <url>https://github.com/dzmauchy/tybloco.git</url>
     <connection>scm:git:https://github.com/dzmauchy/tybloco.git</connection>
     <developerConnection>scm:git:https://github.com/dzmauchy/tybloco.git</developerConnection>
+    <tag>tybloco-0.1.15</tag>
   </scm>
 
   <properties>
@@ -441,8 +442,8 @@
             <phase>validate</phase>
             <configuration>
               <rules>
-                <reactorModuleConvergence/>
-                <dependencyConvergence/>
+                <reactorModuleConvergence />
+                <dependencyConvergence />
               </rules>
             </configuration>
           </execution>
