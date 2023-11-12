@@ -4,7 +4,7 @@
 
   <groupId>org.montoni</groupId>
   <artifactId>tybloco</artifactId>
-  <version>0.1.15-SNAPSHOT</version>
+  <version>0.1.16-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <inceptionYear>2023</inceptionYear>
