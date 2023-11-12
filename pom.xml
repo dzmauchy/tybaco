@@ -9,6 +9,7 @@
 
   <inceptionYear>2023</inceptionYear>
 
+  <url>https://github.com/dzmauchy/tybloco</url>
   <organization>
     <name>Montoni</name>
   </organization>
@@ -45,7 +46,7 @@
 
     <javafx.version>21</javafx.version>
     <slf4j.version>2.0.9</slf4j.version>
-    <junit.version>5.10.0</junit.version>
+    <junit.version>5.10.1</junit.version>
 
     <maven.version>3.9.5</maven.version>
 
@@ -74,7 +75,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>32.1.2-jre</version>
+        <version>32.1.3-jre</version>
       </dependency>
 
       <dependency>
@@ -117,7 +118,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-clean-plugin</artifactId>
-          <version>3.3.1</version>
+          <version>3.3.2</version>
         </plugin>
 
         <plugin>
@@ -171,7 +172,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-          <version>4.0.0-M9</version>
+          <version>4.0.0-M11</version>
         </plugin>
 
         <plugin>
@@ -195,7 +196,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.6.0</version>
+          <version>3.6.1</version>
         </plugin>
 
         <plugin>
@@ -273,7 +274,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.1.2</version>
+          <version>3.2.2</version>
           <configuration>
             <forkCount>1</forkCount>
             <threadCount>1</threadCount>
@@ -285,19 +286,12 @@
               <java.util.logging.config.class>org.tybloco.testing.logging.LoggingInitializer</java.util.logging.config.class>
             </systemPropertyVariables>
           </configuration>
-          <dependencies>
-            <dependency>
-              <groupId>org.junit.jupiter</groupId>
-              <artifactId>junit-jupiter-engine</artifactId>
-              <version>${junit.version}</version>
-            </dependency>
-          </dependencies>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>3.1.2</version>
+          <version>3.2.2</version>
           <configuration>
             <forkCount>1</forkCount>
             <threadCount>1</threadCount>
@@ -308,13 +302,6 @@
               <java.util.logging.config.class>org.tybloco.testing.logging.LoggingInitializer</java.util.logging.config.class>
             </systemPropertyVariables>
           </configuration>
-          <dependencies>
-            <dependency>
-              <groupId>org.junit.jupiter</groupId>
-              <artifactId>junit-jupiter-engine</artifactId>
-              <version>${junit.version}</version>
-            </dependency>
-          </dependencies>
         </plugin>
 
         <plugin>
@@ -474,18 +461,21 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
         <version>3.4.5</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
       </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-report-plugin</artifactId>
-        <version>3.1.2</version>
+        <version>3.2.2</version>
       </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jxr-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>3.3.1</version>
       </plugin>
     </plugins>
   </reporting>
