@@ -21,7 +21,6 @@ package org.tybloco.ui.lib.stage;
  * #L%
  */
 
-import com.sun.javafx.PlatformUtil;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseButton;
@@ -72,7 +71,7 @@ public class StageLinuxBugListener implements EventHandler<WindowEvent> {
   }
 
   public static void install(Stage stage) {
-    if (PlatformUtil.isLinux()) {
+    if (com.sun.javafx.PlatformUtil.isLinux()) {
       stage.addEventHandler(WindowEvent.WINDOW_SHOWN, new StageLinuxBugListener());
     }
   }
