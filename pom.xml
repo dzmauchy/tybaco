@@ -91,6 +91,7 @@
     <module>editors</module>
     <module>runtime</module>
     <module>ui</module>
+    <module>ide</module>
     <module>test</module>
   </modules>
 
@@ -523,20 +524,10 @@
           <value>true</value>
         </property>
       </activation>
-      <modules>
-        <module>ide</module>
-      </modules>
     </profile>
 
     <profile>
       <id>scripts</id>
-    </profile>
-
-    <profile>
-      <id>ide</id>
-      <modules>
-        <module>ide</module>
-      </modules>
     </profile>
   </profiles>
 </project>
