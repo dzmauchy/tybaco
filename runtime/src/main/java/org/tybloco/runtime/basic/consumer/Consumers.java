@@ -68,12 +68,13 @@ public interface Consumers {
 
   @Block(name = "Parallel forked consumer", icon = "枝", description = "Each consumer consumes each element with the given executor")
   static <T> Consumer<T> forkParallel(
-    @Input(name = "First executor", icon = "初", description = "First executor")
+    @Input(name = "First executor", icon = "施", description = "First executor")
     Executor e1,
     @Input(name = "First consumer", icon = "初", description = "First consumer")
     Consumer<? super T> c1,
-    @Input(name = "Second executor", icon = "初", description = "First consumer")
+    @Input(name = "Second executor", icon = "施", description = "Second executor")
     Executor e2,
+    @Input(name = "Second consumer", icon = "初", description = "Second consumer")
     Consumer<? super T> c2) {
     return e -> {
       e1.execute(() -> c1.accept(e));
