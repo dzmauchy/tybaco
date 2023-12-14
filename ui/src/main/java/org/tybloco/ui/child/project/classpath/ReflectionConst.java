@@ -49,6 +49,11 @@ record ReflectionConst(String id, String name, String icon, String description, 
     return expression;
   }
 
+  @Override
+  public String shortText(Expression expression) {
+    return expression.toString();
+  }
+
   static String value(Annotation a, String method) {
     try {
       return a.annotationType().getMethod(method).invoke(a).toString();

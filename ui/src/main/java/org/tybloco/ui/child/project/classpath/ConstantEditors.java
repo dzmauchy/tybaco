@@ -150,6 +150,11 @@ public interface ConstantEditors {
       return wrapExpression(ff.apply(defaultVal));
     }
 
+    @Override
+    public String shortText(Expression expression) {
+      return unwrapExpression(expression).toString();
+    }
+
     private Expression unwrapExpression(Expression expression) {
       if (expression instanceof MethodCallExpr mce
         && mce.getScope().isPresent()

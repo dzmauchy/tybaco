@@ -57,7 +57,7 @@ public class ProjectConstantsTable extends TableView<Constant> {
     setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
     setEditable(true);
     getColumns().addAll(List.of(nameColumn(), factoryColumn(), valueColumn()));
-    Tables.initColumnWidths(this, 130, 130, 300);
+    Tables.initColumnWidths(this, 120, 250, 100);
   }
 
   @PostConstruct
@@ -100,8 +100,10 @@ public class ProjectConstantsTable extends TableView<Constant> {
     col.setCellValueFactory(c -> Bindings.createStringBinding(() -> {
       var constant = c.getValue();
       var v = constant.value.get();
-      return fromText(v).toString();
-    }, c.getValue().value));
+      return constCache.constById(constant.factoryId)
+        .map(l -> l.shortText(fromText(v)))
+        .orElseGet(() -> fromText(v).toString());
+    }, c.getValue().value, constCache.cache));
     return col;
   }
 

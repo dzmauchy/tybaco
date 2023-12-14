@@ -32,4 +32,5 @@ public interface LibConst extends Meta, TextSupport {
   Optional<? extends Expression> edit(Node node, Expression oldValue);
   String type();
   Expression defaultValue();
+  String shortText(Expression expression);
 }
