@@ -24,8 +24,8 @@ package org.tybloco.editors.java;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.serialization.JavaParserJsonDeserializer;
 import com.github.javaparser.serialization.JavaParserJsonSerializer;
+import jakarta.json.Json;
 
-import javax.json.Json;
 import java.io.StringReader;
 import java.io.StringWriter;
 
